@@ -5,14 +5,15 @@ import torch
 
 class SelfSupConLoss(nn.Module):
 	"""
+	Self Sup Con Loss: https://arxiv.org/abs/2002.05709
 	Adopted from lightly.loss.NTXentLoss :
 	https://github.com/lightly-ai/lightly/blob/master/lightly/loss/ntx_ent_loss.py
 	"""
 	
-	def __init__(self, temperature: float = 0.5):
+	def __init__(self, temperature: float = 0.5, reduction="mean"):
 		super(SelfSupConLoss, self).__init__()
 		self.temperature = temperature
-		self.cross_entropy = nn.CrossEntropyLoss(reduction="mean")
+		self.cross_entropy = nn.CrossEntropyLoss(reduction=reduction)
 	
 	def forward(self, z: torch.Tensor, z_aug: torch.Tensor, *kwargs) -> torch.Tensor:
 		"""
@@ -58,9 +59,10 @@ class SupConLoss(nn.Module):
 	Attractive force between self augmentation and all other samples from same class
 	"""
 	
-	def __init__(self, temperature: float = 0.5):
+	def __init__(self, temperature: float = 0.5, reduction="mean"):
 		super(SupConLoss, self).__init__()
 		self.temperature = temperature
+		self.reduction = reduction
 	
 	def forward(self, z: torch.Tensor, z_aug: torch.Tensor, labels: torch.Tensor, *kwargs) -> torch.Tensor:
 		"""
@@ -108,7 +110,48 @@ class SupConLoss(nn.Module):
 		
 		# compute the loss -by averaging over multiple positives
 		loss = similarity_scores.sum(dim=1) / (eq_mask.sum(dim=1) - 1)
-		loss = torch.mean(loss)
-		
+		if self.reduction == 'mean':
+			loss = torch.mean(loss)
 		return loss
 
+
+class PUConLoss(nn.Module):
+	"""
+    Proposed PUConLoss : leveraging available positives only
+    """
+	
+	def __init__(self, temperature: float = 0.5):
+		super(PUConLoss, self).__init__()
+		# per sample unsup and sup loss : since reduction is None
+		self.sscl = SelfSupConLoss(temperature=temperature, reduction='none')
+		self.scl = SupConLoss(temperature=temperature, reduction='none')
+	
+	def forward(self, z: torch.Tensor, z_aug: torch.Tensor, labels: torch.Tensor, *kwargs) -> torch.Tensor:
+		"""
+        @param z: Anchor
+        @param z_aug: Mirror
+        @param labels: annotations
+        """
+		# get per sample sup and unsup loss
+		sup_loss = self.scl(z=z, z_aug=z_aug, labels=labels)
+		unsup_loss = self.sscl(z=z, z_aug=z_aug)
+		
+		# label for M-viewed batch with M=2
+		labels = labels.repeat(2)
+		
+		# get the indices of P and  U samples in the multi-viewed batch
+		p_ix = torch.where(labels == 1)[0]
+		u_ix = torch.where(labels == 0)[0]
+		
+		# if no positive labeled it is simply SelfSupConLoss
+		num_labeled = len(p_ix)
+		if num_labeled == 0:
+			return torch.mean(unsup_loss)
+		
+		# compute expected similarity
+		# -------------------------
+		risk_p = sup_loss[p_ix]
+		risk_u = unsup_loss[u_ix]
+		
+		loss = torch.cat([risk_p, risk_u], dim=0)
+		return torch.mean(loss)
