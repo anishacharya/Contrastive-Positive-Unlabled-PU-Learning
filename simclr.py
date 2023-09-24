@@ -178,7 +178,3 @@ class SimCLR(LightningModule):
 			)
 		self._val_predicted_labels.clear()
 		self._val_targets.clear()
-	
-	
-	
-
