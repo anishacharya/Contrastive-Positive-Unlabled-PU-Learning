@@ -3,12 +3,11 @@ Data Loader Module
 """
 import os
 from typing import Dict, List
-
 import torch
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 import lightly.data as data
-from lightly.transforms import SimCLRTransform  # we will stick with this for all the experiments
+from lightly.transforms import SimCLRTransform
 
 root_dir = os.path.join(os.path.dirname(__file__), './data/')
 
