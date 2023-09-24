@@ -97,7 +97,7 @@ class SupConLoss(nn.Module):
 		# compute negative log-likelihoods
 		nll_mtx = torch.exp(inner_pdt_mtx)
 		# mask out self contrast
-		diag_mask = torch.ones_like(inner_pdt_mtx).fill_diagonal_(0)
+		diag_mask = torch.ones_like(inner_pdt_mtx, device=z.device, dtype=torch.bool).fill_diagonal_(0)
 		nll_mtx = nll_mtx * diag_mask
 		nll_mtx /= torch.sum(nll_mtx, dim=1, keepdim=True)
 		nll_mtx[nll_mtx != 0] = - torch.log(nll_mtx[nll_mtx != 0])
@@ -137,7 +137,7 @@ class PUConLoss(nn.Module):
 		unsup_loss = self.sscl(z=z, z_aug=z_aug)
 		
 		# label for M-viewed batch with M=2
-		labels = labels.repeat(2)
+		labels = labels.repeat(2).to(z.device)
 		
 		# get the indices of P and  U samples in the multi-viewed batch
 		p_ix = torch.where(labels == 1)[0]
