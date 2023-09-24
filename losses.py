@@ -39,7 +39,7 @@ class SelfSupConLoss(nn.Module):
 		inner_pdt_11 = inner_pdt_11[~diag_mask].view(batch_size, -1)
 		
 		# concatenate blocks : o/p shape (2*batch_size, 2*batch_size) - diagonals (self sim) zero
-		# [ Block 00 ] | [ Block 01 ]
+		# [ Block 01 ] | [ Block 00 ]
 		# [ Block 10 ] | [ Block 11 ]
 		inner_pdt_0100 = torch.cat([inner_pdt_01, inner_pdt_00], dim=1)
 		inner_pdt_1011 = torch.cat([inner_pdt_10, inner_pdt_11], dim=1)
@@ -54,15 +54,15 @@ class SelfSupConLoss(nn.Module):
 
 class SupConLoss(nn.Module):
 	"""
-	Adopted from lightly.loss.NTXentLoss :
-	https://github.com/lightly-ai/lightly/blob/master/lightly/loss/ntx_ent_loss.py
+	Supervised Contrastive Learning: https://arxiv.org/pdf/2004.11362.pdf.
+	Attractive force between self augmentation and all other samples from same class
 	"""
 	
 	def __init__(self, temperature: float = 0.5):
 		super(SupConLoss, self).__init__()
 		self.temperature = temperature
 	
-	def forward(self, z: torch.Tensor, z_aug: torch.Tensor, labels: torch.Tensor) -> torch.Tensor:
+	def forward(self, z: torch.Tensor, z_aug: torch.Tensor, labels: torch.Tensor, *kwargs) -> torch.Tensor:
 		"""
 		
 		:param z: features => bs * shape
