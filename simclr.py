@@ -15,7 +15,7 @@ from torch import Tensor
 from torch import distributed as torch_dist
 from torch.utils.data import DataLoader
 
-from opt import (get_optimizer, get_scheduler)
+from training_utils import (get_optimizer, get_scheduler)
 
 
 class SimCLR(LightningModule):
