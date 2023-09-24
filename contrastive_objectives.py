@@ -1,2 +1,0 @@
-""" Defines different contrastive objectives """
-
