@@ -18,6 +18,7 @@ from pytorch_lightning.loggers import TensorBoardLogger
 from dataloader import DataManager
 from simclr import SimCLR
 
+
 def _parse_args(verbose=True):
 	parser = ArgumentParser(description="PreTraining Arguments")
 	# ----- logging related ------ #
