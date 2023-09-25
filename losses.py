@@ -14,7 +14,16 @@ def get_loss(framework_config: Dict) -> nn.Module:
 	
 	if loss_fn == 'ce':
 		return nn.CrossEntropyLoss()
-	pass
+	elif loss_fn in ['uPU', 'nnPU']:
+		return PULoss(loss_fn=loss_fn, prior=prior)
+	elif loss_fn == 'ssCL':
+		return SelfSupConLoss(temperature=temp, reduction='mean')
+	elif loss_fn == 'sCL':
+		return SelfSupConLoss(temperature=temp, reduction='mean')
+	elif loss_fn == 'puCL':
+		return PUConLoss(temperature=temp)
+	else:
+		raise NotImplementedError
 
 
 class SelfSupConLoss(nn.Module):
