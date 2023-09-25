@@ -1,13 +1,19 @@
 """ Defines different losses for training """
 import torch.nn as nn
 import torch
+from typing import Dict
 
 
-def get_loss(loss_fn: str):
+def get_loss(framework_config: Dict) -> nn.Module:
 	"""
-
-	:param loss_fn:
+	:param framework_config:
 	"""
+	loss_fn = framework_config.get('loss')
+	temp = framework_config.get('temp', 0.5)
+	prior = framework_config.get('prior', 0)
+	
+	if loss_fn == 'ce':
+		return nn.CrossEntropyLoss()
 	pass
 
 
@@ -166,15 +172,12 @@ class PUConLoss(nn.Module):
 
 
 class PULoss(nn.Module):
-	def __init__(self, prior, meta_loss: str, loss_fn: str):
+	def __init__(self, prior: float, loss_fn: str):
 		super(PULoss, self).__init__()
 		if not 0 < prior < 1:
 			raise ValueError("The class prior should be in [0, 1]")
 		self.prior, self.loss_fn = prior, loss_fn
-		if meta_loss == 'ce':
-			self.meta_loss = nn.CrossEntropyLoss()
-		else:
-			raise NotImplementedError
+		self.meta_loss = nn.CrossEntropyLoss()
 	
 	def forward(self, logits: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
 		"""

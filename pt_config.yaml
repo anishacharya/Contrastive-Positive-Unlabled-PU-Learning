@@ -9,7 +9,9 @@
           "proj_hidden_dim": 256,
           "proj_dim": 128,
 
+          "loss": 'sscl', # contrastive: ssCL, sCL, puCL, dCL, non-contrastive: ce, uPU, nnPU
           "temp": 0.5,
+          "prior": 0.4,
 
           "knn_k": 200,
           "knn_t": 0.1,
