@@ -3,6 +3,14 @@ import torch.nn as nn
 import torch
 
 
+def get_loss(loss_fn: str):
+	"""
+
+	:param loss_fn:
+	"""
+	pass
+
+
 class SelfSupConLoss(nn.Module):
 	"""
 	Self Sup Con Loss: https://arxiv.org/abs/2002.05709

@@ -1,0 +1,55 @@
+{
+  "cifar10":
+    {
+      # we use the hyper-params proposed in SimCLR-v2 : https://github.com/google-research/simclr#pretraining
+      "framework_config":
+        {
+          "encoder_arch": "resnet18",
+          "proj_num_layers": 2,
+          "proj_hidden_dim": 256,
+          "proj_dim": 128,
+
+          "temp": 0.5,
+
+          "knn_k": 200,
+          "knn_t": 0.1,
+        },
+      "data_config":
+        {
+          "data_set": "cifar10",
+          "num_classes": 10,
+
+          "train_batch_size": 10,
+          "test_batch_size": 1000,
+
+          "num_worker": 8
+        },
+      "training_config":
+        {
+          "epochs": 1000,
+          "eval_freq": 1,
+          "save_model_freq": 100,
+
+          # ----- optimization ----
+          "optimizer": "LARS", # SGD/ Adam, AdamW, LARS
+          "betas": [ 0.5, 0.99 ],
+          "momentum": 0.9,
+          "nesterov": true,
+          "amsgrad": false,
+          "lr0": 1,                                 # lars: imagenet: 0.075 * \sqrt(batch_size), cifar: 1, for bs:512
+          "reg": 0.0001,                            # L2 Regularizer
+
+          # ----- LRS ------
+          "lrs": 'cosine',
+
+          "warmup": 0,                              # for linear warmup
+          "step_size": 1,                           # for step lrs
+          "milestones": [ 20, 60, 120 ],            # for multistep lrs
+          "gamma": 0.9,                             # for step and multistep lrs
+
+          "T_max": 1000,                            # for cosine lrs
+          "eta_min": 0.00001,                       # for cosine lrs
+        }
+    },
+
+}
