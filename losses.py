@@ -155,3 +155,59 @@ class PUConLoss(nn.Module):
 		
 		loss = torch.cat([risk_p, risk_u], dim=0)
 		return torch.mean(loss)
+
+
+class PULoss(nn.Module):
+	def __init__(self, prior, meta_loss: str, loss_fn: str):
+		super(PULoss, self).__init__()
+		if not 0 < prior < 1:
+			raise ValueError("The class prior should be in [0, 1]")
+		self.prior, self.loss_fn = prior, loss_fn
+		if meta_loss == 'ce':
+			self.meta_loss = nn.CrossEntropyLoss()
+		else:
+			raise NotImplementedError
+	
+	def forward(self, logits: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
+		"""
+
+		:param logits:
+		:param targets:
+		:return:
+		"""
+		# logits: shape [Batch Size \times Num of Classes] - un-normalized raw linear combination (w_i * x_i + b)
+		# noinspection PyTypeChecker
+		ix_positive = torch.where(targets == 1)[0]
+		# noinspection PyTypeChecker
+		ix_unlabeled = torch.where(targets == 0)[0]
+		
+		pos_logits = torch.index_select(input=logits, dim=0, index=ix_positive)
+		unlabeled_logits = torch.index_select(input=logits, dim=0, index=ix_unlabeled)
+		
+		targets_pos = torch.ones(len(ix_positive), dtype=targets.dtype)
+		targets_pos_inverse = torch.zeros(len(ix_positive), dtype=targets.dtype)
+		targets_unlabeled = torch.zeros(len(ix_unlabeled), dtype=targets.dtype)
+		
+		# compute empirical estimates
+		# R_p+
+		loss_positive = self.meta_loss(pos_logits.to(logits.device), targets_pos.to(targets.device)) \
+			if ix_positive.nelement() != 0 else 0
+		# R_u-
+		loss_unlabeled = self.meta_loss(unlabeled_logits.to(logits.device), targets_unlabeled.to(targets.device)) \
+			if ix_unlabeled.nelement() != 0 else 0
+		# R_p-
+		loss_pos_inv = self.meta_loss(pos_logits.to(logits.device), targets_pos_inverse.to(targets.device)) \
+			if ix_positive.nelement() != 0 else 0
+		# (1-pi) Rn- = R_u- - prior * R_p-
+		loss_negative = loss_unlabeled - self.prior * loss_pos_inv
+		
+		if self.prior == 0:
+			prior = ix_positive.nelement() / (ix_positive.nelement() + ix_unlabeled.nelement())
+			# i.e. fully supervised equivalent to PN strategy
+			return prior * loss_unlabeled + (1 - prior) * loss_positive
+		elif self.loss_fn == 'nnPU':
+			return - loss_negative if loss_negative < 0 else self.prior * loss_positive + loss_negative
+		elif self.loss_fn == 'uPU':
+			return self.prior * loss_positive + loss_negative
+		else:
+			ValueError('Unsupported Loss')
