@@ -31,8 +31,8 @@ class SimCLR(LightningModule):
 			val_dataloader: DataLoader,
 			num_classes: int,
 			gather_distributed: bool = False,
-			knn_k: int = 200,  # knn k for validation steps
-			knn_t: float = 0.1  # knn temperature
+			knn_k: int = 200,
+			knn_t: float = 0.1
 	):
 		super().__init__()
 		self.framework_config = framework_config
