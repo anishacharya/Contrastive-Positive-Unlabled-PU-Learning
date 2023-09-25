@@ -2,11 +2,9 @@
 Defines contrastive framework SimCLR: https://arxiv.org/abs/2002.05709
 """
 from typing import Dict, Optional, List
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from lightly.loss import NTXentLoss
 from lightly.models import ResNetGenerator
 from lightly.models.modules import heads
 from lightly.utils.benchmarking.knn import knn_predict
@@ -14,8 +12,8 @@ from pytorch_lightning import LightningModule
 from torch import Tensor
 from torch import distributed as torch_dist
 from torch.utils.data import DataLoader
-
 from training_utils import (get_optimizer, get_scheduler)
+from losses import get_loss
 
 
 class BaseFramework(LightningModule):
@@ -26,9 +24,7 @@ class BaseFramework(LightningModule):
 			data_config: Dict,
 			val_dataloader: DataLoader,
 			num_classes: int,
-			gather_distributed: bool = False,
-			knn_k: int = 200,
-			knn_t: float = 0.1
+			gather_distributed: bool = False
 	):
 		super().__init__()
 		self.framework_config = framework_config
@@ -37,6 +33,7 @@ class BaseFramework(LightningModule):
 		self.val_dataloader = val_dataloader
 		self.num_classes = num_classes
 		self.gather_distributed = gather_distributed
+		
 		self.temp = self.framework_config.get("temp", 0.5)
 		# sanity checks -----
 		if abs(self.temp) < 1e-8:
@@ -55,18 +52,16 @@ class BaseFramework(LightningModule):
 			*list(resnet.children())[:-1], nn.AdaptiveAvgPool2d(1)
 		)
 		# Get objective
-		self.criterion = NTXentLoss(
-			temperature=self.temp,
-			memory_bank_size=0,  # Base SimCLR has no memory
-			gather_distributed=self.gather_distributed
-		)
-		self.max_accuracy = 0.0
-		self.knn_k = knn_k
-		self.knn_t = knn_t
+		self.criterion = get_loss(framework_config=framework_config)
+		
+		# kNN validation
 		self._train_features: Optional[Tensor] = None
 		self._train_targets: Optional[Tensor] = None
 		self._val_predicted_labels: List[Tensor] = []
 		self._val_targets: List[Tensor] = []
+		self.knn_k = self.framework_config.get("knn_k", 200)
+		self.knn_t = self.framework_config.get("knn_t", 0.1)
+		self.max_accuracy = 0.0
 	
 	def configure_optimizers(self):
 		params = (
@@ -155,8 +150,6 @@ class SimCLR(BaseFramework):
 			val_dataloader: DataLoader,
 			num_classes: int,
 			gather_distributed: bool = False,
-			knn_k: int = 200,
-			knn_t: float = 0.1
 	):
 		super().__init__(
 			framework_config=framework_config,
@@ -165,8 +158,6 @@ class SimCLR(BaseFramework):
 			val_dataloader=val_dataloader,
 			num_classes=num_classes,
 			gather_distributed=gather_distributed,
-			knn_k=knn_k,
-			knn_t=knn_t
 		)
 		self.projection_head = heads.SimCLRProjectionHead(
 			input_dim=512,
@@ -217,8 +208,6 @@ class NonContrastive(BaseFramework):
 			val_dataloader: DataLoader,
 			num_classes: int,
 			gather_distributed: bool = False,
-			knn_k: int = 200,
-			knn_t: float = 0.1
 	):
 		super().__init__(
 			framework_config=framework_config,
@@ -227,8 +216,6 @@ class NonContrastive(BaseFramework):
 			val_dataloader=val_dataloader,
 			num_classes=num_classes,
 			gather_distributed=gather_distributed,
-			knn_k=knn_k,
-			knn_t=knn_t
 		)
 	
 	def forward(self, x) -> torch.Tensor:
