@@ -18,11 +18,7 @@ from torch.utils.data import DataLoader
 from training_utils import (get_optimizer, get_scheduler)
 
 
-class SimCLR(LightningModule):
-	"""
-	SimCLR: https://arxiv.org/abs/2002.05709
-	"""
-	
+class BaseFramework(LightningModule):
 	def __init__(
 			self,
 			framework_config: Dict,
@@ -58,12 +54,6 @@ class SimCLR(LightningModule):
 		self.backbone = nn.Sequential(
 			*list(resnet.children())[:-1], nn.AdaptiveAvgPool2d(1)
 		)
-		self.projection_head = heads.SimCLRProjectionHead(
-			input_dim=512,
-			hidden_dim=512,
-			output_dim=128,
-			num_layers=2
-		)
 		# Get objective
 		self.criterion = NTXentLoss(
 			temperature=self.temp,
@@ -92,34 +82,6 @@ class SimCLR(LightningModule):
 			lrs_config=self.training_config
 		)
 		return [optim], [scheduler]
-	
-	def forward(self, x) -> torch.Tensor:
-		"""
-		:param x: feature input
-		:return: representation = projection o encoder (x)
-		"""
-		x = self.backbone(x).flatten(start_dim=1)
-		z = self.projection_head(x)
-		return z
-	
-	def training_step(self, batch, batch_index):
-		"""
-		:param batch:
-		:param batch_index:
-		:return:
-		"""
-		(x0, x1), labels, _ = batch
-		z0 = self.forward(x0)
-		z1 = self.forward(x1)
-		loss = self.criterion(z0, z1, labels)
-		self.log(
-			"train-loss",
-			loss,
-			on_step=True,
-			on_epoch=True,
-			prog_bar=True
-		)
-		return loss
 	
 	def extract_features(self, dataloader: DataLoader) -> [torch.Tensor, torch.Tensor]:
 		"""
@@ -178,3 +140,65 @@ class SimCLR(LightningModule):
 			)
 		self._val_predicted_labels.clear()
 		self._val_targets.clear()
+
+
+class SimCLR(BaseFramework):
+	"""
+	SimCLR: https://arxiv.org/abs/2002.05709
+	"""
+	
+	def __init__(
+			self,
+			framework_config: Dict,
+			training_config: Dict,
+			data_config: Dict,
+			val_dataloader: DataLoader,
+			num_classes: int,
+			gather_distributed: bool = False,
+			knn_k: int = 200,
+			knn_t: float = 0.1
+	):
+		super().__init__(
+			framework_config=framework_config,
+			training_config=training_config,
+			data_config=data_config,
+			val_dataloader=val_dataloader,
+			num_classes=num_classes,
+			gather_distributed=gather_distributed,
+			knn_k=knn_k,
+			knn_t=knn_t
+		)
+		self.projection_head = heads.SimCLRProjectionHead(
+			input_dim=512,
+			hidden_dim=512,
+			output_dim=128,
+			num_layers=2
+		)
+	
+	def forward(self, x) -> torch.Tensor:
+		"""
+		:param x: feature input
+		:return: representation = projection o encoder (x)
+		"""
+		x = self.backbone(x).flatten(start_dim=1)
+		z = self.projection_head(x)
+		return z
+	
+	def training_step(self, batch, batch_index):
+		"""
+		:param batch:
+		:param batch_index:
+		:return:
+		"""
+		(x0, x1), labels, _ = batch
+		z0 = self.forward(x0)
+		z1 = self.forward(x1)
+		loss = self.criterion(z0, z1, labels)
+		self.log(
+			"train-loss",
+			loss,
+			on_step=True,
+			on_epoch=True,
+			prog_bar=True
+		)
+		return loss
