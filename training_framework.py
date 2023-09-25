@@ -202,3 +202,58 @@ class SimCLR(BaseFramework):
 			prog_bar=True
 		)
 		return loss
+
+
+class NonContrastive(BaseFramework):
+	"""
+	SimCLR: https://arxiv.org/abs/2002.05709
+	"""
+	
+	def __init__(
+			self,
+			framework_config: Dict,
+			training_config: Dict,
+			data_config: Dict,
+			val_dataloader: DataLoader,
+			num_classes: int,
+			gather_distributed: bool = False,
+			knn_k: int = 200,
+			knn_t: float = 0.1
+	):
+		super().__init__(
+			framework_config=framework_config,
+			training_config=training_config,
+			data_config=data_config,
+			val_dataloader=val_dataloader,
+			num_classes=num_classes,
+			gather_distributed=gather_distributed,
+			knn_k=knn_k,
+			knn_t=knn_t
+		)
+	
+	def forward(self, x) -> torch.Tensor:
+		"""
+		:param x: feature input
+		:return: representation = encoder (x)
+		"""
+		z = self.backbone(x).flatten(start_dim=1)
+		return z
+	
+	def training_step(self, batch, batch_index):
+		"""
+		:param batch:
+		:param batch_index:
+		:return:
+		"""
+		(x0, x1), labels, _ = batch
+		z0 = self.forward(x0)
+		z1 = self.forward(x1)
+		loss = self.criterion(z0, z1, labels)
+		self.log(
+			"train-loss",
+			loss,
+			on_step=True,
+			on_epoch=True,
+			prog_bar=True
+		)
+		return loss
