@@ -16,7 +16,7 @@ from pytorch_lightning.callbacks import (
 )
 from pytorch_lightning.loggers import TensorBoardLogger
 from dataloader import DataManager
-from simclr import SimCLR
+from training_framework import SimCLR
 
 
 def _parse_args(verbose=True):
