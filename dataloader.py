@@ -3,6 +3,8 @@ Data Loader Module
 """
 import os
 from typing import Dict, List
+from sklearn.utils import shuffle
+import numpy as np
 import torch
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
@@ -23,6 +25,8 @@ class DataManager:
 			gpu_strategy: str = "auto"
 	):
 		# config
+		self.neg_classes = None
+		self.pos_classes = None
 		self.data_config = data_config
 		self.data_set = self.data_config.get('data_set')
 		self.num_classes = self.data_config.get('num_classes')
@@ -136,3 +140,99 @@ class DataManager:
 			num_workers=self.num_worker
 		)
 		return dataloader_train_mv, dataloader_train_sv, dataloader_test
+
+
+def binarize_dataset(
+		features: np.array,
+		targets: np.array,
+		pos_class: List,
+		neg_class: List = None,
+		setting: str = None,
+		num_labeled: int = 0,
+		num_unlabeled: int = None,
+		prior: float = None
+) -> [np.array, np.array, Dict]:
+	"""
+		Binarize and flip labels as needed to obtain
+		Case control PU, Single dataset PU or Binary PN data
+	"""
+	p_data_idx = np.where(np.isin(targets, pos_class))[0]
+	n_data_idx = np.where(np.isin(targets, neg_class) if neg_class else
+	                      np.isin(targets, pos_class, invert=True))[0]
+	
+	if setting in ['pu_case_control', 'pu_single_data']:
+		"""
+        'pu_case_control': PU setting Xp ~ p(x | y=1), Xu ~ p(x)
+        'pu_single_data' : X ~ p(x), some P samples are labeled based on propensity score
+        """
+		if num_labeled == 0:
+			targets = np.zeros(len(features), dtype=targets.dtype)
+		
+		else:
+			# Obtain P data
+			# p_ix = np.random.choice(a=p_data_idx, size=num_labeled, replace=True)
+			# # balanced P data ~ equal data from each class in P
+			num_pos_labeled_per_cls = int(num_labeled / len(pos_class))
+			p_ix = []
+			for cls in pos_class:
+				p_cls = np.where(np.isin(targets, cls))[0]
+				p_ix.extend(np.random.choice(a=p_cls, size=num_pos_labeled_per_cls, replace=False))
+			p_data = features[p_ix]
+			p_labels = np.ones(len(p_data), dtype=targets.dtype)
+			
+			# Obtain U data
+			if setting == 'pu_case_control':
+				if num_unlabeled and prior:
+					n_pu = int(prior * num_unlabeled)
+					n_nu = num_unlabeled - n_pu
+					pu_ix = np.random.choice(a=p_data_idx, size=n_pu,
+					                         replace=False if n_pu <= len(p_data_idx) else True)
+					nu_ix = np.random.choice(a=n_data_idx, size=n_nu,
+					                         replace=False if n_nu <= len(p_data_idx) else True)
+					u_ix = np.concatenate((pu_ix, nu_ix), axis=0)
+				
+				else:
+					u_ix = np.concatenate((p_data_idx, n_data_idx), axis=0)
+				
+				u_data = features[u_ix]
+				u_labels = np.zeros(len(u_data), dtype=targets.dtype)
+			
+			else:
+				remaining_p_ix = np.setdiff1d(ar1=p_data_idx, ar2=p_ix)
+				u_ix = np.concatenate((remaining_p_ix, n_data_idx), axis=0)
+				u_data = features[u_ix]
+				u_labels = np.zeros(len(u_data), dtype=targets.dtype)
+			
+			# create PU data
+			features = np.concatenate((p_data, u_data), axis=0)
+			targets = np.concatenate((p_labels, u_labels), axis=0)
+	
+	elif setting == 'unsupervised':
+		"""
+		Fully Unsupervised setting X
+		"""
+		p_data = features[p_data_idx]
+		n_data = features[n_data_idx]
+		
+		features = np.concatenate((p_data, n_data), axis=0)
+		targets = np.zeros(len(features), dtype=targets.dtype)
+	
+	elif setting == 'supervised':
+		"""
+        standard binary (PN) setting Xp ~ p(x | y=1) , Xn ~ p(x | y=0)
+        """
+		p_data = features[p_data_idx]
+		p_labels = np.ones(len(p_data), dtype=targets.dtype)
+		
+		n_data = features[n_data_idx]
+		n_labels = np.zeros(len(n_data), dtype=targets.dtype)
+		
+		features = np.concatenate((p_data, n_data), axis=0)
+		targets = np.concatenate((p_labels, n_labels), axis=0)
+	
+	else:
+		raise NotImplementedError
+	
+	features, targets = shuffle(features, targets, random_state=0)
+	
+	return features, targets
