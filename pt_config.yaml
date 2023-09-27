@@ -18,7 +18,7 @@
         },
       "data_config":
         {
-          "data_set": "cifar10",
+          "data_set": "cifar10.dog_cat",
           "num_classes": 10,
 
           "train_batch_size": 10,

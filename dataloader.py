@@ -25,13 +25,17 @@ class DataManager:
 			gpu_strategy: str = "auto"
 	):
 		# config
-		self.neg_classes = None
-		self.pos_classes = None
 		self.data_config = data_config
 		self.data_set = self.data_config.get('data_set')
 		self.num_classes = self.data_config.get('num_classes')
 		self.train_batch_size = self.data_config.get('train_batch_size', 256)
 		self.test_batch_size = self.data_config.get('test_batch_size', 1000)
+		
+		# PU specific
+		self.setting = self.data_config.get('setting', 'supervised')
+		self.num_labeled = self.data_config.get('num_labeled', None)
+		self.num_unlabeled = self.data_config.get('num_unlabeled', None)
+		self.dataset_prior = self.data_config.get('dataset_prior', None)
 		
 		# DDP -- divide batch into gpus
 		if gpu_strategy == "ddp":
@@ -42,6 +46,7 @@ class DataManager:
 		self.num_worker = self.data_config.get('num_worker', 1)
 		
 		# initialize attributes specific to dataset
+		self.neg_classes, self.pos_classes = None, None  # PU specific
 		self.num_channels, self.height, self.width = None, None, None
 		self.tr_dataset, self.te_dataset = None, None
 		self.sv_transform, self.mv_transform, self.basic_transform = None, None, None
@@ -147,16 +152,18 @@ class BinaryCIFAR10(datasets.CIFAR10):
 		Binarize CIFAR10
 	"""
 	
-	def __init__(self,
-	             pos_class: List,
-	             neg_class: List = None,
-	             root=root_dir,
-	             train: bool = True,
-	             download: bool = True,
-	             setting: str = None,
-	             num_labeled: int = None,
-	             num_unlabeled: int = None,
-	             prior: float = None):
+	def __init__(
+			self,
+			pos_class: List,
+			neg_class: List = None,
+			root=root_dir,
+			train: bool = True,
+			download: bool = True,
+			setting: str = None,
+			num_labeled: int = None,
+			num_unlabeled: int = None,
+			prior: float = None
+	):
 		super().__init__(root=root, train=train, download=download)
 		self.data, self.targets = np.array(self.data), np.array(self.targets)
 		self.data, self.targets = binarize_dataset(
