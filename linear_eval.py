@@ -51,7 +51,7 @@ def _parse_args(verbose=True):
 	parser.add_argument(
 		"--log_dir",
 		type=Path,
-		default=os.path.join(os.getcwd(), "pl_logs")
+		default=os.path.join(os.getcwd(), "logs")
 	)
 	parser.add_argument(
 		"--exp_name",
