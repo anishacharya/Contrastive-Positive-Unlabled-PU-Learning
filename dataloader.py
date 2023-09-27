@@ -28,8 +28,6 @@ class DataManager:
 		# config
 		self.data_set = data_set
 		self.data_config = data_config
-		
-		self.num_classes = self.data_config.get('num_classes')
 		self.train_batch_size = self.data_config.get('train_batch_size', 256)
 		self.test_batch_size = self.data_config.get('test_batch_size', 1000)
 		
@@ -49,6 +47,7 @@ class DataManager:
 		
 		# initialize attributes specific to dataset
 		self.neg_classes, self.pos_classes = None, None  # PU specific
+		self.num_classes = None
 		self.num_channels, self.height, self.width = None, None, None
 		self.tr_dataset, self.te_dataset = None, None
 		self.sv_transform, self.mv_transform, self.basic_transform = None, None, None
@@ -107,6 +106,7 @@ class DataManager:
 		}
 		if self.data_set in ['cifar10.dog_cat']:
 			# get attributes
+			self.num_classes = 2
 			self.num_channels, self.height, self.width = 3, 32, 32
 			self.pos_classes = binary_class_mapping[self.data_set]['pos_classes']
 			self.neg_classes = binary_class_mapping[self.data_set]['neg_classes']

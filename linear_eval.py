@@ -11,9 +11,9 @@ from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import DeviceStatsMonitor, LearningRateMonitor
 from pytorch_lightning.loggers import TensorBoardLogger
 
-from src import DataManager
-from src import FRAMEWORK_MAP
-from src import LinearClassificationHead
+from dataloader import DataManager
+from linear_head import LinearClassificationHead
+from training_framework import SimCLR
 
 
 def _parse_args(verbose=True):
@@ -61,7 +61,7 @@ def _parse_args(verbose=True):
 	)
 	args = parser.parse_args()
 	verbose and print(args)
-
+	
 	return args
 
 
@@ -91,31 +91,39 @@ def run_linear_eval(args, config, freeze_encoder: bool = True) -> None:
 	n_gpus = torch.cuda.device_count() if torch.cuda.is_available() else 1
 	accelerator = "gpu" if torch.cuda.is_available() else "cpu"
 	strategy = "ddp" if n_gpus >= 2 else "auto"
-
+	
 	runs = []
 	for seed in range(args.n_repeat):
 		torch.set_float32_matmul_precision("high")
 		pl.seed_everything(seed)
 		# --- Data -----
 		data_manager = DataManager(
+			data_set=args.dataset,
 			data_config=data_config,
 			gpu_strategy=strategy
 		)
-		_, dataloader_train_sv, dataloader_test = data_manager.get_contrastive_learning_data()
+		dataloader_train_mv, dataloader_train_sv, dataloader_test = data_manager.get_contrastive_learning_data()
 		# --- Model -------
 		framework = framework_config.get("framework", None)
 		if args.checkpoint is not None:
-			print(
-				'Loading PreTrained Model from Checkpoint {}'.format(args.checkpoint)
-			)
-			model = FRAMEWORK_MAP[framework].load_from_checkpoint(
+			print('Loading PreTrained Model from Checkpoint {}'.format(args.checkpoint))
+			model = SimCLR.load_from_checkpoint(
 				args.checkpoint,
 				training_config=training_config,
 				val_dataloader=dataloader_train_sv,
 				num_classes=data_manager.num_classes
 			)
 		else:
-			raise AssertionError("You need to pass model chkpt to perform evaluation")
+			print("You need to pass model chkpt to perform evaluation -- "
+			      "since none provided training from scratch")
+			model = SimCLR(
+				framework_config=framework_config,
+				training_config=training_config,
+				data_config=data_config,
+				val_dataloader=dataloader_train_sv,
+				num_classes=data_manager.num_classes,
+				gather_distributed=True if n_gpus >= 2 else False
+			)
 		lin_classifier = LinearClassificationHead(
 			model=model,
 			training_config=training_config,
