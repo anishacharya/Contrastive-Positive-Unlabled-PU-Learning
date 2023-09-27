@@ -142,6 +142,35 @@ class DataManager:
 		return dataloader_train_mv, dataloader_train_sv, dataloader_test
 
 
+class BinaryCIFAR10(datasets.CIFAR10):
+	"""
+		Binarize CIFAR10
+	"""
+	
+	def __init__(self,
+	             pos_class: List,
+	             neg_class: List = None,
+	             root=root_dir,
+	             train: bool = True,
+	             download: bool = True,
+	             setting: str = None,
+	             num_labeled: int = None,
+	             num_unlabeled: int = None,
+	             prior: float = None):
+		super().__init__(root=root, train=train, download=download)
+		self.data, self.targets = np.array(self.data), np.array(self.targets)
+		self.data, self.targets = binarize_dataset(
+			features=self.data,
+			targets=self.targets,
+			pos_class=pos_class,
+			neg_class=neg_class,
+			setting=setting,
+			num_labeled=num_labeled,
+			num_unlabeled=num_unlabeled,
+			prior=prior
+		)
+
+
 def binarize_dataset(
 		features: np.array,
 		targets: np.array,
@@ -167,7 +196,6 @@ def binarize_dataset(
         """
 		if num_labeled == 0:
 			targets = np.zeros(len(features), dtype=targets.dtype)
-		
 		else:
 			# Obtain P data
 			# p_ix = np.random.choice(a=p_data_idx, size=num_labeled, replace=True)
@@ -190,49 +218,38 @@ def binarize_dataset(
 					nu_ix = np.random.choice(a=n_data_idx, size=n_nu,
 					                         replace=False if n_nu <= len(p_data_idx) else True)
 					u_ix = np.concatenate((pu_ix, nu_ix), axis=0)
-				
 				else:
 					u_ix = np.concatenate((p_data_idx, n_data_idx), axis=0)
-				
 				u_data = features[u_ix]
 				u_labels = np.zeros(len(u_data), dtype=targets.dtype)
-			
 			else:
 				remaining_p_ix = np.setdiff1d(ar1=p_data_idx, ar2=p_ix)
 				u_ix = np.concatenate((remaining_p_ix, n_data_idx), axis=0)
 				u_data = features[u_ix]
 				u_labels = np.zeros(len(u_data), dtype=targets.dtype)
-			
 			# create PU data
 			features = np.concatenate((p_data, u_data), axis=0)
 			targets = np.concatenate((p_labels, u_labels), axis=0)
-	
 	elif setting == 'unsupervised':
 		"""
 		Fully Unsupervised setting X
 		"""
 		p_data = features[p_data_idx]
 		n_data = features[n_data_idx]
-		
 		features = np.concatenate((p_data, n_data), axis=0)
 		targets = np.zeros(len(features), dtype=targets.dtype)
-	
 	elif setting == 'supervised':
 		"""
         standard binary (PN) setting Xp ~ p(x | y=1) , Xn ~ p(x | y=0)
         """
 		p_data = features[p_data_idx]
-		p_labels = np.ones(len(p_data), dtype=targets.dtype)
-		
 		n_data = features[n_data_idx]
+		p_labels = np.ones(len(p_data), dtype=targets.dtype)
 		n_labels = np.zeros(len(n_data), dtype=targets.dtype)
-		
 		features = np.concatenate((p_data, n_data), axis=0)
 		targets = np.concatenate((p_labels, n_labels), axis=0)
-	
 	else:
 		raise NotImplementedError
 	
 	features, targets = shuffle(features, targets, random_state=0)
-	
 	return features, targets
