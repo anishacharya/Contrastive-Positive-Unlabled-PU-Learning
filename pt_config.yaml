@@ -11,7 +11,7 @@
           # Losses:
           # contrastive: ssCL, sCL, puCL
           # non-contrastive: ce, uPU, nnPU
-          "loss": 'sCL',
+          "loss": 'ssCL',
           "temp": 0.5,
           "prior": 0.4,  # PU baselines use this - we don't
 
