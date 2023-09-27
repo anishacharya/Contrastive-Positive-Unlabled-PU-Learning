@@ -83,7 +83,7 @@ def run_linear_eval(args, config, freeze_encoder: bool = True) -> None:
 	training_config = config["training_config"]
 	# --- Device Setup ---
 	n_gpus = torch.cuda.device_count() if torch.cuda.is_available() else 1
-	accelerator = "gpu" if torch.cuda.is_available() else "cpu"
+	accelerator = "gpu" if torch.cuda.is_available() else "mps"
 	strategy = "ddp" if n_gpus >= 2 else "auto"
 	
 	runs = []
@@ -123,6 +123,7 @@ def run_linear_eval(args, config, freeze_encoder: bool = True) -> None:
 			feature_dim=model.feat_dim,
 			num_classes=data_manager.num_classes,
 			freeze_model=freeze_encoder,
+			topk=(1),
 		)
 		# --- Logging -----
 		tf_logger = TensorBoardLogger(
@@ -149,7 +150,7 @@ def run_linear_eval(args, config, freeze_encoder: bool = True) -> None:
 			check_val_every_n_epoch=training_config.get('eval_freq', 1),
 			log_every_n_steps=1,
 			# precision="16-mixed",
-			strategy="ddp_find_unused_parameters_true",
+			# strategy="ddp_find_unused_parameters_true",
 		)
 		trainer.fit(
 			model=lin_classifier,
