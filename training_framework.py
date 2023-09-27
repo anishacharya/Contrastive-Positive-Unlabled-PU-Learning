@@ -51,6 +51,7 @@ class BaseFramework(LightningModule):
 		self.backbone = nn.Sequential(
 			*list(resnet.children())[:-1], nn.AdaptiveAvgPool2d(1)
 		)
+		self.feat_dim = 512
 		# Get objective
 		self.criterion = get_loss(framework_config=framework_config)
 		
@@ -160,7 +161,7 @@ class SimCLR(BaseFramework):
 			gather_distributed=gather_distributed,
 		)
 		self.projection_head = heads.SimCLRProjectionHead(
-			input_dim=512,
+			input_dim=self.feat_dim,
 			hidden_dim=512,
 			output_dim=128,
 			num_layers=2

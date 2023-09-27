@@ -104,7 +104,6 @@ def run_linear_eval(args, config, freeze_encoder: bool = True) -> None:
 		)
 		dataloader_train_mv, dataloader_train_sv, dataloader_test = data_manager.get_contrastive_learning_data()
 		# --- Model -------
-		framework = framework_config.get("framework", None)
 		if args.checkpoint is not None:
 			print('Loading PreTrained Model from Checkpoint {}'.format(args.checkpoint))
 			model = SimCLR.load_from_checkpoint(
@@ -127,7 +126,7 @@ def run_linear_eval(args, config, freeze_encoder: bool = True) -> None:
 		lin_classifier = LinearClassificationHead(
 			model=model,
 			training_config=training_config,
-			feature_dim=128,
+			feature_dim=model.feat_dim,
 			num_classes=data_manager.num_classes,
 			freeze_model=freeze_encoder,
 		)
