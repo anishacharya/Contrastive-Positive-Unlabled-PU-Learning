@@ -8,8 +8,10 @@
           "proj_num_layers": 2,
           "proj_hidden_dim": 256,
           "proj_dim": 128,
-
-          "loss": 'sscl', # contrastive: ssCL, sCL, puCL, dCL, non-contrastive: ce, uPU, nnPU
+          # Losses:
+          # contrastive: ssCL, sCL, puCL
+          # non-contrastive: ce, uPU, nnPU
+          "loss": 'sscl',
           "temp": 0.5,
           "prior": 0.4,
 
@@ -23,7 +25,7 @@
 
           # settings: pu_single_data, pu_case_control , supervised , unsupervised
           "setting": "pu_case_control",
-          "num_labeled": 5000,
+          "num_labeled": 500,
           "num_unlabeled": ,   # only for controlled experiments - leave blank for benchmarks
           "dataset_prior": ,    # leave blank for benchmarks
 
