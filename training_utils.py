@@ -4,6 +4,7 @@ Return appropriate optimizer and LRS
 from typing import Dict
 from torch import optim
 from lightly.utils.lars import LARS
+import transformers
 
 
 def get_optimizer(
@@ -74,9 +75,17 @@ def get_scheduler(
 			gamma=lrs_config.get('gamma')
 		)
 	elif lrs == 'cosine':
-		return optim.lr_scheduler.CosineAnnealingLR(optimizer=optimizer,
-		                                            T_max=lrs_config.get('T_max'),
-		                                            eta_min=lrs_config.get('eta_min', 0))
+		return optim.lr_scheduler.CosineAnnealingLR(
+			optimizer=optimizer,
+			T_max=lrs_config.get('T_max'),
+			eta_min=lrs_config.get('eta_min', 0)
+		)
+	elif lrs == 'cosine_warmup':
+		return transformers.get_cosine_schedule_with_warmup(
+			optimizer=optimizer,
+			num_warmup_steps=lrs_config.get('warmup', 10),
+			num_training_steps=lrs_config.get('T_max')
+		)
 	else:
 		return None
 
