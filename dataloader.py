@@ -55,7 +55,8 @@ class DataManager:
 		"""
 		:return:
 		"""
-		if self.data_set == 'cifar10':
+		if self.data_set in ['cifar10.dog_cat']:
+			# update dataset attributes
 			mean, std = [0.4914, 0.4822, 0.4465], [0.2470, 0.2435, 0.2616]
 			model_ip_shape = 32
 			mv_transform = SimCLRTransform(
@@ -99,9 +100,14 @@ class DataManager:
         Returns:
         	train and test dataset
         """
-		if self.data_set == 'cifar10':
-			# update dataset attributes
+		binary_class_mapping = {
+			'cifar10.dog_cat': {'pos_classes': [5], 'neg_classes': [3]},
+		}
+		if self.data_set in ['cifar10.dog_cat']:
 			self.num_channels, self.height, self.width = 3, 32, 32
+			self.pos_classes = binary_class_mapping[self.data_set]['pos_classes']
+			self.neg_classes = binary_class_mapping[self.data_set]['neg_classes']
+			
 			dataset_train_ssl = datasets.CIFAR10(
 				"datasets/cifar10",
 				download=True
