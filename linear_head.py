@@ -58,7 +58,7 @@ class LinearClassificationHead(LightningModule):
 		self.criterion = CrossEntropyLoss()
 	
 	def forward(self, images: Tensor) -> Tensor:
-		features = self.model.forward(images).flatten(start_dim=1)
+		features = self.model.backbone(images).flatten(start_dim=1)
 		return self.classification_head(features)
 	
 	def shared_step(self, batch, batch_idx) -> Tuple[Tensor, Dict[int, Tensor]]:
