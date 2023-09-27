@@ -19,27 +19,21 @@ from training_framework import SimCLR
 def _parse_args(verbose=True):
 	parser = ArgumentParser(description="Linear Evaluation Arguments")
 	parser.add_argument(
+		'--dataset',
+		type=str,
+		default='cifar10.dog_cat',
+		help='Pass Dataset'
+	)
+	parser.add_argument(
 		"--mode",
 		type=str,
 		default="lp",
 		help="lp / ft"
 	)
 	parser.add_argument(
-		'--dataset',
-		type=str,
-		default='cifar10',
-		help='Pass Dataset'
-	)
-	parser.add_argument(
 		"--checkpoint",
 		type=Path,
 		default=None,
-	)
-	parser.add_argument(
-		"--framework",
-		type=str,
-		default="SimCLR",
-		help="SimCLR / NNCLR "
 	)
 	parser.add_argument(
 		'--n_repeat',
@@ -186,7 +180,7 @@ if __name__ == '__main__':
 	run_linear_eval(
 		args=arguments,
 		config=yaml.load(
-			open('configs/lp_config.yaml'),
+			open('configs/lin_eval_config.yaml'),
 			Loader=yaml.FullLoader
 		),
 		freeze_encoder=freeze
