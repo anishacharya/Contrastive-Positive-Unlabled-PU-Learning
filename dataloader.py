@@ -104,22 +104,29 @@ class DataManager:
 			'cifar10.dog_cat': {'pos_classes': [5], 'neg_classes': [3]},
 		}
 		if self.data_set in ['cifar10.dog_cat']:
+			# get attributes
 			self.num_channels, self.height, self.width = 3, 32, 32
 			self.pos_classes = binary_class_mapping[self.data_set]['pos_classes']
 			self.neg_classes = binary_class_mapping[self.data_set]['neg_classes']
-			
-			dataset_train_ssl = datasets.CIFAR10(
-				"datasets/cifar10",
-				download=True
+			# obtain datasets
+			dataset_train_ssl = BinaryCIFAR10(
+				pos_class=self.pos_classes,
+				neg_class=self.neg_classes,
+				setting=self.setting,
+				num_labeled=self.num_labeled,
+				num_unlabeled=self.num_unlabeled,
+				prior=self.dataset_prior
 			)
-			dataset_train_val = datasets.CIFAR10(
-				"datasets/cifar10",
-				download=True
+			dataset_train_val = BinaryCIFAR10(
+				pos_class=self.pos_classes,
+				neg_class=self.neg_classes,
+				setting='supervised',
 			)
-			dataset_test = datasets.CIFAR10(
-				"datasets/cifar10",
-				download=True,
-				train=False
+			dataset_test = BinaryCIFAR10(
+				pos_class=self.pos_classes,
+				neg_class=self.neg_classes,
+				setting='supervised',
+				train=False,
 			)
 		else:
 			raise NotImplementedError

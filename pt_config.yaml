@@ -24,8 +24,8 @@
           # settings: pu_single_data, pu_case_control , supervised , unsupervised
           "setting": "pu_case_control",
           "num_labeled": 5000,
-          "num_unlabeled": 5000,   # only for controlled experiments - leave blank for benchmarks
-          "dataset_prior": 0.9,    # leave blank for benchmarks
+          "num_unlabeled": ,   # only for controlled experiments - leave blank for benchmarks
+          "dataset_prior": ,    # leave blank for benchmarks
 
           "train_batch_size": 1024,
           "test_batch_size": 1000,
