@@ -123,7 +123,7 @@ def run_linear_eval(args, config, freeze_encoder: bool = True) -> None:
 			feature_dim=model.feat_dim,
 			num_classes=data_manager.num_classes,
 			freeze_model=freeze_encoder,
-			topk=(1),
+			topk=(1, 2),
 		)
 		# --- Logging -----
 		tf_logger = TensorBoardLogger(
