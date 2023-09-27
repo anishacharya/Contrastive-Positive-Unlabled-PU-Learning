@@ -16,7 +16,7 @@ class LinearClassificationHead(LightningModule):
 			training_config: Dict,
 			feature_dim: int,
 			num_classes: int,
-			topk: Tuple[int, ...] = (1, 5),
+			topk: Tuple[int, ...] = (1, 2),
 			freeze_model: bool = False,
 	) -> None:
 		"""Linear classifier for benchmarking (LP or FT).
