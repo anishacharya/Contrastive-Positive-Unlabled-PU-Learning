@@ -12,6 +12,7 @@ x_test*
 y_test*
 src/dataloader/data/*
 datasets/
+data/
 src/data/
 pl_logs/*
 src_non_pl/logs/backup

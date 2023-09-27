@@ -80,7 +80,6 @@ def run_contrastive_training(args, config):
 		)
 		dataloader_train, dataloader_train_val, dataloader_test = data_manager.get_contrastive_learning_data()
 		# --- Model -------
-		method = framework_config.get("method")
 		if args.checkpoint is not None:
 			print('Loading PreTrained Model from Checkpoint {}'.format(args.checkpoint))
 			model = SimCLR.load_from_checkpoint(
