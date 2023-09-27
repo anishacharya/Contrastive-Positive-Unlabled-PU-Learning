@@ -21,12 +21,14 @@ class DataManager:
 	
 	def __init__(
 			self,
+			data_set: str,
 			data_config: Dict,
 			gpu_strategy: str = "auto"
 	):
 		# config
+		self.data_set = data_set
 		self.data_config = data_config
-		self.data_set = self.data_config.get('data_set')
+		
 		self.num_classes = self.data_config.get('num_classes')
 		self.train_batch_size = self.data_config.get('train_batch_size', 256)
 		self.test_batch_size = self.data_config.get('test_batch_size', 1000)

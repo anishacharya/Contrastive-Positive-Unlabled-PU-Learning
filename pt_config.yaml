@@ -1,5 +1,5 @@
 {
-  "cifar10":
+  "cifar10.dog_cat":
     {
       # we use the hyper-params proposed in SimCLR-v2 : https://github.com/google-research/simclr#pretraining
       "framework_config":
@@ -20,7 +20,6 @@
         },
       "data_config":
         {
-          "data_set": "cifar10.dog_cat",
           "num_classes": 2,
 
           # settings: pu_single_data, pu_case_control , supervised , unsupervised
