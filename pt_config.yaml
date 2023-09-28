@@ -11,7 +11,7 @@
           # Losses:
           # contrastive: ssCL, sCL, puCL
           # non-contrastive: ce, uPU, nnPU
-          "loss": 'ssCL',
+          "loss": 'puCL',
           "temp": 0.5,
           "prior": 0.4,  # PU baselines use this - we don't
 
@@ -21,8 +21,8 @@
       "data_config":
         {
           # settings: pu_single_data, pu_case_control , supervised , unsupervised
-          "setting": "unsupervised",
-          "num_labeled": 1000,
+          "setting": "pu_case_control ",
+          "num_labeled": 1500,
           "num_unlabeled": ,   # only for controlled experiments - leave blank for benchmarks
           "dataset_prior": ,    # leave blank for benchmarks
 
