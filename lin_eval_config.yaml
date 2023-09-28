@@ -22,7 +22,7 @@
         {
           # settings: pu_single_data, pu_case_control , supervised , unsupervised
           "setting": "pu_case_control",
-          "num_labeled": 1500,
+          "num_labeled": 1000,
           "num_unlabeled": ,   # only for controlled experiments - leave blank for benchmarks
           "dataset_prior": ,    # leave blank for benchmarks
 
