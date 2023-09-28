@@ -119,6 +119,14 @@ class DataManager:
 				num_unlabeled=self.num_unlabeled,
 				prior=self.dataset_prior
 			)
+			dataset_train_sv = BinaryCIFAR10(
+				pos_class=self.pos_classes,
+				neg_class=self.neg_classes,
+				setting=self.setting,
+				num_labeled=self.num_labeled,
+				num_unlabeled=self.num_unlabeled,
+				prior=self.dataset_prior
+			)
 			dataset_train_val = BinaryCIFAR10(
 				pos_class=self.pos_classes,
 				neg_class=self.neg_classes,
@@ -132,14 +140,20 @@ class DataManager:
 			)
 		else:
 			raise NotImplementedError
+		
 		# define validation and test transform
 		self.mv_transform, self.basic_transform = self.get_transforms()
+		
 		dataset_train_ssl.transform = self.mv_transform
-		dataset_train_val.transform = self.basic_transform
+		dataset_train_sv.transform = self.basic_transform
+		dataset_train_val.transform = self.basic_transform  # for kNN
 		dataset_test.transform = self.basic_transform
+		
 		dataset_train_ssl = data.LightlyDataset.from_torch_dataset(dataset_train_ssl)
+		dataset_train_sv = data.LightlyDataset.from_torch_dataset(dataset_train_sv)
 		dataset_train_val = data.LightlyDataset.from_torch_dataset(dataset_train_val)
 		dataset_test = data.LightlyDataset.from_torch_dataset(dataset_test)
+		
 		dataloader_train_mv = DataLoader(
 			dataset_train_ssl,
 			batch_size=self.train_batch_size,
@@ -148,6 +162,13 @@ class DataManager:
 			num_workers=self.num_worker,
 		)
 		dataloader_train_sv = DataLoader(
+			dataset_train_sv,
+			batch_size=self.train_batch_size,
+			shuffle=True,
+			drop_last=True,
+			num_workers=self.num_worker,
+		)
+		dataloader_train_val = DataLoader(
 			dataset_train_val,
 			batch_size=self.train_batch_size,
 			shuffle=False,
@@ -159,7 +180,7 @@ class DataManager:
 			shuffle=False,
 			num_workers=self.num_worker
 		)
-		return dataloader_train_mv, dataloader_train_sv, dataloader_test
+		return dataloader_train_mv, dataloader_train_sv, dataloader_train_val, dataloader_test
 
 
 class BinaryCIFAR10(datasets.CIFAR10):
