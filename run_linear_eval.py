@@ -138,8 +138,8 @@ def run_linear_eval(args, config, freeze_encoder: bool = True) -> None:
 			accelerator=accelerator,
 			devices=n_gpus,
 			callbacks=[
-				LearningRateMonitor(logging_interval='epoch'),
-				DeviceStatsMonitor(),
+				LearningRateMonitor(logging_interval='step'),
+				# DeviceStatsMonitor(),
 				metric_callback,
 			],
 			logger=tf_logger,
