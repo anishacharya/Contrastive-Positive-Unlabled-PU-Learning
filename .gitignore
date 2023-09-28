@@ -3,6 +3,7 @@
 default_model
 *.pt
 .ipynb_checkpoints/*
+logs/
 logs/checkpoints/
 runs/*
 venv/*
