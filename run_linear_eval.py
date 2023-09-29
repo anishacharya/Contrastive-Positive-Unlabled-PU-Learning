@@ -102,9 +102,12 @@ def run_linear_eval(args, config, freeze_encoder: bool = True) -> None:
 			print('Loading PreTrained Model from Checkpoint {}'.format(args.checkpoint))
 			model = SimCLR.load_from_checkpoint(
 				args.checkpoint,
+				framework_config=framework_config,
 				training_config=training_config,
+				data_config=data_config,
 				val_dataloader=dataloader_train_sv,
-				num_classes=data_manager.num_classes
+				num_classes=data_manager.num_classes,
+				gather_distributed=True if n_gpus >= 2 else False
 			)
 		else:
 			print("You need to pass model chkpt to perform evaluation -- "
