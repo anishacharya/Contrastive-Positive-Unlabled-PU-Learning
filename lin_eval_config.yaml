@@ -26,13 +26,13 @@
           "num_unlabeled": ,   # only for controlled experiments - leave blank for benchmarks
           "dataset_prior": ,    # leave blank for benchmarks
 
-          "train_batch_size": 1024,
+          "train_batch_size": 256,
           "test_batch_size": 1000,
           "num_worker": 8
         },
       "training_config":
         {
-          "epochs": 100,
+          "epochs": 200,
           "eval_freq": 1,
           "save_model_freq": 50,
 
@@ -48,7 +48,7 @@
           # ----- LRS ------
           "lrs": 'cosine',
 
-          "warmup": 10,                              # for linear warmup
+          "warmup": 0,                              # for linear warmup
           "step_size": 1,                           # for step lrs
           "milestones": [ 20, 60, 120 ],            # for multistep lrs
           "gamma": 1,                             # for step and multistep lrs
