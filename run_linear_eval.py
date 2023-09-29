@@ -157,14 +157,21 @@ def run_linear_eval(args, config, freeze_encoder: bool = True) -> None:
 			train_dataloaders=dataloader_train_sv,
 			val_dataloaders=dataloader_test,
 		)
+		run = {
+			"batch_size": data_manager.train_batch_size,
+			"epochs": training_config.get('epochs'),
+			"max_accuracy": model.max_accuracy,
+			"seed": seed,
+		}
 		for metric in ["val_top1", "val_top5"]:
 			print_rank_zero(
 				f"max linear {metric}: {max(metric_callback.val_metrics[metric])}"
 			)
 		if rank() == 0:
-			runs.append(
-				max(metric_callback.val_metrics["val_top1"])
-			)
+			runs.append(run)
+			tf_logger.log_metrics(metrics=run)
+			tf_logger.log_hyperparams(config)
+			print(run)
 
 
 if __name__ == '__main__':
