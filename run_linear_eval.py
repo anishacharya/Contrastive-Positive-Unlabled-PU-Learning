@@ -96,7 +96,7 @@ def run_linear_eval(args, config, freeze_encoder: bool = True) -> None:
 			data_config=data_config,
 			gpu_strategy=strategy
 		)
-		_, dataloader_train_sv, _, dataloader_test = data_manager.get_contrastive_learning_data()
+		_, dataloader_train_sv, _, dataloader_test = data_manager.get_data()
 		# --- Model -------
 		if args.checkpoint is not None:
 			print('Loading PreTrained Model from Checkpoint {}'.format(args.checkpoint))

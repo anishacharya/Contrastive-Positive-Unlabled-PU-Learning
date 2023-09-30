@@ -96,7 +96,7 @@ class DataManager:
 		def __call__(self, x):
 			return self.transform(x)
 	
-	def get_contrastive_learning_data(self) -> [DataLoader, DataLoader, DataLoader]:
+	def get_data(self) -> [DataLoader, DataLoader, DataLoader]:
 		"""
         Returns:
         	train and test dataset
