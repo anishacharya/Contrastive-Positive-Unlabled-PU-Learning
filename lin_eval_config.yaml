@@ -12,11 +12,7 @@
           # contrastive: ssCL, sCL, puCL
           # non-contrastive: ce, uPU, nnPU
           "loss": 'ce',
-          "temp": 0.5,
           "prior": 0.5,  # PU baselines use this - we don't
-
-          "knn_k": 200,  # knn k for validation steps in contrastive training
-          "knn_t": 0.1,  # soft-knn temperature for validation in contrastive training
         },
       "data_config":
         {
