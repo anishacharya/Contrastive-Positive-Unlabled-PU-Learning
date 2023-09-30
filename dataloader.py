@@ -104,6 +104,9 @@ class DataManager:
 		binary_class_mapping = {
 			'cifar10.dog_cat': {'pos_classes': [5], 'neg_classes': [3]},
 		}
+		dataset_map = {
+			"cifar": BinaryCIFAR10,
+		}
 		if self.data_set in ['cifar10.dog_cat']:
 			# get attributes
 			self.num_classes = 2
