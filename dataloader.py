@@ -102,12 +102,28 @@ class DataManager:
         	train and test dataset
         """
 		binary_class_mapping = {
-			'cifar10.dog_cat': {'pos_classes': [5], 'neg_classes': [3]},
+			# Cifar10 Class Mapping
+			# [
+			# 0:'airplane', 1:'automobile', 2:'bird', 3:'cat', 4:'deer',
+			# 5:'dog', 6:'frog', 7:'horse', 8:'ship', 9:'truck'
+			# ]
+			'cifar10.dog_cat': {
+				'pos_classes': [5],
+				'neg_classes': [3]
+			},
+			'cifar10.1': {
+				'pos_classes': [0, 1, 8, 9],
+				'neg_classes': [2, 3, 4, 5, 6, 7]
+			},
+			'cifar10.2': {
+				'pos_classes': [2, 3, 4, 5, 6, 7],
+				'neg_classes': [0, 1, 8, 9]
+			},
 		}
 		dataset_map = {
 			"cifar": BinaryCIFAR10,
 		}
-		if self.data_set in ['cifar10.dog_cat']:
+		if self.data_set in ['cifar10.dog_cat', 'cifar.1', 'cifar.2']:
 			# get attributes
 			self.num_classes = 2
 			self.num_channels, self.height, self.width = 3, 32, 32
