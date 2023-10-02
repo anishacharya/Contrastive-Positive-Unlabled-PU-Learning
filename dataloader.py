@@ -113,36 +113,38 @@ class DataManager:
 			self.num_channels, self.height, self.width = 3, 32, 32
 			self.pos_classes = binary_class_mapping[self.data_set]['pos_classes']
 			self.neg_classes = binary_class_mapping[self.data_set]['neg_classes']
-			# obtain datasets
-			dataset_train_ssl = BinaryCIFAR10(
-				pos_class=self.pos_classes,
-				neg_class=self.neg_classes,
-				setting=self.setting,
-				num_labeled=self.num_labeled,
-				num_unlabeled=self.num_unlabeled,
-				prior=self.dataset_prior
-			)
-			dataset_train_sv = BinaryCIFAR10(
-				pos_class=self.pos_classes,
-				neg_class=self.neg_classes,
-				setting=self.setting,
-				num_labeled=self.num_labeled,
-				num_unlabeled=self.num_unlabeled,
-				prior=self.dataset_prior
-			)
-			dataset_train_val = BinaryCIFAR10(
-				pos_class=self.pos_classes,
-				neg_class=self.neg_classes,
-				setting='supervised',
-			)
-			dataset_test = BinaryCIFAR10(
-				pos_class=self.pos_classes,
-				neg_class=self.neg_classes,
-				setting='supervised',
-				train=False,
-			)
+			root_dataset = 'cifar'
 		else:
 			raise NotImplementedError
+		
+		# obtain datasets
+		dataset_train_ssl = dataset_map[root_dataset](
+			pos_class=self.pos_classes,
+			neg_class=self.neg_classes,
+			setting=self.setting,
+			num_labeled=self.num_labeled,
+			num_unlabeled=self.num_unlabeled,
+			prior=self.dataset_prior
+		)
+		dataset_train_sv = dataset_map[root_dataset](
+			pos_class=self.pos_classes,
+			neg_class=self.neg_classes,
+			setting=self.setting,
+			num_labeled=self.num_labeled,
+			num_unlabeled=self.num_unlabeled,
+			prior=self.dataset_prior
+		)
+		dataset_train_val = dataset_map[root_dataset](
+			pos_class=self.pos_classes,
+			neg_class=self.neg_classes,
+			setting='supervised',
+		)
+		dataset_test = dataset_map[root_dataset](
+			pos_class=self.pos_classes,
+			neg_class=self.neg_classes,
+			setting='supervised',
+			train=False,
+		)
 		
 		# define validation and test transform
 		self.mv_transform, self.basic_transform = self.get_transforms()
