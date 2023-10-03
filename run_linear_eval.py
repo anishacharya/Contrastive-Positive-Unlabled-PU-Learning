@@ -1,7 +1,6 @@
 import os
 from argparse import ArgumentParser
 from pathlib import Path
-
 import pytorch_lightning as pl
 import torch
 import yaml
@@ -10,7 +9,6 @@ from lightly.utils.dist import print_rank_zero, rank
 from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import LearningRateMonitor
 from pytorch_lightning.loggers import TensorBoardLogger
-
 from dataloader import DataManager
 from linear_head import LinearClassificationHead
 from training_framework import SimCLR
