@@ -129,7 +129,7 @@ def run_linear_eval(args, config, freeze_encoder: bool = True) -> None:
 			topk=(1, 2),
 		)
 		# --- Logging -----
-		tf_logger = TensorBoardLogger(
+		logger = TensorBoardLogger(
 			save_dir=os.path.join(args.log_dir, f"tf_logging/{args.dataset}"),
 			name=f"{args.exp_name}",
 			version=f"seed={seed}",
@@ -144,7 +144,7 @@ def run_linear_eval(args, config, freeze_encoder: bool = True) -> None:
 				LearningRateMonitor(logging_interval='step'),
 				metric_callback,
 			],
-			logger=tf_logger,
+			logger=logger,
 			# --- reproducibility
 			sync_batchnorm=True if n_gpus >= 2 else False,
 			deterministic=True,
@@ -171,9 +171,14 @@ def run_linear_eval(args, config, freeze_encoder: bool = True) -> None:
 			)
 		if rank() == 0:
 			runs.append(run)
-			tf_logger.log_metrics(metrics=run)
-			tf_logger.log_hyperparams(config)
+			logger.log_metrics(metrics=run)
+			logger.log_hyperparams(config)
 			print(run)
+		# ----- delete model and trainer + free up cuda memory ---
+		del model
+		del trainer
+		torch.cuda.reset_peak_memory_stats()
+		torch.cuda.empty_cache()
 
 
 if __name__ == '__main__':
