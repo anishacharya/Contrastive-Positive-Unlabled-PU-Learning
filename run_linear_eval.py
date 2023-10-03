@@ -2,7 +2,11 @@
 Perform Linear Evaluation : Supports FineTuning, Linear Probing etc
 """
 import os
-from argparse import ArgumentParser
+from typing import Dict
+from argparse import (
+	ArgumentParser,
+	Namespace
+)
 from pathlib import Path
 import pytorch_lightning as pl
 import torch
@@ -63,24 +67,10 @@ def _parse_args(verbose=True):
 	return args
 
 
-def run_linear_eval(args, config, freeze_encoder: bool = True) -> None:
-	"""Runs a linear evaluation on the given model.
-
-	Parameters follow SimCLR [0] settings.
-
-	The most important settings are:
-		- Backbone: Frozen
-		- Epochs: 90
-		- Optimizer: SGD
-		- Base Learning Rate: 0.1
-		- Momentum: 0.9
-		- Weight Decay: 0.0
-		- LR Schedule: Cosine without warmup
-
-	References:
-		- [0]: SimCLR, 2020, https://arxiv.org/abs/2002.05709
+def run_linear_eval(args: Namespace, config: Dict, freeze_encoder: bool = True) -> None:
 	"""
-	print_rank_zero("Running linear probing")
+	Runs a linear evaluation on the given model. If no model is given trains one from scratch
+	"""
 	config = config[args.dataset]
 	framework_config = config["framework_config"]
 	data_config = config["data_config"]
@@ -115,7 +105,7 @@ def run_linear_eval(args, config, freeze_encoder: bool = True) -> None:
 			)
 		else:
 			print("You need to pass model chkpt to perform evaluation -- "
-			      "since none provided training from scratch")
+			      "since None provided training a model from scratch")
 			model = SimCLR(
 				framework_config=framework_config,
 				training_config=training_config,
@@ -190,8 +180,10 @@ if __name__ == '__main__':
 	arguments = _parse_args()
 	if arguments.mode == 'lp':
 		freeze = True
+		print_rank_zero("Running linear probing")
 	elif arguments.mode == 'ft':
 		freeze = False
+		print_rank_zero("Running Finetuning")
 	else:
 		raise ValueError(
 			'Need to Linear Probe or Finetune'
