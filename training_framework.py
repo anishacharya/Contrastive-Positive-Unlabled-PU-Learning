@@ -5,13 +5,13 @@ from typing import Dict, Optional, List
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from lightly.models import ResNetGenerator
-from lightly.models.modules import heads
-from lightly.utils.benchmarking.knn import knn_predict
-from pytorch_lightning import LightningModule
 from torch import Tensor
 from torch import distributed as torch_dist
 from torch.utils.data import DataLoader
+from pytorch_lightning import LightningModule
+from lightly.models import ResNetGenerator
+from lightly.models.modules import heads
+from lightly.utils.benchmarking.knn import knn_predict
 from training_utils import (get_optimizer, get_scheduler)
 from losses import get_loss
 
