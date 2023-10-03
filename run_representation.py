@@ -63,6 +63,7 @@ def run_contrastive_training(args, config):
 	# TODO: **** remove this condition when sCL with ddp support is implemented *****
 	if n_gpus >= 2:
 		raise NotImplementedError('Not all methods support ddp - run using single gpu')
+	
 	# ---- parse config ----
 	config = config[args.dataset]
 	framework_config = config["framework_config"]

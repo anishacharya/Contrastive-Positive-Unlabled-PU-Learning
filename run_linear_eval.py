@@ -76,12 +76,14 @@ def run_linear_eval(args: Namespace, config: Dict, freeze_encoder: bool = True) 
 	# TODO: **** remove this condition when sCL with ddp support is implemented *****
 	if n_gpus >= 2:
 		raise NotImplementedError('Not all methods support ddp - run using single gpu')
+	
 	# --- parse configs ---
 	config = config[args.dataset]
 	framework_config = config["framework_config"]
 	data_config = config["data_config"]
 	training_config = config["training_config"]
 	
+	# --- Run Experiment for different seeds # -----
 	runs = []
 	for seed in range(args.n_repeat):
 		torch.set_float32_matmul_precision("high")
