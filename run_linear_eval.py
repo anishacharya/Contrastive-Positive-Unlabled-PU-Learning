@@ -1,3 +1,6 @@
+"""
+Perform Linear Evaluation : Supports FineTuning, Linear Probing etc
+"""
 import os
 from argparse import ArgumentParser
 from pathlib import Path
