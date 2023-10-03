@@ -8,7 +8,7 @@ import yaml
 from lightly.utils.benchmarking import MetricCallback
 from lightly.utils.dist import print_rank_zero, rank
 from pytorch_lightning import Trainer
-from pytorch_lightning.callbacks import DeviceStatsMonitor, LearningRateMonitor
+from pytorch_lightning.callbacks import LearningRateMonitor
 from pytorch_lightning.loggers import TensorBoardLogger
 
 from dataloader import DataManager
@@ -142,7 +142,6 @@ def run_linear_eval(args, config, freeze_encoder: bool = True) -> None:
 			devices=n_gpus,
 			callbacks=[
 				LearningRateMonitor(logging_interval='step'),
-				# DeviceStatsMonitor(),
 				metric_callback,
 			],
 			logger=tf_logger,
@@ -152,7 +151,7 @@ def run_linear_eval(args, config, freeze_encoder: bool = True) -> None:
 			use_distributed_sampler=True if n_gpus >= 2 else False,
 			check_val_every_n_epoch=training_config.get('eval_freq', 1),
 			log_every_n_steps=1,
-			# precision="16-mixed",
+			precision="16-mixed",
 			# strategy="ddp_find_unused_parameters_true",
 		)
 		trainer.fit(
