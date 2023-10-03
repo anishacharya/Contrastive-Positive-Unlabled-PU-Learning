@@ -149,7 +149,7 @@ def run_linear_eval(args: Namespace, config: Dict, freeze_encoder: bool = True) 
 			use_distributed_sampler=True if n_gpus >= 2 else False,
 			check_val_every_n_epoch=training_config.get('eval_freq', 1),
 			log_every_n_steps=1,
-			precision="16-mixed",
+			# precision="16-mixed",
 			# strategy="ddp_find_unused_parameters_true",
 		)
 		trainer.fit(
