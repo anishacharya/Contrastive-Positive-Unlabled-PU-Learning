@@ -50,7 +50,7 @@ def _parse_args(verbose=True):
 	parser.add_argument(
 		"--exp_name",
 		type=str,
-		default="lp-SimCLR",
+		default="lp-testbed",
 		help="logs saved inside exp sub-folder in the logs folder"
 	)
 	args = parser.parse_args()

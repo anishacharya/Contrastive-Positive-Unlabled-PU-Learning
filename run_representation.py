@@ -10,7 +10,6 @@ import torch
 import yaml
 from lightly.utils.dist import rank
 from pytorch_lightning.callbacks import (
-	DeviceStatsMonitor,
 	LearningRateMonitor,
 	ModelCheckpoint
 )
@@ -119,7 +118,6 @@ def run_contrastive_training(args, config):
 			every_n_epochs=training_config.get("save_model_freq", None),
 			save_top_k=-1,
 		)
-		device_stats = DeviceStatsMonitor()
 		lr_monitor = LearningRateMonitor(logging_interval='step')
 		# --- Train ------
 		trainer = pl.Trainer(
@@ -139,7 +137,6 @@ def run_contrastive_training(args, config):
 			log_every_n_steps=1,
 			callbacks=[
 				checkpoint_callback,
-				# device_stats,
 				lr_monitor
 			],
 		)
