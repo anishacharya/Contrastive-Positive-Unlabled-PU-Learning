@@ -25,32 +25,29 @@ class DataManager:
 			data_config: Dict,
 			gpu_strategy: str = "auto"
 	):
-		# config
+		# ---- config ----
 		self.data_set = data_set
 		self.data_config = data_config
 		self.train_batch_size = self.data_config.get('train_batch_size', 256)
 		self.test_batch_size = self.data_config.get('test_batch_size', 1000)
-		
-		# PU specific
+		#  attributes specific to dataset
 		self.setting = self.data_config.get('setting', 'supervised')
 		self.num_labeled = self.data_config.get('num_labeled', None)
 		self.num_unlabeled = self.data_config.get('num_unlabeled', None)
 		self.dataset_prior = self.data_config.get('dataset_prior', None)
+		self.neg_classes, self.pos_classes = None, None  # PU specific
+		self.num_classes = None
+		self.num_channels, self.height, self.width = None, None, None
+		self.tr_dataset, self.te_dataset = None, None
+		self.sv_transform, self.mv_transform, self.basic_transform = None, None, None
 		
-		# DDP -- divide batch into gpus
+		# ---- DDP -- divide batch into gpus -----
 		if gpu_strategy == "ddp":
 			print("DDP ~ so updating the batch sizes accordingly to split data into gpus")
 			n_gpus = torch.cuda.device_count() if torch.cuda.is_available() else 1
 			self.train_batch_size //= n_gpus
 			self.test_batch_size //= n_gpus
 		self.num_worker = self.data_config.get('num_worker', 1)
-		
-		# initialize attributes specific to dataset
-		self.neg_classes, self.pos_classes = None, None  # PU specific
-		self.num_classes = None
-		self.num_channels, self.height, self.width = None, None, None
-		self.tr_dataset, self.te_dataset = None, None
-		self.sv_transform, self.mv_transform, self.basic_transform = None, None, None
 	
 	def get_transforms(self):
 		"""
