@@ -71,14 +71,16 @@ def run_linear_eval(args: Namespace, config: Dict, freeze_encoder: bool = True) 
 	"""
 	Runs a linear evaluation on the given model. If no model is given trains one from scratch
 	"""
+	# --- Device Setup ---
+	n_gpus = torch.cuda.device_count() if torch.cuda.is_available() else 1
+	# TODO: **** remove this condition when sCL with ddp support is implemented *****
+	if n_gpus >= 2:
+		raise NotImplementedError('Not all methods support ddp - run using single gpu')
+	# --- parse configs ---
 	config = config[args.dataset]
 	framework_config = config["framework_config"]
 	data_config = config["data_config"]
 	training_config = config["training_config"]
-	# --- Device Setup ---
-	n_gpus = torch.cuda.device_count() if torch.cuda.is_available() else 1
-	accelerator = "gpu" if torch.cuda.is_available() else "mps"
-	strategy = "ddp" if n_gpus >= 2 else "auto"
 	
 	runs = []
 	for seed in range(args.n_repeat):
@@ -88,7 +90,7 @@ def run_linear_eval(args: Namespace, config: Dict, freeze_encoder: bool = True) 
 		data_manager = DataManager(
 			data_set=args.dataset,
 			data_config=data_config,
-			gpu_strategy=strategy
+			gpu_strategy="ddp" if n_gpus >= 2 else "auto"
 		)
 		_, dataloader_train_sv, _, dataloader_test = data_manager.get_data()
 		# --- Model -------
@@ -132,7 +134,7 @@ def run_linear_eval(args: Namespace, config: Dict, freeze_encoder: bool = True) 
 		# ----- Train linear classifier.
 		trainer = Trainer(
 			max_epochs=training_config.get('epochs'),
-			accelerator=accelerator,
+			accelerator="gpu" if torch.cuda.is_available() else "mps",
 			devices=n_gpus,
 			callbacks=[
 				LearningRateMonitor(logging_interval='step'),
