@@ -16,7 +16,7 @@ root_dir = os.path.join(os.path.dirname(__file__), './data/')
 
 class DataManager:
 	"""
-    @param data_config = config
+    Defines all data related things.
     """
 	
 	def __init__(
@@ -71,42 +71,6 @@ class DataManager:
 			input_shape=model_ip_shape
 		)
 		return mv_transform, basic_transform
-	
-	class Cutout(object):
-		"""
-		Randomly mask out one or more patches from an image:  https://arxiv.org/abs/1708.04552
-		Args:
-			n_holes (int): Number of patches to cut out of each image.
-			length (int): The length (in pixels) of each square patch.
-		"""
-		
-		def __init__(self, n_holes, length):
-			self.n_holes = n_holes
-			self.length = length
-		
-		def __call__(self, img: torch.Tensor) -> torch.Tensor:
-			"""
-			Args:
-				img (Tensor): Tensor image of size (C, H, W).
-			Returns:
-				Tensor: Image with n_holes of dimension length x length cut out of it.
-			"""
-			h = img.size(1)
-			w = img.size(2)
-			mask = np.ones((h, w), np.float32)
-			for n in range(self.n_holes):
-				y = np.random.randint(h)
-				x = np.random.randint(w)
-				y1 = np.clip(y - self.length // 2, 0, h)
-				y2 = np.clip(y + self.length // 2, 0, h)
-				x1 = np.clip(x - self.length // 2, 0, w)
-				x2 = np.clip(x + self.length // 2, 0, w)
-				mask[y1: y2, x1: x2] = 0.
-			mask = torch.from_numpy(mask)
-			mask = mask.expand_as(img)
-			img = img * mask
-			
-			return img
 	
 	class BasicTransform:
 		"""
@@ -199,7 +163,7 @@ class DataManager:
 		self.mv_transform, self.basic_transform = self.get_transforms()
 		
 		dataset_train_ssl.transform = self.mv_transform
-		dataset_train_sv.transform = self.basic_transform
+		dataset_train_sv.transform = self.basic_transform  # for Linear Probing / FineTuning
 		dataset_train_val.transform = self.basic_transform  # for kNN
 		dataset_test.transform = self.basic_transform
 		
