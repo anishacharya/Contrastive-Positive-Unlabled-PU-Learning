@@ -168,10 +168,10 @@ def run_linear_eval(args: Namespace, config: Dict, freeze_encoder: bool = True) 
 		# 	"max_accuracy": model.max_accuracy,
 		# 	"seed": seed,
 		# }
-		for metric in ["val_top1", "val_top5"]:
-			print_rank_zero(
-				f"max linear {metric}: {max(metric_callback.val_metrics[metric])}"
-			)
+		# for metric in ["val_top1", "val_top5"]:
+		# 	print_rank_zero(
+		# 		f"max linear {metric}: {max(metric_callback.val_metrics[metric])}"
+		# 	)
 		if rank() == 0:
 			val_acc.append(model.max_accuracy)
 		# 	runs.append(run)
