@@ -94,15 +94,16 @@ class LinearClassificationHead(LightningModule):
 		if not self.freeze_model:
 			# FineTuning backprop through entire model
 			parameters += self.model.backbone.parameters()
-		optim = get_optimizer(
+		optimizer = get_optimizer(
 			params=parameters,
 			optimizer_config=self.training_config
 		)
 		scheduler = get_scheduler(
-			optimizer=optim,
+			optimizer=optimizer,
 			lrs_config=self.training_config
 		)
-		return [optim], [scheduler]
+		return {"optimizer": optimizer, "lr_schedulers": scheduler}
+		# return [optim], [scheduler]
 	
 	def on_fit_start(self) -> None:
 		# Freeze model weights.
