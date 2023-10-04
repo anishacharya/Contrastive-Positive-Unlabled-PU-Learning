@@ -69,15 +69,15 @@ class BaseFramework(LightningModule):
 				list(self.backbone.parameters()) +
 				list(self.projection_head.parameters())
 		)
-		optim = get_optimizer(
+		optimizer = get_optimizer(
 			params=params,
 			optimizer_config=self.training_config
 		)
 		scheduler = get_scheduler(
-			optimizer=optim,
+			optimizer=optimizer,
 			lrs_config=self.training_config
 		)
-		return [optim], [scheduler]
+		return {"optimizer": optimizer, "lr_schedulers": scheduler}
 	
 	def extract_features(self, dataloader: DataLoader) -> [torch.Tensor, torch.Tensor]:
 		"""
