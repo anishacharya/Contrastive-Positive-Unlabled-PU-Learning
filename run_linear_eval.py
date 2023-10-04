@@ -173,7 +173,7 @@ def run_linear_eval(args: Namespace, config: Dict, freeze_encoder: bool = True) 
 		# 		f"max linear {metric}: {max(metric_callback.val_metrics[metric])}"
 		# 	)
 		if rank() == 0:
-			val_acc.append(model.max_accuracy)
+			val_acc.append(lin_classifier.max_accuracy)
 		# 	runs.append(run)
 		# 	# logger.log_metrics(metrics=run)
 		# 	# logger.log_hyperparams(config)
