@@ -1,11 +1,10 @@
+""" Attach a Linear Head """
 from typing import Dict, Tuple
-
 from lightly.models.utils import activate_requires_grad, deactivate_requires_grad
 from lightly.utils.benchmarking.topk import mean_topk_accuracy
 from pytorch_lightning import LightningModule
 from torch import Tensor
 from torch.nn import CrossEntropyLoss, Linear, Module
-
 from training_utils import get_optimizer, get_scheduler
 
 
@@ -19,11 +18,7 @@ class LinearClassificationHead(LightningModule):
 			topk: Tuple[int, ...] = (1, 2),
 			freeze_model: bool = False,
 	) -> None:
-		"""Linear classifier for benchmarking (LP or FT).
-		Settings based on SimCLR [0].
-
-		- [0]: https://arxiv.org/abs/2002.05709
-
+		"""Linear classifier for benchmarking (LP or FT)
 		Args:
 			model:
 				Model used for feature extraction. Must define a forward(images) method
@@ -38,8 +33,6 @@ class LinearClassificationHead(LightningModule):
 				If True, the model is frozen and only the classification head is
 				trained. This corresponds to the linear eval setting. Set to False for
 				finetuning.
-
-		Examples:
 		"""
 		super().__init__()
 		self.save_hyperparameters(ignore="model")
@@ -99,6 +92,7 @@ class LinearClassificationHead(LightningModule):
 	def configure_optimizers(self):
 		parameters = list(self.classification_head.parameters())
 		if not self.freeze_model:
+			# FineTuning backprop through entire model
 			parameters += self.model.backbone.parameters()
 		optim = get_optimizer(
 			params=parameters,

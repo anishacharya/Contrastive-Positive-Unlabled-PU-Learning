@@ -8,14 +8,15 @@ from argparse import (
 	Namespace
 )
 from pathlib import Path
-import pytorch_lightning as pl
-import torch
 import yaml
+import numpy as np
+import torch
 from lightly.utils.benchmarking import MetricCallback
 from lightly.utils.dist import (
 	print_rank_zero,
 	rank
 )
+import pytorch_lightning as pl
 from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import LearningRateMonitor
 from pytorch_lightning.loggers import TensorBoardLogger
@@ -84,7 +85,7 @@ def run_linear_eval(args: Namespace, config: Dict, freeze_encoder: bool = True) 
 	training_config = config["training_config"]
 	
 	# --- Run Experiment for different seeds # -----
-	runs = []
+	val_acc = []
 	for seed in range(args.n_repeat):
 		torch.set_float32_matmul_precision("high")
 		pl.seed_everything(seed)
@@ -136,19 +137,23 @@ def run_linear_eval(args: Namespace, config: Dict, freeze_encoder: bool = True) 
 		# ----- Train linear classifier.
 		trainer = Trainer(
 			max_epochs=training_config.get('epochs'),
-			accelerator="gpu" if torch.cuda.is_available() else "mps",
+			# --- devices ----
 			devices=n_gpus,
-			callbacks=[
-				LearningRateMonitor(logging_interval='step'),
-				metric_callback,
-			],
-			logger=logger,
+			accelerator="gpu" if torch.cuda.is_available() else "mps",
+			strategy="ddp" if n_gpus >= 2 else "auto",
 			# --- reproducibility
 			sync_batchnorm=True if n_gpus >= 2 else False,
 			deterministic=True,
 			use_distributed_sampler=True if n_gpus >= 2 else False,
+			# --- logging ---
+			logger=logger,
+			default_root_dir=args.log_dir,
 			check_val_every_n_epoch=training_config.get('eval_freq', 1),
 			log_every_n_steps=1,
+			callbacks=[
+				LearningRateMonitor(logging_interval='step'),
+				metric_callback,
+			],
 			# precision="16-mixed",
 			# strategy="ddp_find_unused_parameters_true",
 		)
@@ -157,26 +162,28 @@ def run_linear_eval(args: Namespace, config: Dict, freeze_encoder: bool = True) 
 			train_dataloaders=dataloader_train_sv,
 			val_dataloaders=dataloader_test,
 		)
-		run = {
-			"batch_size": data_manager.train_batch_size,
-			"epochs": training_config.get('epochs'),
-			"max_accuracy": model.max_accuracy,
-			"seed": seed,
-		}
+		# run = {
+		# 	"batch_size": data_manager.train_batch_size,
+		# 	"epochs": training_config.get('epochs'),
+		# 	"max_accuracy": model.max_accuracy,
+		# 	"seed": seed,
+		# }
 		for metric in ["val_top1", "val_top5"]:
 			print_rank_zero(
 				f"max linear {metric}: {max(metric_callback.val_metrics[metric])}"
 			)
 		if rank() == 0:
-			runs.append(run)
-			logger.log_metrics(metrics=run)
-			logger.log_hyperparams(config)
-			print(run)
+			val_acc.append(model.max_accuracy)
+		# 	runs.append(run)
+		# 	# logger.log_metrics(metrics=run)
+		# 	# logger.log_hyperparams(config)
+		# 	print(run)
 		# ----- delete model and trainer + free up cuda memory ---
 		del model
 		del trainer
 		torch.cuda.reset_peak_memory_stats()
 		torch.cuda.empty_cache()
+		print('val acc = {} +- {}'.format(np.mean(val_acc), np.var(val_acc)))
 
 
 if __name__ == '__main__':
