@@ -77,7 +77,6 @@ def run_contrastive_training(args, config):
 		pl.seed_everything(seed)
 		# --- Data -----
 		data_manager = DataManager(
-			data_set=args.dataset,
 			data_config=data_config,
 			gpu_strategy="ddp" if n_gpus >= 2 else "auto"
 		)

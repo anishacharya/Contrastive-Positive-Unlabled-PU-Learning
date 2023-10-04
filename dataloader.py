@@ -21,13 +21,12 @@ class DataManager:
 	
 	def __init__(
 			self,
-			data_set: str,
 			data_config: Dict,
 			gpu_strategy: str = "auto"
 	):
 		# ---- config ----
-		self.data_set = data_set
 		self.data_config = data_config
+		self.data_set = self.data_config.get('data_set')
 		self.train_batch_size = self.data_config.get('train_batch_size', 256)
 		self.test_batch_size = self.data_config.get('test_batch_size', 1000)
 		#  attributes specific to dataset
@@ -118,15 +117,23 @@ class DataManager:
 			},
 		}
 		dataset_map = {
-			"cifar": BinaryCIFAR10,
+			"cifar"
+			"binarize_cifar": BinaryCIFAR10,
 		}
-		if self.data_set in ['cifar10.dog_cat', 'cifar.1', 'cifar.2']:
+		if self.data_set == 'cifar10':
+			# get attributes
+			self.num_classes = 2
+			self.num_channels, self.height, self.width = 3, 32, 32
+			root_dataset = 'cifar'
+		
+		elif self.data_set in ['cifar10.dog_cat', 'cifar.1', 'cifar.2']:
 			# get attributes
 			self.num_classes = 2
 			self.num_channels, self.height, self.width = 3, 32, 32
 			self.pos_classes = binary_class_mapping[self.data_set]['pos_classes']
 			self.neg_classes = binary_class_mapping[self.data_set]['neg_classes']
-			root_dataset = 'cifar'
+			root_dataset = 'binarize_cifar'
+		
 		else:
 			raise NotImplementedError
 		
