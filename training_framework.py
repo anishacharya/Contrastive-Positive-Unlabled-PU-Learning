@@ -2,23 +2,24 @@
 Defines contrastive framework SimCLR: https://arxiv.org/abs/2002.05709
 """
 from typing import Dict, Optional, List
+
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
+from lightly.models.modules import heads
+from lightly.utils.benchmarking.knn import knn_predict
+from pytorch_lightning import LightningModule
 from torch import Tensor
 from torch import distributed as torch_dist
 from torch.utils.data import DataLoader
-from pytorch_lightning import LightningModule
-from lightly.models import ResNetGenerator
-from lightly.models.modules import heads
-from lightly.utils.benchmarking.knn import knn_predict
+
+from losses import get_loss
 from utils import (
 	get_optimizer,
 	get_scheduler,
 	cifarresnet18,
-	cifarresnet50
+	cifarresnet50,
+	CIFARCNN
 )
-from losses import get_loss
 
 
 class BaseFramework(LightningModule):
@@ -97,6 +98,10 @@ class BaseFramework(LightningModule):
 		elif encoder_arch == 'cifar-resnet50':
 			self.backbone = cifarresnet50()
 			self.feat_dim = 2048
+		
+		elif encoder_arch == 'cifar-cnn':
+			self.backbone = CIFARCNN()
+			self.feat_dim = 1000
 		
 		else:
 			raise NotImplementedError
