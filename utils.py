@@ -19,6 +19,7 @@ def get_optimizer(
 	"""
 	opt_alg = optimizer_config.get('optimizer', 'SGD')
 	optimizer_config = {} if optimizer_config is None else optimizer_config
+	
 	if opt_alg == 'SGD':
 		return optim.SGD(
 			params=params,
@@ -27,6 +28,7 @@ def get_optimizer(
 			weight_decay=optimizer_config.get('reg', 0.005),
 			nesterov=optimizer_config.get('nesterov', True)
 		)
+	
 	elif opt_alg == 'Adam':
 		return optim.Adam(
 			params=params,
@@ -36,6 +38,7 @@ def get_optimizer(
 			weight_decay=optimizer_config.get('reg', 0.005),
 			amsgrad=optimizer_config.get('amsgrad', False)
 		)
+	
 	elif opt_alg == 'AdamW':
 		return optim.AdamW(
 			params=params,
@@ -45,6 +48,7 @@ def get_optimizer(
 			weight_decay=optimizer_config.get('reg', 0.005),
 			amsgrad=optimizer_config.get('amsgrad', False)
 		)
+	
 	elif opt_alg == 'LARS':
 		return LARS(
 			params=params,
@@ -53,6 +57,7 @@ def get_optimizer(
 			weight_decay=optimizer_config.get('reg', 0),
 			nesterov=optimizer_config.get('nesterov', True)
 		)
+	
 	else:
 		raise NotImplementedError
 
