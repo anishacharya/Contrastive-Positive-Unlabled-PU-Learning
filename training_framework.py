@@ -51,14 +51,8 @@ class BaseFramework(LightningModule):
 				"Please set gather_distributed=False or install a torch version with "
 				"distributed support."
 			)
-		# Load Models ------ TODO: load model from config
-		resnet = ResNetGenerator(name="resnet-18")
-		self.backbone = nn.Sequential(
-			*list(resnet.children())[:-1], nn.AdaptiveAvgPool2d(1)
-		)
-		self.feat_dim = 512
 		
-		# Load Models
+		# --- Load Models
 		self.backbone, self.projection_head, self.feat_dim = None, None, None
 		self.init_model(encoder_arch=self.framework_config.get('encoder_arch', 'cifar-resnet18'))
 		
@@ -97,21 +91,16 @@ class BaseFramework(LightningModule):
 		"""
 		# encoder
 		if encoder_arch == 'cifar-resnet18':
-			# self.backbone = cifarresnet18()
+			self.backbone = cifarresnet18()
 			self.feat_dim = 512
-			resnet = ResNetGenerator(name="resnet-18")
-			self.backbone = nn.Sequential(
-				*list(resnet.children())[:-1], nn.AdaptiveAvgPool2d(1)
-			)
+		
 		elif encoder_arch == 'cifar-resnet50':
 			self.backbone = cifarresnet50()
-			# resnet = ResNetGenerator(name="resnet-50")
-			# self.backbone = nn.Sequential(
-			# 	*list(resnet.children())[:-1], nn.AdaptiveAvgPool2d(1)
-			# )
 			self.feat_dim = 2048
+		
 		else:
 			raise NotImplementedError
+		
 		# projection
 		# an MLP with num_layers layers, i/p is encoder o/p
 		self.projection_head = heads.SimCLRProjectionHead(
