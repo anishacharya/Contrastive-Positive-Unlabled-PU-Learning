@@ -4,27 +4,32 @@
       # we use the hyper-params proposed in SimCLR-v2 : https://github.com/google-research/simclr#pretraining
       "framework_config":
         {
+          # ---- model
           "encoder_arch": "resnet18",
           "proj_num_layers": 2,
           "proj_hidden_dim": 256,
           "proj_dim": 128,
-          # Losses:
+
+          # ---- Losses
           # contrastive: ssCL, sCL, puCL
           # non-contrastive: ce, uPU, nnPU
           "loss": 'puCL',
           "temp": 0.5,
           "prior": 0.4,  # PU baselines use this - we don't
 
+          # ---- validation
           "knn_k": 200,  # knn k for validation steps in contrastive training
           "knn_t": 0.1,  # soft-knn temperature for validation in contrastive training
         },
       "data_config":
         {
-          # settings: pu_single_data, pu_case_control , supervised , unsupervised
+          # ---- settings: pu_single_data, pu_case_control , supervised , unsupervised
+          # nP =  num_labeled, nU =  num_unlabeled,
           "setting": "pu_case_control",
           "num_labeled": 5000,
+
           "num_unlabeled": ,   # only for controlled experiments - leave blank for benchmarks
-          "dataset_prior": ,    # leave blank for benchmarks
+          "dataset_prior": ,   # leave blank for benchmarks
 
           "train_batch_size": 512,
           "test_batch_size": 1000,

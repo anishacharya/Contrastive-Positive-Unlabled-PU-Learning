@@ -54,9 +54,11 @@ def get_optimizer(
 		raise NotImplementedError
 
 
+# ---- Scheduler ------
 def get_scheduler(
 		optimizer,
-		lrs_config: Dict = None
+		lrs_config: Dict = None,
+		verbose: bool = False
 ):
 	"""
 	Get appropriate Learning Rate Scheduler
@@ -66,25 +68,28 @@ def get_scheduler(
 		return optim.lr_scheduler.StepLR(
 			optimizer=optimizer,
 			step_size=lrs_config.get('step_size'),
-			gamma=lrs_config.get('gamma')
+			gamma=lrs_config.get('gamma'),
+			verbose=verbose
 		)
 	elif lrs == 'multi_step':
 		return optim.lr_scheduler.MultiStepLR(
 			optimizer=optimizer,
 			milestones=lrs_config.get('milestones'),
-			gamma=lrs_config.get('gamma')
+			gamma=lrs_config.get('gamma'),
+			verbose=verbose
 		)
 	elif lrs == 'cosine':
 		return optim.lr_scheduler.CosineAnnealingLR(
 			optimizer=optimizer,
 			T_max=lrs_config.get('T_max'),
-			eta_min=lrs_config.get('eta_min', 0)
+			eta_min=lrs_config.get('eta_min', 0),
+			verbose=verbose
 		)
 	elif lrs == 'cosine_warmup':
 		return transformers.get_cosine_schedule_with_warmup(
 			optimizer=optimizer,
 			num_warmup_steps=lrs_config.get('warmup', 10),
-			num_training_steps=lrs_config.get('T_max')
+			num_training_steps=lrs_config.get('T_max'),
 		)
 	else:
 		return None
