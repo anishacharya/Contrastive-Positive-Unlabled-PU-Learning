@@ -5,7 +5,7 @@ from lightly.utils.benchmarking.topk import mean_topk_accuracy
 from pytorch_lightning import LightningModule
 from torch import Tensor
 from torch.nn import CrossEntropyLoss, Linear, Module
-from training_utils import get_optimizer, get_scheduler
+from utils import get_optimizer, get_scheduler
 
 
 class LinearClassificationHead(LightningModule):

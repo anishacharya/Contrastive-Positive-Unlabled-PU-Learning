@@ -12,7 +12,7 @@ from pytorch_lightning import LightningModule
 from lightly.models import ResNetGenerator
 from lightly.models.modules import heads
 from lightly.utils.benchmarking.knn import knn_predict
-from training_utils import (get_optimizer, get_scheduler)
+from utils import (get_optimizer, get_scheduler)
 from losses import get_loss
 
 
