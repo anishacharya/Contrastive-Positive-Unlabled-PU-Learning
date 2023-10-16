@@ -63,4 +63,68 @@
         }
     },
 
+  "cifar10.1":
+    {
+      # we use the hyper-params proposed in SimCLR-v2 : https://github.com/google-research/simclr#pretraining
+      "framework_config":
+        {
+          # ---- model
+          "encoder_arch": "resnet18",
+          "proj_num_layers": 2,
+          "proj_hidden_dim": 256,
+          "proj_dim": 128,
+
+          # ---- Losses
+          # contrastive: ssCL, sCL, puCL
+          # non-contrastive: ce, uPU, nnPU
+          "loss": 'puCL',
+          "temp": 0.5,
+          "prior": 0.4,  # PU baselines use this - we don't
+
+          # ---- validation
+          "knn_k": 200,  # knn k for validation steps in contrastive training
+          "knn_t": 0.1,  # soft-knn temperature for validation in contrastive training
+        },
+      "data_config":
+        {
+          # ---- settings: pu_single_data, pu_case_control , supervised , unsupervised
+          # nP =  num_labeled, nU =  num_unlabeled,
+          "setting": "pu_case_control",
+          "num_labeled": 5000,
+
+          "num_unlabeled": ,   # only for controlled experiments - leave blank for benchmarks
+          "dataset_prior": ,   # leave blank for benchmarks
+
+          "train_batch_size": 512,
+          "test_batch_size": 1000,
+          "num_worker": 8
+        },
+      "training_config":
+        {
+          "epochs": 1000,
+          "eval_freq": 1,
+          "save_model_freq": 100,
+
+          # ----- optimization ----
+          "optimizer": "LARS", # SGD/ Adam, AdamW, LARS
+          "betas": [ 0.5, 0.99 ],
+          "momentum": 0.9,
+          "nesterov": true,
+          "amsgrad": false,
+          "lr0": 1,                                 # lars: imagenet: 0.075 * \sqrt(batch_size), cifar: 1, for bs:512
+          "reg": 0.0001,                            # L2 Regularizer
+
+          # ----- LRS ------
+          "lrs": 'cosine_warmup',
+
+          "warmup": 10,                              # for linear warmup
+          "step_size": 1,                           # for step lrs
+          "milestones": [ 20, 60, 120 ],            # for multistep lrs
+          "gamma": 0.9,                             # for step and multistep lrs
+
+          "T_max": 1000,                            # for cosine lrs
+          "eta_min": 0.00001,                       # for cosine lrs
+        }
+    },
+
 }
