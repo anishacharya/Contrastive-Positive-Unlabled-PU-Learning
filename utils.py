@@ -250,3 +250,125 @@ def cifarresnet152():
 	:return:
 	"""
 	return CIFARResNet(Bottleneck, [3, 8, 36, 3])
+
+
+class CIFARCNN(nn.Module):
+	""" Ref: https://openreview.net/pdf?id=NH29920YEmj. Code in .zip submission """
+	
+	def __init__(self):
+		super(CIFARCNN, self).__init__()
+		
+		self.conv1 = nn.Conv2d(3, 96, 3)
+		self.conv2 = nn.Conv2d(96, 96, 3, stride=2)
+		self.conv3 = nn.Conv2d(96, 192, 1)
+		self.conv4 = nn.Conv2d(192, 10, 1)
+		
+		self.fc1 = nn.Linear(1960, 1000)
+		self.fc2 = nn.Linear(1000, 1000)
+	
+	# self.fc3 = nn.Linear(1000, num_classes)
+	
+	def forward(self, x):
+		"""
+
+		:param x:
+		:return:
+		"""
+		h = self.conv1(x)
+		h = F.relu(h)
+		h = self.conv2(h)
+		h = F.relu(h)
+		h = self.conv3(h)
+		h = F.relu(h)
+		h = self.conv4(h)
+		h = F.relu(h)
+		
+		h = h.view(h.size(0), -1)
+		h = self.fc1(h)
+		h = F.relu(h)
+		h = self.fc2(h)
+		# h = F.relu(h)
+		# h = self.fc3(h)
+		return h
+
+
+class STLCNN(nn.Module):
+	""" Ref: https://openreview.net/pdf?id=NH29920YEmj. Code in .zip submission """
+	
+	def __init__(self):
+		super(STLCNN, self).__init__()
+		
+		self.relu = nn.ReLU()
+		self.conv1 = nn.Conv2d(3, 6, 3)
+		self.conv2 = nn.Conv2d(6, 6, 3)
+		self.mp = nn.MaxPool2d(2, 2)
+		self.conv3 = nn.Conv2d(6, 16, 5)
+		self.conv4 = nn.Conv2d(16, 32, 5)
+		
+		self.fc1 = nn.Linear(32 * 8 * 8, 120)
+		self.fc2 = nn.Linear(120, 84)
+		
+		self.layer1 = nn.Sequential(self.conv1, self.relu, self.mp)
+		self.layer2 = nn.Sequential(self.conv2, self.relu)
+		self.layer3 = nn.Sequential(self.conv3, self.relu, self.mp)
+		self.layer4 = nn.Sequential(self.conv4, self.relu, self.mp)
+		
+		self.conv_layers = nn.ModuleList([self.layer1, self.layer2, self.layer3, self.layer4])
+		self.fc_layers = nn.Sequential(self.fc1, self.relu, self.fc2)
+	
+	def forward(self, x):
+		"""
+
+		:param x:
+		:return:
+		"""
+		h = x
+		for i, layer_module in enumerate(self.conv_layers):
+			h = layer_module(h)
+		h = h.view(h.size(0), -1)
+		h = self.fc_layers(h)
+		return h
+
+
+class FMNISTLeNet(nn.Module):
+	""" Ref: https://openreview.net/pdf?id=NH29920YEmj. Code in .zip submission """
+	
+	def __init__(self):
+		super(FMNISTLeNet, self).__init__()
+		
+		self.conv1 = nn.Conv2d(1, 6, kernel_size=5, padding=2)
+		self.conv2 = nn.Conv2d(6, 16, kernel_size=5)
+		self.conv3 = nn.Conv2d(16, 120, kernel_size=5)
+		self.bn_conv1 = nn.BatchNorm2d(6)
+		self.bn_conv2 = nn.BatchNorm2d(16)
+		self.mp = nn.MaxPool2d(2)
+		self.relu = nn.ReLU()
+		
+		self.fc1 = nn.Linear(120, 84)
+		self.bn_fc1 = nn.BatchNorm1d(84)
+		
+		self.layer1 = nn.Sequential(self.conv1, self.mp, self.relu)
+		self.layer2 = nn.Sequential(self.conv2, self.mp, self.relu)
+		self.layer3 = nn.Sequential(self.conv3, self.relu)
+		
+		# self.conv_layers = nn.ModuleList([self.layer1, self.layer2, self.layer3])
+		self.fc_layers = nn.Sequential(self.fc1, self.bn_fc1)
+	
+	def forward(self, x):
+		"""
+
+		:param x:
+		:return:
+		"""
+		h = x
+		# for i, layer_module in enumerate(self.conv_layers):
+		#     h = layer_module(h)
+		h = self.layer1(h)
+		h = self.layer2(h)
+		h = self.layer3(h)
+		
+		h = h.view(h.size(0), -1)
+		
+		h = self.fc_layers(h)
+		
+		return h
