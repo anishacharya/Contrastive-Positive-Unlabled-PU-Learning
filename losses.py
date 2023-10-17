@@ -37,6 +37,10 @@ class SelfSupConLoss(nn.Module):
 	def __init__(self, temperature: float = 0.5, reduction="mean"):
 		super(SelfSupConLoss, self).__init__()
 		self.temperature = temperature
+		self.neg_mask = None
+		self.self_aug_mask = None
+		self.bs = None
+		self.N = None
 	
 	def forward(self, z, z_aug, *kwargs):
 		"""
@@ -45,11 +49,18 @@ class SelfSupConLoss(nn.Module):
 		:param kwargs:
 		:return:
 		"""
+		# compute matrix with <z_i , z_j> / temp
 		inner_pdt_mtx = compute_inner_pdt_mtx(z=z, z_aug=z_aug, temp=self.temp)
-		bs, _ = z.shape
-		labels = torch.arange(2 * bs, device=z.device, dtype=torch.long)
-		loss = self.cross_entropy(inner_pdt_mtx, labels)
-		return loss
+		# softmax row wise -- w/o diagonal i.e. inner_pdt / Z
+		similarity_mtx = compute_sfx_mtx(inner_pdt_mtx=inner_pdt_mtx)
+		
+		# get masks
+		if self.bs != z.shape[0] or self.self_aug_mask is None:
+			self.bs = z.shape[0]
+			self.N = 2 * self.bs - 2
+			self.self_aug_mask, _ = get_self_aug_mask(z=z)
+		
+		pos = (similarity_mtx * self.self_aug_mask).sum(dim=1)
 
 
 class SupConLoss(nn.Module):
@@ -204,25 +215,27 @@ def compute_inner_pdt_mtx(z: torch.Tensor, z_aug: torch.Tensor, temp: float) -> 
 	inner_pdt_1011 = torch.cat([inner_pdt_10, inner_pdt_11], dim=1)
 	inner_pdt_mtx = torch.cat([inner_pdt_0001, inner_pdt_1011], dim=0)
 	
-	return inner_pdt_mtx
-
-
-def compute_nll_mtx(inner_pdt_mtx: torch.Tensor) -> torch.Tensor:
-	"""
-	:param inner_pdt_mtx:
-	"""
 	max_inner_pdt, _ = torch.max(inner_pdt_mtx, dim=1, keepdim=True)
 	inner_pdt_mtx = inner_pdt_mtx - max_inner_pdt.detach()  # for numerical stability
 	
-	nll_mtx = torch.exp(inner_pdt_mtx)
+	return inner_pdt_mtx
+
+
+def compute_sfx_mtx(inner_pdt_mtx: torch.Tensor) -> torch.Tensor:
+	"""
+	:param inner_pdt_mtx:
+	:returns: softmax per row w/o the diagonal
+	"""
+	# max_inner_pdt, _ = torch.max(inner_pdt_mtx, dim=1, keepdim=True)
+	# inner_pdt_mtx = inner_pdt_mtx - max_inner_pdt.detach()  # for numerical stability
+	
+	sfx_mtx = torch.exp(inner_pdt_mtx)
 	# softmax w/o the diagonal entry
 	diag_mask = torch.ones_like(inner_pdt_mtx).fill_diagonal_(0)
-	nll_mtx = nll_mtx * diag_mask
-	nll_mtx /= torch.sum(nll_mtx, dim=1, keepdim=True)
-	# NLL
-	nll_mtx[nll_mtx != 0] = - torch.log(nll_mtx[nll_mtx != 0])
+	sfx_mtx = sfx_mtx * diag_mask
+	sfx_mtx /= torch.sum(sfx_mtx, dim=1, keepdim=True)
 	
-	return nll_mtx
+	return sfx_mtx
 
 
 def get_self_aug_mask(z: torch.Tensor) -> [torch.Tensor, torch.Tensor]:
