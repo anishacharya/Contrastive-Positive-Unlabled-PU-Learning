@@ -2,6 +2,7 @@
 import torch.nn as nn
 import torch
 from typing import Dict
+from lightly.loss import NTXentLoss
 
 
 def get_loss(framework_config: Dict) -> nn.Module:
@@ -36,7 +37,6 @@ class SelfSupConLoss(nn.Module):
 	def __init__(self, temperature: float = 0.5, reduction="mean"):
 		super(SelfSupConLoss, self).__init__()
 		self.temperature = temperature
-		self.cross_entropy = nn.CrossEntropyLoss(reduction=reduction)
 	
 	def forward(self, z, z_aug, *kwargs):
 		"""
@@ -183,10 +183,10 @@ class PULoss(nn.Module):
 			ValueError('Unsupported Loss')
 
 
-def compute_inner_pdt_mtx(z, z_aug, temp):
+def compute_inner_pdt_mtx(z: torch.Tensor, z_aug: torch.Tensor, temp: float) -> torch.Tensor:
 	"""
-	compute Temp normalized - cross similarity (inner product) scores.
-	o/p [i,j] th entry:  [ exp(z_i, z_j) ]; [i, i] th entry = 0
+	returns a Temp normalized - cross similarity (inner product) scores.
+	diagonals are set to 0.
 	"""
 	z = torch.nn.functional.normalize(z, dim=1)
 	z_aug = torch.nn.functional.normalize(z_aug, dim=1)
@@ -204,19 +204,41 @@ def compute_inner_pdt_mtx(z, z_aug, temp):
 	inner_pdt_1011 = torch.cat([inner_pdt_10, inner_pdt_11], dim=1)
 	inner_pdt_mtx = torch.cat([inner_pdt_0001, inner_pdt_1011], dim=0)
 	
-	# for numerical stability
-	max_inner_pdt, _ = torch.max(inner_pdt_mtx, dim=1, keepdim=True)
-	inner_pdt_mtx = inner_pdt_mtx - max_inner_pdt.detach()
-	# mask out self contrast
-	diag_mask = torch.ones_like(inner_pdt_mtx, device=inner_pdt_mtx.device, dtype=torch.bool).fill_diagonal_(0)
-	inner_pdt_mtx *= diag_mask
-	
 	return inner_pdt_mtx
+
+
+def compute_nll_mtx(inner_pdt_mtx: torch.Tensor) -> torch.Tensor:
+	"""
+	:param inner_pdt_mtx:
+	"""
+	max_inner_pdt, _ = torch.max(inner_pdt_mtx, dim=1, keepdim=True)
+	inner_pdt_mtx = inner_pdt_mtx - max_inner_pdt.detach()  # for numerical stability
 	
-	# # compute negative log-likelihoods
-	# nll_mtx = torch.exp(inner_pdt_mtx)
-	# nll_mtx = nll_mtx * diag_mask
-	# nll_mtx /= torch.sum(nll_mtx, dim=1, keepdim=True)
-	# nll_mtx[nll_mtx != 0] = - torch.log(nll_mtx[nll_mtx != 0])
-	#
-	# return nll_mtx
+	nll_mtx = torch.exp(inner_pdt_mtx)
+	# softmax w/o the diagonal entry
+	diag_mask = torch.ones_like(inner_pdt_mtx).fill_diagonal_(0)
+	nll_mtx = nll_mtx * diag_mask
+	nll_mtx /= torch.sum(nll_mtx, dim=1, keepdim=True)
+	# NLL
+	nll_mtx[nll_mtx != 0] = - torch.log(nll_mtx[nll_mtx != 0])
+	
+	return nll_mtx
+
+
+def get_self_aug_mask(z: torch.Tensor) -> [torch.Tensor, torch.Tensor]:
+	""" [i,j] = 1 if x_j is aug of x_i else 0 """
+	aug_mask_00 = torch.zeros((z.shape[0], z.shape[0]), device=z.device)
+	aug_mask_01 = torch.zeros((z.shape[0], z.shape[0]), device=z.device)
+	aug_mask_01.fill_diagonal_(1)
+	aug_mask_10 = aug_mask_01
+	aug_mask_11 = aug_mask_00
+	aug_mask_0001 = torch.cat([aug_mask_00, aug_mask_01], dim=1)
+	aug_mask_1011 = torch.cat([aug_mask_10, aug_mask_11], dim=1)
+	aug_mask = torch.cat([aug_mask_0001, aug_mask_1011], dim=0)
+	
+	neg_aug_mask = aug_mask.clone()
+	neg_aug_mask[aug_mask == 0] = 1
+	neg_aug_mask[aug_mask == 1] = 0
+	neg_aug_mask.fill_diagonal_(0)
+	
+	return aug_mask, neg_aug_mask
