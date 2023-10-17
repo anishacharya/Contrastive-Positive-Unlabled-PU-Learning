@@ -45,7 +45,7 @@ class SelfSupConLoss(nn.Module):
 		:param kwargs:
 		:return:
 		"""
-		inner_pdt_mtx = compute_nll_mtx(z=z, z_aug=z_aug, temp=self.temp)
+		inner_pdt_mtx = compute_inner_pdt_mtx(z=z, z_aug=z_aug, temp=self.temp)
 		bs, _ = z.shape
 		labels = torch.arange(2 * bs, device=z.device, dtype=torch.long)
 		loss = self.cross_entropy(inner_pdt_mtx, labels)
@@ -183,9 +183,9 @@ class PULoss(nn.Module):
 			ValueError('Unsupported Loss')
 
 
-def compute_nll_mtx(z, z_aug, temp):
+def compute_inner_pdt_mtx(z, z_aug, temp):
 	"""
-	compute Temp normalized - cross similarity (inner product) scores
+	compute Temp normalized - cross similarity (inner product) scores.
 	o/p [i,j] th entry:  [ exp(z_i, z_j) ]; [i, i] th entry = 0
 	"""
 	z = torch.nn.functional.normalize(z, dim=1)
@@ -207,14 +207,16 @@ def compute_nll_mtx(z, z_aug, temp):
 	# for numerical stability
 	max_inner_pdt, _ = torch.max(inner_pdt_mtx, dim=1, keepdim=True)
 	inner_pdt_mtx = inner_pdt_mtx - max_inner_pdt.detach()
-	
-	# compute negative log-likelihoods
-	nll_mtx = torch.exp(inner_pdt_mtx)
-	
 	# mask out self contrast
-	diag_mask = torch.ones_like(inner_pdt_mtx, device=nll_mtx.device, dtype=torch.bool).fill_diagonal_(0)
-	nll_mtx = nll_mtx * diag_mask
-	nll_mtx /= torch.sum(nll_mtx, dim=1, keepdim=True)
-	nll_mtx[nll_mtx != 0] = - torch.log(nll_mtx[nll_mtx != 0])
+	diag_mask = torch.ones_like(inner_pdt_mtx, device=inner_pdt_mtx.device, dtype=torch.bool).fill_diagonal_(0)
+	inner_pdt_mtx *= diag_mask
 	
-	return nll_mtx
+	return inner_pdt_mtx
+	
+	# # compute negative log-likelihoods
+	# nll_mtx = torch.exp(inner_pdt_mtx)
+	# nll_mtx = nll_mtx * diag_mask
+	# nll_mtx /= torch.sum(nll_mtx, dim=1, keepdim=True)
+	# nll_mtx[nll_mtx != 0] = - torch.log(nll_mtx[nll_mtx != 0])
+	#
+	# return nll_mtx
