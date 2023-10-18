@@ -226,8 +226,8 @@ def compute_inner_pdt_mtx(z: torch.Tensor, z_aug: torch.Tensor, temp: float) -> 
 	inner_pdt_1011 = torch.cat([inner_pdt_10, inner_pdt_11], dim=1)
 	inner_pdt_mtx = torch.cat([inner_pdt_0001, inner_pdt_1011], dim=0)
 	
-	max_inner_pdt, _ = torch.max(inner_pdt_mtx, dim=1, keepdim=True)
-	inner_pdt_mtx = inner_pdt_mtx - max_inner_pdt.detach()  # for numerical stability
+	# max_inner_pdt, _ = torch.max(inner_pdt_mtx, dim=1, keepdim=True)
+	# inner_pdt_mtx = inner_pdt_mtx - max_inner_pdt.detach()  # for numerical stability
 	
 	return inner_pdt_mtx
 
