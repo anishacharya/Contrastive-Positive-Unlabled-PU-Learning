@@ -15,7 +15,7 @@
           # non-contrastive: ce, uPU, nnPU
           "loss": 'ssCL',
           "temp": 0.5,
-          "prior": 0.4,  # PU baselines use this - we don't
+          "prior": 0.4,  # nnPU, uPU, puNCE uses \pi = p(y=1)
 
           # ---- validation
           "knn_k": 200,  # knn k for validation steps in contrastive training
@@ -23,8 +23,8 @@
         },
       "data_config":
         {
-          # ---- settings: pu_single_data, pu_case_control , supervised , unsupervised
-          # nP =  num_labeled, nU =  num_unlabeled,
+          # ---- settings: pu_single_data, pu_case_control, supervised, unsupervised
+          # nP =  num_labeled, nU =  num_unlabeled
           "setting": "pu_case_control",
           "num_labeled": 5000,
 
@@ -53,7 +53,7 @@
           # ----- LRS ------
           "lrs": 'cosine_warmup',
 
-          "warmup": 10,                              # for linear warmup
+          "warmup": 10,                             # for linear warmup
           "step_size": 1,                           # for step lrs
           "milestones": [ 20, 60, 120 ],            # for multistep lrs
           "gamma": 0.9,                             # for step and multistep lrs
