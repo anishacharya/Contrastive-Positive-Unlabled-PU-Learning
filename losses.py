@@ -47,7 +47,7 @@ class SelfSupConLoss(nn.Module):
 		self.bs = None
 		
 		self.criterion = NTXentLoss(
-			temperature=self.temp,
+			temperature=self.temperature,
 		)
 	
 	def forward(self, z, z_aug, *kwargs):
