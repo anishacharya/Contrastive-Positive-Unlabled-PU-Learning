@@ -22,7 +22,10 @@ def get_loss(framework_config: Dict) -> nn.Module:
 	elif loss_fn == 'sCL':
 		return SupConLoss(temperature=temp, reduction='mean')
 	elif loss_fn == 'puCL':
+		# ICLR 2024 Submission
 		return PUConLoss(temperature=temp)
+	elif loss_fn == 'puNCE':
+		raise NotImplementedError
 	else:
 		raise NotImplementedError
 
