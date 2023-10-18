@@ -201,7 +201,7 @@ if __name__ == '__main__':
 	run_linear_eval(
 		args=arguments,
 		config=yaml.load(
-			open('lin_eval_config.yaml'),
+			open('config_linear_eval.yaml'),
 			Loader=yaml.FullLoader
 		),
 		freeze_encoder=freeze

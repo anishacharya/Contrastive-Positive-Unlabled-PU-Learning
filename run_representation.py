@@ -174,7 +174,7 @@ if __name__ == '__main__':
 	run_contrastive_training(
 		args=_parse_args(),
 		config=yaml.load(
-			open('pt_config.yaml'),
+			open('config_pretrain.yaml'),
 			Loader=yaml.FullLoader
 		)
 	)
