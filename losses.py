@@ -40,10 +40,11 @@ class SelfSupConLoss(nn.Module):
 	def __init__(self, temperature: float = 0.5, reduction="mean"):
 		super(SelfSupConLoss, self).__init__()
 		self.temperature = temperature
+		self.reduction = reduction
+		
 		self.neg_mask = None
 		self.self_aug_mask = None
 		self.bs = None
-		self.N = None
 	
 	def forward(self, z, z_aug, *kwargs):
 		"""
@@ -57,10 +58,9 @@ class SelfSupConLoss(nn.Module):
 		# softmax row wise -- w/o diagonal i.e. inner_pdt / Z
 		similarity_mtx = compute_sfx_mtx(inner_pdt_mtx=inner_pdt_mtx)
 		
-		# get masks
+		# get masks - runs once for a set of images of same shape
 		if self.bs != z.shape[0] or self.self_aug_mask is None:
 			self.bs = z.shape[0]
-			self.N = 2 * self.bs - 2
 			self.self_aug_mask, _ = get_self_aug_mask(z=z)
 		
 		pos = (similarity_mtx * self.self_aug_mask)
