@@ -53,7 +53,7 @@ class SelfSupConLoss(nn.Module):
 		:return:
 		"""
 		# compute matrix with <z_i , z_j> / temp
-		inner_pdt_mtx = compute_inner_pdt_mtx(z=z, z_aug=z_aug, temp=self.temp)
+		inner_pdt_mtx = compute_inner_pdt_mtx(z=z, z_aug=z_aug, temp=self.temperature)
 		# softmax row wise -- w/o diagonal i.e. inner_pdt / Z
 		similarity_mtx = compute_sfx_mtx(inner_pdt_mtx=inner_pdt_mtx)
 		
@@ -90,7 +90,7 @@ class SupConLoss(nn.Module):
 		"""
 		
 		# compute matrix with <z_i , z_j> / temp
-		inner_pdt_mtx = compute_inner_pdt_mtx(z=z, z_aug=z_aug, temp=self.temp)
+		inner_pdt_mtx = compute_inner_pdt_mtx(z=z, z_aug=z_aug, temp=self.temperature)
 		# softmax row wise -- w/o diagonal i.e. inner_pdt / Z
 		similarity_mtx = compute_sfx_mtx(inner_pdt_mtx=inner_pdt_mtx)
 		
