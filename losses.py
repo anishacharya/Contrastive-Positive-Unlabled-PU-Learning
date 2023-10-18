@@ -60,7 +60,10 @@ class SelfSupConLoss(nn.Module):
 			self.N = 2 * self.bs - 2
 			self.self_aug_mask, _ = get_self_aug_mask(z=z)
 		
-		pos = (similarity_mtx * self.self_aug_mask).sum(dim=1)
+		pos = (similarity_mtx * self.self_aug_mask)
+		loss = pos / torch.clamp(pos.ne(0).sum(1, dtype=pos.dtype), min=1)
+		
+		return loss
 
 
 class SupConLoss(nn.Module):
@@ -83,7 +86,10 @@ class SupConLoss(nn.Module):
 		:return: loss value => scalar
 		"""
 		
-		similarity_mtx = compute_nll_mtx(z=z, z_aug=z_aug, temp=self.temperature)
+		# compute matrix with <z_i , z_j> / temp
+		inner_pdt_mtx = compute_inner_pdt_mtx(z=z, z_aug=z_aug, temp=self.temp)
+		# softmax row wise -- w/o diagonal i.e. inner_pdt / Z
+		similarity_mtx = compute_sfx_mtx(inner_pdt_mtx=inner_pdt_mtx)
 		
 		# mask out contributions from samples not from same class as i
 		mask_label = torch.unsqueeze(labels, dim=-1)
