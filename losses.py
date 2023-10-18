@@ -57,20 +57,21 @@ class SelfSupConLoss(nn.Module):
 		:param kwargs:
 		:return:
 		"""
-		# # compute matrix with <z_i , z_j> / temp
-		# inner_pdt_mtx = compute_inner_pdt_mtx(z=z, z_aug=z_aug, temp=self.temperature)
-		# # softmax row wise -- w/o diagonal i.e. inner_pdt / Z
-		# similarity_mtx = compute_sfx_mtx(inner_pdt_mtx=inner_pdt_mtx)
-		#
-		# # get masks - runs once for a set of images of same shape
-		# if self.bs != z.shape[0] or self.self_aug_mask is None:
-		# 	self.bs = z.shape[0]
-		# 	self.self_aug_mask, _ = get_self_aug_mask(z=z)
-		#
-		# loss = (similarity_mtx * self.self_aug_mask)
-		#
-		# return torch.mean(loss) if self.reduction == 'mean' else loss
-		return self.criterion(z, z_aug)
+		# compute matrix with <z_i , z_j> / temp
+		inner_pdt_mtx = compute_inner_pdt_mtx(z=z, z_aug=z_aug, temp=self.temperature)
+		# softmax row wise -- w/o diagonal i.e. inner_pdt / Z
+		similarity_mtx = compute_sfx_mtx(inner_pdt_mtx=inner_pdt_mtx)
+		# compute negative log likelihood
+		similarity_mtx[similarity_mtx != 0] = - torch.log(similarity_mtx[similarity_mtx != 0])
+		
+		# get masks - runs once for a set of images of same shape
+		if self.bs != z.shape[0] or self.self_aug_mask is None:
+			self.bs = z.shape[0]
+			self.self_aug_mask, _ = get_self_aug_mask(z=z)
+		
+		loss = (similarity_mtx * self.self_aug_mask)
+		
+		return torch.mean(loss) if self.reduction == 'mean' else loss
 
 
 class SupConLoss(nn.Module):
@@ -97,6 +98,8 @@ class SupConLoss(nn.Module):
 		inner_pdt_mtx = compute_inner_pdt_mtx(z=z, z_aug=z_aug, temp=self.temperature)
 		# softmax row wise -- w/o diagonal i.e. inner_pdt / Z
 		similarity_mtx = compute_sfx_mtx(inner_pdt_mtx=inner_pdt_mtx)
+		# compute negative log likelihood
+		similarity_mtx[similarity_mtx != 0] = - torch.log(similarity_mtx[similarity_mtx != 0])
 		
 		# mask out contributions from samples not from same class as i
 		mask_label = torch.unsqueeze(labels, dim=-1)
