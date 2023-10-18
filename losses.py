@@ -63,7 +63,7 @@ class SelfSupConLoss(nn.Module):
 		pos = (similarity_mtx * self.self_aug_mask)
 		loss = pos / torch.clamp(pos.ne(0).sum(1, dtype=pos.dtype), min=1)
 		
-		return loss
+		return torch.mean(loss) if self.reduction == 'mean' else loss
 
 
 class SupConLoss(nn.Module):
@@ -99,10 +99,8 @@ class SupConLoss(nn.Module):
 		
 		# compute the loss by averaging over multiple positives
 		loss = similarity_scores.sum(dim=1) / (eq_mask.sum(dim=1) - 1)
-		if self.reduction == 'mean':
-			loss = torch.mean(loss)
 		
-		return loss
+		return torch.mean(loss) if self.reduction == 'mean' else loss
 
 
 class PUConLoss(nn.Module):
