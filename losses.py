@@ -63,8 +63,7 @@ class SelfSupConLoss(nn.Module):
 			self.bs = z.shape[0]
 			self.self_aug_mask, _ = get_self_aug_mask(z=z)
 		
-		pos = (similarity_mtx * self.self_aug_mask)
-		loss = pos / torch.clamp(pos.ne(0).sum(1, dtype=pos.dtype), min=1)
+		loss = (similarity_mtx * self.self_aug_mask)
 		
 		return torch.mean(loss) if self.reduction == 'mean' else loss
 
