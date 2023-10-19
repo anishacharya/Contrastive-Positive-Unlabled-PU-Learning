@@ -11,7 +11,7 @@
           "proj_dim": 128,
 
           # ---- Losses
-          # contrastive: ssCL, sCL, puCL, puNCE, ENpuNCE
+          # contrastive: ssCL, sCL, puCL, puNCE, ENpuNCE, piNCE
           # non-contrastive: ce, uPU, nnPU
           "loss": 'puNCE',
           "temp": 0.5,
