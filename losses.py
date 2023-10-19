@@ -354,11 +354,6 @@ class PIinfoNCELoss(nn.Module):
 		# if no positive labeled it is simply SelfSupConLoss
 		num_labeled = len(p_ix)
 		
-		# get self aug mask - runs once for a set of images of same shape
-		if self.bs != z.shape[0] or self.self_aug_mask is None:
-			self.bs = z.shape[0]
-			self.self_aug_mask, self.neg_aug_mask = get_self_aug_mask(z=z)
-		
 		# Loss on P samples
 		risk_p = similarity_mtx[p_ix, :]
 		risk_p = risk_p[:, p_ix]
@@ -368,10 +363,10 @@ class PIinfoNCELoss(nn.Module):
 		similarity_u = similarity_mtx[u_ix, :]
 		inv_similarity_u = - similarity_u
 		# self-aug scores: For all samples <z_i, z_a(i)> / Z
-		self_aug_scores = similarity_mtx * self.self_aug_mask
+		self_aug_scores = similarity_mtx * self.self_aug_mask[u_ix, :]
 		lu_self = self_aug_scores.sum(dim=1)
 		# For all samples < - z_i, z_a(i) > / Z
-		inv_self_aug_scores = inv_similarity_u * self.self_aug_mask
+		inv_self_aug_scores = inv_similarity_u * self.self_aug_mask[u_ix, :]
 		inv_lu_self_aug = inv_self_aug_scores.sum(dim=1)
 		# self < - z_i, z_i> = -1/temp
 		inv_lu_self = torch.exp(- torch.ones_like(inv_lu_self_aug) / self.temperature)
