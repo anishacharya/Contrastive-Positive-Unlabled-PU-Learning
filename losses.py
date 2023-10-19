@@ -310,7 +310,7 @@ class PIinfoNCELoss(nn.Module):
 		super(PIinfoNCELoss, self).__init__()
 		# per sample unsup and sup loss : since reduction is None
 		
-		self.temp = temperature
+		self.temperature = temperature
 		if prior < 0:
 			raise ValueError('Prior must be non-negative')
 		self.pi_p = prior
@@ -374,7 +374,7 @@ class PIinfoNCELoss(nn.Module):
 		inv_self_aug_scores = inv_similarity_u * self.self_aug_mask
 		inv_lu_self_aug = inv_self_aug_scores.sum(dim=1)
 		# self < - z_i, z_i> = -1/temp
-		inv_lu_self = torch.exp(- torch.ones_like(inv_lu_self_aug) / self.temp)
+		inv_lu_self = torch.exp(- torch.ones_like(inv_lu_self_aug) / self.temperature)
 		# Average E(Negative)
 		inv_lu_self = (inv_lu_self_aug + inv_lu_self) / 2
 		
