@@ -27,6 +27,9 @@ def get_loss(framework_config: Dict) -> nn.Module:
 	elif loss_fn == 'puNCE':
 		# puNCE - Next Submission
 		return PUinfoNCELoss(temperature=temp, class_prior=prior)
+	elif loss_fn == 'ENpuNCE':
+		# puNCE - Next Submission
+		return ElkanNotoContrastivePULoss(temperature=temp, class_prior=prior)
 	else:
 		raise NotImplementedError
 
@@ -108,6 +111,47 @@ class SupConLoss(nn.Module):
 		loss = similarity_scores.sum(dim=1) / (eq_mask.sum(dim=1) - 1)
 		
 		return torch.mean(loss) if self.reduction == 'mean' else loss
+
+
+class ElkanNotoContrastivePULoss(nn.Module):
+	"""
+	Proposed puNCE loss ~ Treat U samples as pos and neg with prob pi and 1 - pi
+	"""
+	
+	def __init__(self, temperature: float = 0.5, class_prior: float = 0.5):
+		super(ElkanNotoContrastivePULoss, self).__init__()
+		self.bs = None
+		self.self_aug_mask = None
+		self.class_prior = class_prior
+		self.temperature = temperature
+		
+		# per sample unsup and sup loss : since reduction is None
+		self.sscl = SelfSupConLoss(temperature=temperature, reduction='none')
+		self.scl = SupConLoss(temperature=temperature, reduction='none')
+	
+	def forward(self, z: torch.Tensor, z_aug: torch.Tensor, labels: torch.Tensor, *kwargs) -> torch.Tensor:
+		"""
+
+		:param z: features => bs * shape
+		:param z_aug: augmentations => bs * shape
+		:param labels: ground truth labels of size => bs
+		:return: loss value => scalar
+		"""
+		labels = labels.to(z.device)
+		p_ix = torch.where(labels == 1)[0]
+		# if no positive labeled it is simply SelfSupConLoss
+		num_labeled = len(p_ix)
+		if num_labeled == 0:
+			unsup_loss = self.sscl(z=z, z_aug=z_aug)
+			return torch.mean(unsup_loss) if self.reduction == 'mean' else unsup_loss
+		
+		# treat U as pos with prob pi and as N with prob (1 - pi)
+		labels_all_pos = torch.ones_like(labels, device=labels.device)
+		risk_up = self.scl(z=z, z_aug=z_aug, labels=labels_all_pos)
+		risk_un = self.scl(z=z, z_aug=z_aug, labels=labels)
+		loss = self.class_prior * risk_up + (1 - self.class_prior) * risk_un
+		
+		return torch.mean(loss)
 
 
 class PUinfoNCELoss(nn.Module):
