@@ -14,7 +14,7 @@
           # contrastive: ssCL, sCL, puCL, puNCE
           # non-contrastive: ce, uPU, nnPU
           "loss": 'ssCL',
-          "temp": 0.5,
+          "temp": 0.3,
           "prior": 0.5,  # nnPU, uPU, puNCE uses \pi = p(y=1)
 
           # ---- validation
@@ -47,7 +47,7 @@
           "momentum": 0.9,
           "nesterov": true,
           "amsgrad": false,
-          "lr0": 2,                                 # lars: imagenet: 0.075 * \sqrt(batch_size), cifar: 1, for bs:512
+          "lr0": 1.6,                                 # lars: imagenet: 0.075 * \sqrt(batch_size), cifar: 1, for bs:512
           "reg": 0.0001,                            # L2 Regularizer
 
           # ----- LRS ------
