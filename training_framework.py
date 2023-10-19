@@ -170,6 +170,12 @@ class BaseFramework(LightningModule):
 				prog_bar=True,
 				sync_dist=True
 			)
+			self.log(
+				"max_accuracy",
+				self.max_accuracy * 100.0,
+				prog_bar=True,
+				sync_dist=True
+			)
 		self._val_predicted_labels.clear()
 		self._val_targets.clear()
 
