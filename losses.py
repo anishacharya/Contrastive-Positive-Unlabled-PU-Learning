@@ -26,7 +26,7 @@ def get_loss(framework_config: Dict) -> nn.Module:
 		return PUConLoss(temperature=temp)
 	elif loss_fn == 'puNCE':
 		# puNCE - Next Submission
-		return PUinfoNCELoss(temperature=temp)
+		return PUinfoNCELoss(temperature=temp, class_prior=prior)
 	else:
 		raise NotImplementedError
 
