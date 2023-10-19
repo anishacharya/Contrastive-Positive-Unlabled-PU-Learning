@@ -116,10 +116,85 @@ class SupConLoss(nn.Module):
 class PUConLoss(nn.Module):
 	"""
     Proposed PUConLoss : leveraging available positives only
+    ICLR 2024 Submission.
     """
 	
 	def __init__(self, temperature: float = 0.5):
 		super(PUConLoss, self).__init__()
+		# per sample unsup and sup loss : since reduction is None
+		self.sscl = SelfSupConLoss(temperature=temperature, reduction='none')
+		self.scl = SupConLoss(temperature=temperature, reduction='none')
+	
+	def forward(self, z: torch.Tensor, z_aug: torch.Tensor, labels: torch.Tensor, *kwargs) -> torch.Tensor:
+		"""
+        @param z: Anchor
+        @param z_aug: Mirror
+        @param labels: annotations
+        """
+		# get per sample sup and unsup loss
+		sup_loss = self.scl(z=z, z_aug=z_aug, labels=labels)
+		unsup_loss = self.sscl(z=z, z_aug=z_aug)
+		
+		# label for M-viewed batch with M=2
+		labels = labels.repeat(2).to(z.device)
+		
+		# get the indices of P and  U samples in the multi-viewed batch
+		p_ix = torch.where(labels == 1)[0]
+		u_ix = torch.where(labels == 0)[0]
+		
+		# if no positive labeled it is simply SelfSupConLoss
+		num_labeled = len(p_ix)
+		if num_labeled == 0:
+			return torch.mean(unsup_loss) if self.reduction == 'mean' else unsup_loss
+		
+		# compute expected similarity
+		# -------------------------
+		risk_p = sup_loss[p_ix]
+		risk_u = unsup_loss[u_ix]
+		
+		loss = torch.cat([risk_p, risk_u], dim=0)
+		
+		return torch.mean(loss) if self.reduction == 'mean' else loss
+
+
+class MixedContrastiveLoss(nn.Module):
+	"""
+	loss = lambda * Sup_Con + (1 - lambda) * Self Sup Con
+	"""
+	
+	def __init__(self, mixing_wt: float = 0.5, temperature: float = 0.5, reduction: str = 'mean'):
+		super(MixedContrastiveLoss, self).__init__()
+		self.reduction = reduction
+		self.gamma = mixing_wt
+		
+		self.supervised_loss = SupConLoss(temperature=temperature, reduction=reduction)
+		self.unsupervised_loss = SelfSupConLoss(temperature=temperature, reduction=reduction)
+	
+	def forward(self, z, z_aug, labels=None, *kwargs):
+		"""
+
+		:param z:
+		:param z_aug:
+		:param labels:
+		:return:
+		"""
+		# compute Temp normalized - cross similarity (inner product) scores
+		unsup_loss = self.unsupervised_loss(z=z, z_aug=z_aug)
+		sup_loss = self.supervised_loss(z=z, z_aug=z_aug, labels=labels)
+		
+		# mixed contrastive loss
+		loss = self.gamma * sup_loss + (1 - self.gamma) * unsup_loss
+		
+		return loss
+
+
+class PUinfoNCELoss(nn.Module):
+	"""
+    Proposed PUinfoNCE loss : leveraging available positives + class prior information
+    """
+	
+	def __init__(self, temperature: float = 0.5):
+		super(PUinfoNCELoss, self).__init__()
 		# per sample unsup and sup loss : since reduction is None
 		self.sscl = SelfSupConLoss(temperature=temperature, reduction='none')
 		self.scl = SupConLoss(temperature=temperature, reduction='none')
