@@ -79,7 +79,7 @@
           # non-contrastive: ce, uPU, nnPU
           "loss": 'puNCE',
           "temp": 0.5,
-          "prior": 0.45,
+          "prior": 0.5,
 
           # ---- validation
           "knn_k": 200,  # knn k for validation steps in contrastive training
