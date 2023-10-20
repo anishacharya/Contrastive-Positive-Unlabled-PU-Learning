@@ -53,7 +53,7 @@ class DataManager:
 		"""
 		:return:
 		"""
-		if self.data_set in ['cifar10.dog_cat', 'cifar.1', 'cifar.2']:
+		if self.data_set in ['cifar10.dog_cat', 'cifar10.1', 'cifar10.2']:
 			# update dataset attributes
 			mean, std = [0.4914, 0.4822, 0.4465], [0.2470, 0.2435, 0.2616]
 			model_ip_shape = 32
