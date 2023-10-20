@@ -79,7 +79,7 @@
           # non-contrastive: ce, uPU, nnPU
           "loss": 'puNCE',
           "temp": 0.5,
-          "prior": 0.55,
+          "prior": 0.4,
 
           # ---- validation
           "knn_k": 200,  # knn k for validation steps in contrastive training
@@ -95,7 +95,7 @@
           "num_unlabeled": ,   # only for controlled experiments - leave blank for benchmarks
           "dataset_prior": ,   # leave blank for benchmarks
 
-          "train_batch_size": 2048,
+          "train_batch_size": 4096,
           "test_batch_size": 1000,
           "num_worker": 8
         },
@@ -111,7 +111,7 @@
           "momentum": 0.9,
           "nesterov": true,
           "amsgrad": false,
-          "lr0": 1.6,                                 # lars: imagenet: 0.075 * \sqrt(batch_size), cifar: 1, for bs:512
+          "lr0": 2,                                 # lars: imagenet: 0.075 * \sqrt(batch_size), cifar: 1, for bs:512
           "reg": 0.0001,                            # L2 Regularizer
 
           # ----- LRS ------
