@@ -77,9 +77,9 @@
           # ---- Losses
           # contrastive: ssCL, sCL, puCL, puNCE
           # non-contrastive: ce, uPU, nnPU
-          "loss": 'ssCL',
+          "loss": 'puNCE',
           "temp": 0.5,
-          "prior": 0.4,
+          "prior": 0.35,
 
           # ---- validation
           "knn_k": 200,  # knn k for validation steps in contrastive training
