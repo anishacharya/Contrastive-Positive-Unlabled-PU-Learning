@@ -118,7 +118,7 @@ class DataManager:
 		dataset_map = {
 			"binary_cifar": BinaryCIFAR10,
 		}
-		if self.data_set in ['cifar10.dog_cat', 'cifar.1', 'cifar.2']:
+		if self.data_set in ['cifar10.dog_cat', 'cifar10.1', 'cifar10.2']:
 			# get attributes
 			self.num_classes = 2
 			self.num_channels, self.height, self.width = 3, 32, 32
