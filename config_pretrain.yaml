@@ -13,7 +13,7 @@
           # ---- Losses
           # contrastive: ssCL, sCL, puCL, puNCE, ENpuNCE, piNCE
           # non-contrastive: ce, uPU, nnPU
-          "loss": 'piNCE',
+          "loss": 'ssCL',
           "temp": 0.5,
           "prior": 0.5,  # nnPU, uPU, puNCE uses \pi = p(y=1)
 
@@ -31,7 +31,7 @@
           "num_unlabeled": ,   # only for controlled experiments - leave blank for benchmarks
           "dataset_prior": ,   # leave blank for benchmarks
 
-          "train_batch_size": 2048,
+          "train_batch_size": 512,
           "test_batch_size": 1000,
           "num_worker": 8
         },
@@ -47,7 +47,7 @@
           "momentum": 0.9,
           "nesterov": true,
           "amsgrad": false,
-          "lr0": 1.6,                                 # lars: imagenet: 0.075 * \sqrt(batch_size), cifar: 1, for bs:512
+          "lr0": 1,                                 # lars: imagenet: 0.075 * \sqrt(batch_size), cifar: 1, for bs:512
           "reg": 0.0001,                            # L2 Regularizer
 
           # ----- LRS ------
@@ -75,11 +75,11 @@
           "proj_dim": 128,
 
           # ---- Losses
-          # contrastive: ssCL, sCL, puCL
+          # contrastive: ssCL, sCL, puCL, puNCE
           # non-contrastive: ce, uPU, nnPU
-          "loss": 'puCL',
+          "loss": 'ssCL',
           "temp": 0.5,
-          "prior": 0.4,  # PU baselines use this - we don't
+          "prior": 0.4,
 
           # ---- validation
           "knn_k": 200,  # knn k for validation steps in contrastive training
@@ -90,7 +90,7 @@
           # ---- settings: pu_single_data, pu_case_control , supervised , unsupervised
           # nP =  num_labeled, nU =  num_unlabeled,
           "setting": "pu_case_control",
-          "num_labeled": 5000,
+          "num_labeled": 1000,
 
           "num_unlabeled": ,   # only for controlled experiments - leave blank for benchmarks
           "dataset_prior": ,   # leave blank for benchmarks
