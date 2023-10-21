@@ -103,7 +103,7 @@
         {
           "epochs": 1000,
           "eval_freq": 1,
-          "save_model_freq": 100,
+          "save_model_freq": 200,
 
           # ----- optimization ----
           "optimizer": "LARS", # SGD/ Adam, AdamW, LARS
