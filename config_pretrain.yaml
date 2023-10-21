@@ -90,7 +90,7 @@
           # ---- settings: pu_single_data, pu_case_control , supervised , unsupervised
           # nP =  num_labeled, nU =  num_unlabeled,
           "setting": "pu_case_control",
-          "num_labeled": 200,
+          "num_labeled": 1000,
 
           "num_unlabeled": ,   # only for controlled experiments - leave blank for benchmarks
           "dataset_prior": ,   # leave blank for benchmarks
@@ -101,7 +101,7 @@
         },
       "training_config":
         {
-          "epochs": 1000,
+          "epochs": 200,
           "eval_freq": 1,
           "save_model_freq": 200,
 
