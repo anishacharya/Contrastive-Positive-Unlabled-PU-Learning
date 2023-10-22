@@ -2,4 +2,4 @@
 # python3 run_linear_eval.py --mode lp --checkpoint $CKPT --exp_name lp-puCL-nnPU-puPL=5000
 
 
-python3 run_representation.py --exp_name case-control/nP=3k/bs=1024/lr=2.4/pi=0.4/pt-ssCL --dataset cifar10.1
+python3 run_representation.py --exp_name case-control/nP=3k/bs=1024/lr=2.4/pi=0.4/pt-puCL --dataset cifar10.1

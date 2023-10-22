@@ -78,7 +78,7 @@
           # ---- Losses
           # contrastive: ssCL, sCL, puCL, puNCE
           # non-contrastive: ce, uPU, nnPU
-          "loss": 'ssCL',
+          "loss": 'puCL',
           "temp": 0.5,
           "prior": 0.4,
 
