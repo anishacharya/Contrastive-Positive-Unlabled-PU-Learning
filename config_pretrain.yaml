@@ -69,6 +69,7 @@
       "framework_config":
         {
           # ---- model
+          # encoders:  cifar-cnn, cifar-resnet18, cifar-resnet50
           "encoder_arch": "cifar-cnn",
           "proj_num_layers": 2,
           "proj_hidden_dim": 256,
