@@ -55,7 +55,8 @@ class BaseFramework(LightningModule):
 			)
 		
 		# --- Load Models
-		self.backbone, self.projection_head, self.feat_dim = None, None, None
+		(self.backbone, self.projection_head, self.feat_dim,
+		 self.proj_hidden_dim, self.proj_dim, self.proj_num_layers) = None, None, None, None, None, None
 		self.init_model(encoder_arch=self.framework_config.get('encoder_arch', 'cifar-resnet18'))
 		
 		# Get objective
@@ -95,18 +96,30 @@ class BaseFramework(LightningModule):
 		if encoder_arch == 'cifar-resnet18':
 			self.backbone = cifarresnet18()
 			self.feat_dim = 512
+			self.proj_hidden_dim = 512
+			self.proj_dim = 128
+			self.proj_num_layers = 2
 		
 		elif encoder_arch == 'cifar-resnet50':
 			self.backbone = cifarresnet50()
 			self.feat_dim = 2048
+			self.proj_hidden_dim = 512
+			self.proj_dim = 128
+			self.proj_num_layers = 2
 		
 		elif encoder_arch == 'cifar-lenet':
 			self.backbone = LeNet()
 			self.feat_dim = 84
+			self.proj_hidden_dim = 84
+			self.proj_dim = 84
+			self.proj_num_layers = 2
 		
 		elif encoder_arch == 'cifar-cnn':
 			self.backbone = CIFARCNN()
 			self.feat_dim = 1000
+			self.proj_hidden_dim = 512
+			self.proj_dim = 128
+			self.proj_num_layers = 2
 		
 		else:
 			raise NotImplementedError
