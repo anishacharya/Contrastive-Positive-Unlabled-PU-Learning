@@ -19,7 +19,6 @@ from utils import (
 	cifarresnet18,
 	cifarresnet50,
 	CIFARCNN,
-	LeNet
 )
 
 
