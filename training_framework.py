@@ -107,13 +107,6 @@ class BaseFramework(LightningModule):
 			self.proj_dim = 128
 			self.proj_num_layers = 2
 		
-		elif encoder_arch == 'cifar-lenet':
-			self.backbone = LeNet()
-			self.feat_dim = 84
-			self.proj_hidden_dim = 84
-			self.proj_dim = 84
-			self.proj_num_layers = 2
-		
 		elif encoder_arch == 'cifar-cnn':
 			self.backbone = CIFARCNN()
 			self.feat_dim = 1000
