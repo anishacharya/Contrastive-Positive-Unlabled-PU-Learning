@@ -257,8 +257,50 @@ def cifarresnet152():
 	return CIFARResNet(Bottleneck, [3, 8, 36, 3])
 
 
+class LeNet(nn.Module):
+	"""
+	5 Layer CNN
+	Ref: https://openreview.net/pdf?id=NH29920YEmj. Code in .zip submission
+	"""
+	
+	def __init__(self):
+		super(LeNet, self).__init__()
+		
+		self.conv1 = nn.Conv2d(1, 6, kernel_size=5, padding=2)
+		self.conv2 = nn.Conv2d(6, 16, kernel_size=5)
+		self.conv3 = nn.Conv2d(16, 120, kernel_size=5)
+		self.bn_conv1 = nn.BatchNorm2d(6)
+		self.bn_conv2 = nn.BatchNorm2d(16)
+		self.mp = nn.MaxPool2d(2)
+		self.relu = nn.ReLU()
+		self.fc1 = nn.Linear(120, 84)
+		self.bn_fc1 = nn.BatchNorm1d(84)
+		
+		self.layer1 = nn.Sequential(self.conv1, self.mp, self.relu)
+		self.layer2 = nn.Sequential(self.conv2, self.mp, self.relu)
+		self.layer3 = nn.Sequential(self.conv3, self.relu)
+		
+		self.conv_layers = nn.ModuleList([self.layer1, self.layer2, self.layer3])
+		self.fc_layer = nn.Sequential(self.fc1)
+	
+	# self.fc3 = nn.Linear(1000, num_classes)
+	
+	def forward(self, x):
+		"""
+
+		:param x:
+		:return:
+		"""
+		h = x
+		for i, layer_module in enumerate(self.conv_layers):
+			h = layer_module(h)
+		h = h.view(h.size(0), -1)
+		h = self.fc_layer(h)
+		return h
+
+
 class CIFARCNN(nn.Module):
-	""" Ref: https://openreview.net/pdf?id=NH29920YEmj. Code in .zip submission """
+	""" Ref: https://github.com/HC-Feynman/vpu/blob/main/model/model_cifar.py."""
 	
 	def __init__(self):
 		super(CIFARCNN, self).__init__()

@@ -18,7 +18,8 @@ from utils import (
 	get_scheduler,
 	cifarresnet18,
 	cifarresnet50,
-	CIFARCNN
+	CIFARCNN,
+	LeNet
 )
 
 
@@ -98,6 +99,10 @@ class BaseFramework(LightningModule):
 		elif encoder_arch == 'cifar-resnet50':
 			self.backbone = cifarresnet50()
 			self.feat_dim = 2048
+		
+		elif encoder_arch == 'cifar-lenet':
+			self.backbone = LeNet()
+			self.feat_dim = 84
 		
 		elif encoder_arch == 'cifar-cnn':
 			self.backbone = CIFARCNN()
