@@ -36,44 +36,89 @@ def get_loss(framework_config: Dict) -> nn.Module:
 		raise NotImplementedError
 
 
+# class SelfSupConLoss(nn.Module):
+# 	"""
+# 	Self Sup Con Loss: https://arxiv.org/abs/2002.05709
+# 	Adopted from lightly.loss.NTXentLoss :
+# 	https://github.com/lightly-ai/lightly/blob/master/lightly/loss/ntx_ent_loss.py
+# 	"""
+#
+# 	def __init__(self, temperature: float = 0.5, reduction="mean"):
+# 		super(SelfSupConLoss, self).__init__()
+# 		self.temperature = temperature
+# 		self.reduction = reduction
+#
+# 		self.neg_mask = None
+# 		self.self_aug_mask = None
+# 		self.bs = None
+#
+# 	def forward(self, z, z_aug, *kwargs):
+# 		"""
+# 		:param z:
+# 		:param z_aug:
+# 		:param kwargs:
+# 		:return:
+# 		"""
+# 		# compute matrix with <z_i , z_j> / temp
+# 		inner_pdt_mtx = compute_inner_pdt_mtx(z=z, z_aug=z_aug, temp=self.temperature)
+# 		# softmax row wise -- w/o diagonal i.e. inner_pdt / Z
+# 		similarity_mtx = compute_sfx_mtx(inner_pdt_mtx=inner_pdt_mtx)
+# 		# compute negative log likelihood
+# 		similarity_mtx[similarity_mtx != 0] = - torch.log(similarity_mtx[similarity_mtx != 0])
+#
+# 		# get masks - runs once for a set of images of same shape
+# 		if self.bs != z.shape[0] or self.self_aug_mask is None:
+# 			self.bs = z.shape[0]
+# 			self.self_aug_mask, _ = get_self_aug_mask(z=z)
+#
+# 		loss = (similarity_mtx * self.self_aug_mask).sum(dim=1)
+#
+# 		return torch.mean(loss) if self.reduction == 'mean' else loss
+
+
 class SelfSupConLoss(nn.Module):
 	"""
-	Self Sup Con Loss: https://arxiv.org/abs/2002.05709
-	Adopted from lightly.loss.NTXentLoss :
-	https://github.com/lightly-ai/lightly/blob/master/lightly/loss/ntx_ent_loss.py
+	Self Supervised Contrastive Loss
 	"""
 	
 	def __init__(self, temperature: float = 0.5, reduction="mean"):
 		super(SelfSupConLoss, self).__init__()
 		self.temperature = temperature
-		self.reduction = reduction
-		
-		self.neg_mask = None
-		self.self_aug_mask = None
-		self.bs = None
+		self.cross_entropy = nn.CrossEntropyLoss(reduction=reduction)
 	
-	def forward(self, z, z_aug, *kwargs):
+	def forward(self, z: torch.Tensor, z_aug: torch.Tensor, *kwargs) -> torch.Tensor:
 		"""
-		:param z:
-		:param z_aug:
-		:param kwargs:
-		:return:
+		:param z: features
+		:param z_aug: augmentations
+		:return: loss value, scalar
 		"""
-		# compute matrix with <z_i , z_j> / temp
-		inner_pdt_mtx = compute_inner_pdt_mtx(z=z, z_aug=z_aug, temp=self.temperature)
-		# softmax row wise -- w/o diagonal i.e. inner_pdt / Z
-		similarity_mtx = compute_sfx_mtx(inner_pdt_mtx=inner_pdt_mtx)
-		# compute negative log likelihood
-		similarity_mtx[similarity_mtx != 0] = - torch.log(similarity_mtx[similarity_mtx != 0])
 		
-		# get masks - runs once for a set of images of same shape
-		if self.bs != z.shape[0] or self.self_aug_mask is None:
-			self.bs = z.shape[0]
-			self.self_aug_mask, _ = get_self_aug_mask(z=z)
+		batch_size, _ = z.shape
+		# project onto hypersphere
+		z = nn.functional.normalize(z, dim=1)
+		z_aug = nn.functional.normalize(z_aug, dim=1)
 		
-		loss = (similarity_mtx * self.self_aug_mask).sum(dim=1)
+		# calculate similarities block-wise
+		inner_pdt_00 = torch.einsum('nc,mc->nm', z, z) / self.temperature
+		inner_pdt_01 = torch.einsum('nc,mc->nm', z, z_aug) / self.temperature
+		inner_pdt_10 = torch.einsum("nc,mc->nm", z_aug, z) / self.temperature
+		inner_pdt_11 = torch.einsum('nc,mc->nm', z_aug, z_aug) / self.temperature
 		
-		return torch.mean(loss) if self.reduction == 'mean' else loss
+		# remove similarities between same views of the same image
+		diag_mask = torch.eye(batch_size, device=z.device, dtype=torch.bool)
+		inner_pdt_00 = inner_pdt_00[~diag_mask].view(batch_size, -1)
+		inner_pdt_11 = inner_pdt_11[~diag_mask].view(batch_size, -1)
+		
+		# concatenate blocks
+		inner_pdt_0100 = torch.cat([inner_pdt_01, inner_pdt_00], dim=1)
+		inner_pdt_1011 = torch.cat([inner_pdt_10, inner_pdt_11], dim=1)
+		logits = torch.cat([inner_pdt_0100, inner_pdt_1011], dim=0)
+		
+		labels = torch.arange(batch_size, device=z.device, dtype=torch.long)
+		labels = labels.repeat(2)
+		loss = self.cross_entropy(logits, labels)
+		
+		return loss
 
 
 class SupConLoss(nn.Module):
@@ -113,47 +158,6 @@ class SupConLoss(nn.Module):
 		loss = similarity_scores.sum(dim=1) / (eq_mask.sum(dim=1) - 1)
 		
 		return torch.mean(loss) if self.reduction == 'mean' else loss
-
-
-# class ElkanNotoContrastivePULoss(nn.Module):
-# 	"""
-# 	Proposed puNCE loss ~ Treat U samples as pos and neg with prob pi and 1 - pi
-# 	"""
-#
-# 	def __init__(self, temperature: float = 0.5, class_prior: float = 0.5):
-# 		super(ElkanNotoContrastivePULoss, self).__init__()
-# 		self.bs = None
-# 		self.self_aug_mask = None
-# 		self.class_prior = class_prior
-# 		self.temperature = temperature
-#
-# 		# per sample unsup and sup loss : since reduction is None
-# 		self.sscl = SelfSupConLoss(temperature=temperature, reduction='none')
-# 		self.scl = SupConLoss(temperature=temperature, reduction='none')
-#
-# 	def forward(self, z: torch.Tensor, z_aug: torch.Tensor, labels: torch.Tensor, *kwargs) -> torch.Tensor:
-# 		"""
-#
-# 		:param z: features => bs * shape
-# 		:param z_aug: augmentations => bs * shape
-# 		:param labels: ground truth labels of size => bs
-# 		:return: loss value => scalar
-# 		"""
-# 		labels = labels.to(z.device)
-# 		p_ix = torch.where(labels == 1)[0]
-# 		# if no positive labeled it is simply SelfSupConLoss
-# 		num_labeled = len(p_ix)
-# 		if num_labeled == 0:
-# 			unsup_loss = self.sscl(z=z, z_aug=z_aug)
-# 			return torch.mean(unsup_loss) if self.reduction == 'mean' else unsup_loss
-#
-# 		# treat U as pos with prob pi and as N with prob (1 - pi)
-# 		labels_all_pos = torch.ones_like(labels, device=labels.device)
-# 		risk_up = self.scl(z=z, z_aug=z_aug, labels=labels_all_pos)
-# 		risk_un = self.scl(z=z, z_aug=z_aug, labels=labels)
-# 		loss = self.class_prior * risk_up + (1 - self.class_prior) * risk_un
-#
-# 		return torch.mean(loss)
 
 
 class PUinfoNCELoss(nn.Module):
