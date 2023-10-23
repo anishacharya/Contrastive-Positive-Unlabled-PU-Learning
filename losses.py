@@ -225,9 +225,9 @@ class PUinfoNCELoss(nn.Module):
 		# puNCE-II
 		# risk_u = ((2 * self.class_prior - 1) * risk_up + risk_uu) / (2 * self.class_prior)
 		# puNCE-I
-		risk_u = ( self.class_prior * risk_up + risk_uu) / (1 + self.class_prior)
-		loss = torch.cat([risk_p, risk_u], dim=0)
+		risk_u = (self.class_prior * risk_up + risk_uu) / (1 + self.class_prior)
 		
+		loss = torch.cat([risk_p, risk_u], dim=0)
 		return torch.mean(loss)
 
 
