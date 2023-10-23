@@ -221,9 +221,9 @@ class PUinfoNCELoss(nn.Module):
 		
 		# combine
 		# puNCE-III
-		# risk_u = (self.class_prior ** 2 * risk_up + risk_uu) / (1 + self.class_prior ** 2)
+		risk_u = (self.class_prior ** 2 * risk_up + risk_uu) / (1 + self.class_prior ** 2)
 		# puNCE-II
-		risk_u = ((2 * self.class_prior - 1) * risk_up + risk_uu) / (2 * self.class_prior)
+		# risk_u = ((2 * self.class_prior - 1) * risk_up + risk_uu) / (2 * self.class_prior)
 		# puNCE-I
 		# risk_u = (self.class_prior * risk_up + risk_uu) / (1 + self.class_prior)
 		
