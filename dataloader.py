@@ -282,11 +282,15 @@ def binarize_dataset(
 					u_ix = np.concatenate((p_data_idx, n_data_idx), axis=0)
 				u_data = features[u_ix]
 				u_labels = np.zeros(len(u_data), dtype=targets.dtype)
-			else:
+			
+			elif setting == 'pu_single_data':
 				remaining_p_ix = np.setdiff1d(ar1=p_data_idx, ar2=p_ix)
 				u_ix = np.concatenate((remaining_p_ix, n_data_idx), axis=0)
 				u_data = features[u_ix]
 				u_labels = np.zeros(len(u_data), dtype=targets.dtype)
+			
+			else:
+				raise NotImplementedError
 			# create PU data
 			features = np.concatenate((p_data, u_data), axis=0)
 			targets = np.concatenate((p_labels, u_labels), axis=0)
