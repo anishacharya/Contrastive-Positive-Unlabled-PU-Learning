@@ -13,9 +13,9 @@
           # ---- Losses
           # contrastive: ssCL, sCL, puCL, puNCE, ENpuNCE, piNCE
           # non-contrastive: ce, uPU, nnPU
-          "loss": 'sCL',
+          "loss": 'puNCE',
           "temp": 0.5,
-          "prior": 0.4,  # nnPU, uPU, puNCE uses \pi = p(y=1)
+          "prior": 0.45,  # nnPU, uPU, puNCE uses \pi = p(y=1)
 
           # ---- validation
           "knn_k": 200,  # knn k for validation steps in contrastive training
@@ -52,7 +52,6 @@
 
           # ----- LRS ------
           "lrs": 'cosine',
-
           "warmup": 10,                             # for linear warmup
           "step_size": 1,                           # for step lrs
           "milestones": [ 20, 60, 120 ],            # for multistep lrs
