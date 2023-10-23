@@ -220,7 +220,8 @@ class PUinfoNCELoss(nn.Module):
 		risk_uu = risk_uu.sum(dim=1)
 		
 		# combine
-		risk_u = ((2 * self.class_prior - 1) * risk_up + risk_uu) / (2 * self.class_prior)
+		risk_u = (self.class_prior ** 2 * risk_up + risk_uu) / (1 + self.class_prior ** 2)
+		# risk_u = ((2 * self.class_prior - 1) * risk_up + risk_uu) / (2 * self.class_prior)
 		loss = torch.cat([risk_p, risk_u], dim=0)
 		
 		return torch.mean(loss)
