@@ -98,27 +98,45 @@ class DataManager:
         Returns:
         	train and test dataset
         """
+		supported_binary_cifar_datasets = [
+			'cifar10.dog_cat',
+			'cifar10.1',  # vehicle - animal
+			'cifar10.2',  # animal - vehicle
+			# CIFAR 10 - one vs all
+			'cifar10.airplane',
+			'cifar10.automobile',
+			'cifar10.bird',
+			'cifar10.cat',
+			'cifar10.deer',
+			'cifar10.dog',
+			'cifar10.frog',
+			'cifar10.horse',
+			'cifar10.ship',
+			'cifar10.truck'
+		]
+		dataset_map = {
+			"binary_cifar": BinaryCIFAR10,
+		}
 		binary_class_mapping = {
 			# Cifar10 Class Mapping
 			# 0:'airplane', 1:'automobile', 2:'bird', 3:'cat', 4:'deer',
 			# 5:'dog', 6:'frog', 7:'horse', 8:'ship', 9:'truck'
-			'cifar10.dog_cat': {
-				'pos_classes': [5],
-				'neg_classes': [3]
-			},
-			'cifar10.1': {
-				'pos_classes': [0, 1, 8, 9],
-				'neg_classes': [2, 3, 4, 5, 6, 7]
-			},
-			'cifar10.2': {
-				'pos_classes': [2, 3, 4, 5, 6, 7],
-				'neg_classes': [0, 1, 8, 9]
-			},
+			'cifar10.dog_cat': {'pos_classes': [5], 'neg_classes': [3]},
+			'cifar10.1': {'pos_classes': [0, 1, 8, 9], 'neg_classes': [2, 3, 4, 5, 6, 7]},
+			'cifar10.2': {'pos_classes': [2, 3, 4, 5, 6, 7], 'neg_classes': [0, 1, 8, 9]},
+			# class X vs All
+			'cifar10.airplane': {'pos_classes': [0], 'neg_classes': None},
+			'cifar10.automobile': {'pos_classes': [1], 'neg_classes': None},
+			'cifar10.bird': {'pos_classes': [2], 'neg_classes': None},
+			'cifar10.cat': {'pos_classes': [3], 'neg_classes': None},
+			'cifar10.deer': {'pos_classes': [4], 'neg_classes': None},
+			'cifar10.dog': {'pos_classes': [5], 'neg_classes': None},
+			'cifar10.frog': {'pos_classes': [6], 'neg_classes': None},
+			'cifar10.horse': {'pos_classes': [7], 'neg_classes': None},
+			'cifar10.ship': {'pos_classes': [8], 'neg_classes': None},
+			'cifar10.truck': {'pos_classes': [9], 'neg_classes': None},
 		}
-		dataset_map = {
-			"binary_cifar": BinaryCIFAR10,
-		}
-		if self.data_set in ['cifar10.dog_cat', 'cifar10.1', 'cifar10.2']:
+		if self.data_set in supported_binary_cifar_datasets:
 			# get attributes
 			self.num_classes = 2
 			self.num_channels, self.height, self.width = 3, 32, 32
