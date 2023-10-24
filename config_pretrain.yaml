@@ -57,7 +57,7 @@
           "milestones": [ 20, 60, 120 ],            # for multistep lrs
           "gamma": 0.9,                             # for step and multistep lrs
 
-          "T_max": 1000,                            # for cosine lrs
+          "T_max": 400,                            # for cosine lrs
           "eta_min": 0.00001,                       # for cosine lrs
         }
     },
@@ -121,7 +121,7 @@
           "milestones": [ 20, 60, 120 ],            # for multistep lrs
           "gamma": 0.9,                             # for step and multistep lrs
 
-          "T_max": 1000,                            # for cosine lrs
+          "T_max": 400,                            # for cosine lrs
           "eta_min": 0.00001,                       # for cosine lrs
         }
     },
