@@ -277,7 +277,8 @@ def binarize_dataset(
 		else:
 			# Obtain P data
 			# p_ix = np.random.choice(a=p_data_idx, size=num_labeled, replace=True)
-			# # balanced P data ~ equal data from each class in P
+			
+			# # ---- balanced P data ~ equal data from each class in P
 			num_pos_labeled_per_cls = int(num_labeled / len(pos_class))
 			p_ix = []
 			for cls in pos_class:
@@ -312,6 +313,7 @@ def binarize_dataset(
 			# create PU data
 			features = np.concatenate((p_data, u_data), axis=0)
 			targets = np.concatenate((p_labels, u_labels), axis=0)
+	
 	elif setting == 'unsupervised':
 		"""
 		Fully Unsupervised setting X
@@ -320,6 +322,7 @@ def binarize_dataset(
 		n_data = features[n_data_idx]
 		features = np.concatenate((p_data, n_data), axis=0)
 		targets = np.zeros(len(features), dtype=targets.dtype)
+	
 	elif setting == 'supervised':
 		"""
         standard binary (PN) setting Xp ~ p(x | y=1) , Xn ~ p(x | y=0)
@@ -330,6 +333,7 @@ def binarize_dataset(
 		n_labels = np.zeros(len(n_data), dtype=targets.dtype)
 		features = np.concatenate((p_data, n_data), axis=0)
 		targets = np.concatenate((p_labels, n_labels), axis=0)
+	
 	else:
 		raise NotImplementedError
 	
