@@ -10,6 +10,7 @@ from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 import lightly.data as data
 from lightly.transforms import SimCLRTransform
+from fastai.vision.all import *
 
 root_dir = os.path.join(os.path.dirname(__file__), './data/')
 supported_binary_cifar_datasets = [
@@ -143,7 +144,9 @@ class DataManager:
 			self.pos_classes = binary_class_mapping[self.data_set]['pos_classes']
 			self.neg_classes = binary_class_mapping[self.data_set]['neg_classes']
 			root_dataset = 'binary_cifar'
-		
+		elif self.data_set == "image_woof":
+			source = untar_data(URLs.IMAGENETTE_160)
+			train_files = get_image_files(source/'train')
 		else:
 			raise NotImplementedError
 		

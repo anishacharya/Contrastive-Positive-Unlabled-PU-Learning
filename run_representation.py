@@ -47,7 +47,7 @@ def _parse_args(verbose=True):
 	parser.add_argument(
 		'--dataset',
 		type=str,
-		default='cifar10.dog_cat',
+		default='image_woof',
 		help='Pass Dataset'
 	)
 	args = parser.parse_args()
