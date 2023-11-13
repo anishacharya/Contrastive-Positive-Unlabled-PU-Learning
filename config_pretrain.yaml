@@ -94,7 +94,7 @@
           "num_unlabeled": ,   # only for controlled experiments - leave blank for benchmarks
           "dataset_prior": ,   # leave blank for benchmarks
 
-          "train_batch_size": 4096,
+          "train_batch_size": 1024,
           "test_batch_size": 1000,
           "num_worker": 8
         },
@@ -110,7 +110,7 @@
           "momentum": 0.9,
           "nesterov": true,
           "amsgrad": false,
-          "lr0": 2.8,                                 # lars: imagenet: 0.075 * \sqrt(batch_size), cifar: 1, for bs:512
+          "lr0": 1.2,                                 # lars: imagenet: 0.075 * \sqrt(batch_size), cifar: 1, for bs:512
           "reg": 0.0001,                            # L2 Regularizer
 
           # ----- LRS ------
@@ -121,7 +121,7 @@
           "milestones": [ 20, 60, 120 ],            # for multistep lrs
           "gamma": 0.9,                             # for step and multistep lrs
 
-          "T_max": 400,                            # for cosine lrs
+          "T_max": 300,                            # for cosine lrs
           "eta_min": 0.00001,                       # for cosine lrs
         }
     },
