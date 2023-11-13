@@ -76,7 +76,7 @@
           # ---- Losses
           # contrastive: ssCL, sCL, puCL, puNCE, ENpuNCE, piNCE
           # non-contrastive: ce, uPU, nnPU
-          "loss": 'sscl',
+          "loss": 'ssCL',
           "temp": 0.5,
           "prior": 0.9,  # nnPU, uPU, puNCE uses \pi = p(y=1)
 
