@@ -28,7 +28,7 @@ def get_loss(framework_config: Dict) -> nn.Module:
 		return SupConLoss(temperature=temp, reduction='mean')
 	elif loss_fn == 'puCL':
 		# ICLR 2024 Submission
-		return PUConLoss(temperature=temp)
+		return PUConLoss(temperature=temp, reduction='mean')
 	elif loss_fn == 'puNCE':
 		# puNCE - Next Submission
 		return PUinfoNCELoss(temperature=temp, class_prior=prior)
