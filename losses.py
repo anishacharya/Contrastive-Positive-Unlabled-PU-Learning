@@ -121,11 +121,12 @@ class PUConLoss(nn.Module):
     ICLR 2024 Submission.
     """
 	
-	def __init__(self, temperature: float = 0.5):
+	def __init__(self, temperature: float = 0.5, reduction: str = 'mean'):
 		super(PUConLoss, self).__init__()
 		# per sample unsup and sup loss : since reduction is None
 		self.sscl = SelfSupConLoss(temperature=temperature, reduction='none')
 		self.scl = SupConLoss(temperature=temperature, reduction='none')
+		self.reduction = reduction
 	
 	def forward(self, z: torch.Tensor, z_aug: torch.Tensor, labels: torch.Tensor, *kwargs) -> torch.Tensor:
 		"""
