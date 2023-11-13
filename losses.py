@@ -1,4 +1,5 @@
 """ Defines different losses for training """
+import numpy as np
 import torch.nn as nn
 import torch
 from typing import Dict
@@ -27,11 +28,6 @@ def get_loss(framework_config: Dict) -> nn.Module:
 	elif loss_fn == 'puNCE':
 		# puNCE - Next Submission
 		return PUinfoNCELoss(temperature=temp, class_prior=prior)
-	# elif loss_fn == 'ENpuNCE':
-	# 	# puNCE - Next Submission
-	# 	return ElkanNotoContrastivePULoss(temperature=temp, class_prior=prior)
-	# elif loss_fn == 'piNCE':
-	# 	return PIinfoNCELoss(temperature=temp, prior=prior)
 	else:
 		raise NotImplementedError
 
@@ -76,51 +72,6 @@ class SelfSupConLoss(nn.Module):
 		return torch.mean(loss) if self.reduction == 'mean' else loss
 
 
-# class SelfSupConLoss(nn.Module):
-# 	"""
-# 	Self Supervised Contrastive Loss
-# 	"""
-#
-# 	def __init__(self, temperature: float = 0.5, reduction="mean"):
-# 		super(SelfSupConLoss, self).__init__()
-# 		self.temperature = temperature
-# 		self.cross_entropy = nn.CrossEntropyLoss(reduction=reduction)
-#
-# 	def forward(self, z: torch.Tensor, z_aug: torch.Tensor, *kwargs) -> torch.Tensor:
-# 		"""
-# 		:param z: features
-# 		:param z_aug: augmentations
-# 		:return: loss value, scalar
-# 		"""
-#
-# 		batch_size, _ = z.shape
-# 		# project onto hypersphere
-# 		z = nn.functional.normalize(z, dim=1)
-# 		z_aug = nn.functional.normalize(z_aug, dim=1)
-#
-# 		# calculate similarities block-wise
-# 		inner_pdt_00 = torch.einsum('nc,mc->nm', z, z) / self.temperature
-# 		inner_pdt_01 = torch.einsum('nc,mc->nm', z, z_aug) / self.temperature
-# 		inner_pdt_10 = torch.einsum("nc,mc->nm", z_aug, z) / self.temperature
-# 		inner_pdt_11 = torch.einsum('nc,mc->nm', z_aug, z_aug) / self.temperature
-#
-# 		# remove similarities between same views of the same image
-# 		diag_mask = torch.eye(batch_size, device=z.device, dtype=torch.bool)
-# 		inner_pdt_00 = inner_pdt_00[~diag_mask].view(batch_size, -1)
-# 		inner_pdt_11 = inner_pdt_11[~diag_mask].view(batch_size, -1)
-#
-# 		# concatenate blocks
-# 		inner_pdt_0100 = torch.cat([inner_pdt_01, inner_pdt_00], dim=1)
-# 		inner_pdt_1011 = torch.cat([inner_pdt_10, inner_pdt_11], dim=1)
-# 		logits = torch.cat([inner_pdt_0100, inner_pdt_1011], dim=0)
-#
-# 		labels = torch.arange(batch_size, device=z.device, dtype=torch.long)
-# 		labels = labels.repeat(2)
-# 		loss = self.cross_entropy(logits, labels)
-#
-# 		return loss
-
-
 class SupConLoss(nn.Module):
 	"""
 	Supervised Contrastive Learning: https://arxiv.org/pdf/2004.11362.pdf.
@@ -158,81 +109,6 @@ class SupConLoss(nn.Module):
 		loss = similarity_scores.sum(dim=1) / (eq_mask.sum(dim=1) - 1)
 		
 		return torch.mean(loss) if self.reduction == 'mean' else loss
-
-
-class PUinfoNCELoss(nn.Module):
-	"""
-	Proposed puNCE loss ~ Treat U samples as pos and neg with prob pi and 1 - pi
-	"""
-	
-	def __init__(self, temperature: float = 0.5, class_prior: float = 0.5):
-		super(PUinfoNCELoss, self).__init__()
-		self.bs = None
-		self.self_aug_mask = None
-		self.class_prior = class_prior
-		self.temperature = temperature
-		
-		# per sample unsup and sup loss : since reduction is None
-		self.sscl = SelfSupConLoss(temperature=temperature, reduction='none')
-		self.scl = SupConLoss(temperature=temperature, reduction='none')
-	
-	def forward(self, z: torch.Tensor, z_aug: torch.Tensor, labels: torch.Tensor, *kwargs) -> torch.Tensor:
-		"""
-
-		:param z: features => bs * shape
-		:param z_aug: augmentations => bs * shape
-		:param labels: ground truth labels of size => bs
-		:return: loss value => scalar
-		"""
-		
-		# compute matrix with <z_i , z_j> / temp
-		inner_pdt_mtx = compute_inner_pdt_mtx(z=z, z_aug=z_aug, temp=self.temperature)
-		
-		# softmax row wise -- w/o diagonal i.e. inner_pdt / Z
-		similarity_mtx = compute_sfx_mtx(inner_pdt_mtx=inner_pdt_mtx)
-		
-		# compute negative log likelihood
-		similarity_mtx[similarity_mtx != 0] = - torch.log(similarity_mtx[similarity_mtx != 0])
-		
-		# get the indices of P and  U samples in the multi-viewed batch
-		# label for M-viewed batch with M=2
-		labels = labels.repeat(2).to(z.device)
-		p_ix = torch.where(labels == 1)[0]
-		u_ix = torch.where(labels == 0)[0]
-		
-		# if no positive labeled it is simply SelfSupConLoss
-		num_labeled = len(p_ix)
-		if num_labeled == 0:
-			unsup_loss = self.sscl(z=z, z_aug=z_aug)
-			return torch.mean(unsup_loss)
-		
-		# get self aug mask - runs once for a set of images of same shape
-		if self.bs != z.shape[0] or self.self_aug_mask is None:
-			self.bs = z.shape[0]
-			self.self_aug_mask, _ = get_self_aug_mask(z=z)
-		
-		# Loss on P samples
-		risk_p = similarity_mtx[p_ix, :]
-		risk_p = risk_p[:, p_ix]
-		risk_p = risk_p.sum(dim=1) / (num_labeled - 1)
-		
-		# Loss on U Samples
-		risk_u = similarity_mtx[u_ix, :]
-		risk_up = risk_u[:, p_ix]
-		risk_up = risk_up.sum(dim=1) / num_labeled
-		risk_uu = risk_u * self.self_aug_mask[u_ix, :]
-		risk_uu = risk_uu.sum(dim=1)
-		
-		# combine
-		# puNCE-III
-		# risk_u = (self.class_prior ** 2 * risk_up + risk_uu) / (1 + self.class_prior ** 2)
-		# puNCE-II
-		# risk_u = ((2 * self.class_prior - 1) * risk_up + risk_uu) / (2 * self.class_prior)
-		# puNCE-I
-		risk_u = (self.class_prior * risk_up + risk_uu) / (1 + self.class_prior)
-		
-		loss = torch.cat([risk_p, risk_u], dim=0)
-		return torch.mean(loss)
 
 
 class PUConLoss(nn.Module):
@@ -310,95 +186,189 @@ class MixedContrastiveLoss(nn.Module):
 		return loss
 
 
-# class PIinfoNCELoss(nn.Module):
-# 	"""
-#     Proposed PUinfoNCE loss : leveraging available positives + class prior information
-#     """
-#
-# 	def __init__(self, temperature: float = 0.5, prior: float = 0.5):
-# 		super(PIinfoNCELoss, self).__init__()
-# 		# per sample unsup and sup loss : since reduction is None
-#
-# 		self.temperature = temperature
-# 		if prior < 0:
-# 			raise ValueError('Prior must be non-negative')
-# 		self.pi_p = prior
-# 		self.pi_n = 1 - prior
-#
-# 		self.tau_p = 1 - 2 * self.pi_p * self.pi_n  # prob that a y_i = y_j if i,j \in U
-# 		self.tau_n = 2 * self.pi_p * self.pi_n  # prob that a y_i != y_j if i,j \in U
-#
-# 		self.inv_sim_mtx = None
-# 		self.similarity_mtx = None
-# 		self.self_aug_mask = None
-# 		self.neg_aug_mask = None
-# 		self.bs = None
-#
-# 	def forward(self, z: torch.Tensor, z_aug: torch.Tensor, labels: torch.Tensor, *kwargs) -> torch.Tensor:
-# 		"""
-#
-# 		:param z: features => bs * shape
-# 		:param z_aug: augmentations => bs * shape
-# 		:param labels: ground truth labels of size => bs
-# 		:return: loss value => scalar
-# 		"""
-#
-# 		# compute matrix with <z_i , z_j> / temp
-# 		inner_pdt_mtx = compute_inner_pdt_mtx(z=z, z_aug=z_aug, temp=self.temperature)
-# 		# softmax row wise -- w/o diagonal i.e. inner_pdt / Z
-# 		similarity_mtx = compute_sfx_mtx(inner_pdt_mtx=inner_pdt_mtx)
-# 		# compute negative log likelihood
-# 		similarity_mtx[similarity_mtx != 0] = - torch.log(similarity_mtx[similarity_mtx != 0])
-#
-# 		if self.bs != z.shape[0] or self.self_aug_mask is None:
-# 			self.bs = z.shape[0]
-# 			self.self_aug_mask, self.neg_aug_mask = get_self_aug_mask(z=z)
-#
-# 		# get the indices of P and  U samples in the multi-viewed batch
-# 		# label for M-viewed batch with M=2
-# 		labels = labels.repeat(2).to(z.device)
-# 		p_ix = torch.where(labels == 1)[0]
-# 		u_ix = torch.where(labels == 0)[0]
-#
-# 		# if no positive labeled it is simply SelfSupConLoss
-# 		num_labeled = len(p_ix)
-#
-# 		# Loss on P samples
-# 		risk_p = similarity_mtx[p_ix, :]
-# 		risk_p = risk_p[:, p_ix]
-# 		risk_p = risk_p.sum(dim=1) / (num_labeled - 1)
-#
-# 		# Loss on U Samples
-# 		similarity_u = similarity_mtx[u_ix, :]
-# 		inv_similarity_u = - similarity_u
-# 		# self-aug scores: For all samples <z_i, z_a(i)> / Z
-# 		self_aug_scores = similarity_mtx * self.self_aug_mask[u_ix, :]
-# 		lu_self = self_aug_scores.sum(dim=1)
-# 		# For all samples < - z_i, z_a(i) > / Z
-# 		inv_self_aug_scores = inv_similarity_u * self.self_aug_mask[u_ix, :]
-# 		inv_lu_self_aug = inv_self_aug_scores.sum(dim=1)
-# 		# self < - z_i, z_i> = -1/temp
-# 		inv_lu_self = torch.exp(- torch.ones_like(inv_lu_self_aug) / self.temperature)
-# 		# Average E(Negative)
-# 		inv_lu_self = (inv_lu_self_aug + inv_lu_self) / 2
-#
-# 		# distance from other U samples
-# 		lu_u = similarity_u * self.neg_aug_mask
-# 		lu_u = lu_u.sum(dim=1)
-#
-# 		# compute expected similarity
-# 		risk_uu = lu_u / (2 * self.bs - 2)
-#
-# 		unbiased_pos_risk = (risk_uu - self.tau_n * inv_lu_self) / self.tau_p
-# 		unbiased_pos_risk = torch.clamp(unbiased_pos_risk, min=0)
-#
-# 		q = self.tau_p * 2 * self.bs - 1
-# 		total_pos_risk = unbiased_pos_risk * (q - 1)
-#
-# 		risk_u = lu_self + total_pos_risk / q
-# 		loss = torch.cat([risk_p, risk_u], dim=0)
-#
-# 		return torch.mean(loss)
+class PUinfoNCELoss(nn.Module):
+	"""
+	Proposed puNCE loss ~ Treat U samples as pos and neg with prob pi and 1 - pi
+	"""
+	
+	def __init__(self, temperature: float = 0.5, class_prior: float = 0.5):
+		super(PUinfoNCELoss, self).__init__()
+		self.bs = None
+		self.self_aug_mask = None
+		self.class_prior = class_prior
+		self.temperature = temperature
+		
+		# per sample unsup and sup loss : since reduction is None
+		self.sscl = SelfSupConLoss(temperature=temperature, reduction='none')
+		self.scl = SupConLoss(temperature=temperature, reduction='none')
+	
+	def forward(self, z: torch.Tensor, z_aug: torch.Tensor, labels: torch.Tensor, *kwargs) -> torch.Tensor:
+		"""
+
+		:param z: features => bs * shape
+		:param z_aug: augmentations => bs * shape
+		:param labels: ground truth labels of size => bs
+		:return: loss value => scalar
+		"""
+		
+		# compute matrix with <z_i , z_j> / temp
+		inner_pdt_mtx = compute_inner_pdt_mtx(z=z, z_aug=z_aug, temp=self.temperature)
+		
+		# softmax row wise -- w/o diagonal i.e. inner_pdt / Z
+		similarity_mtx = compute_sfx_mtx(inner_pdt_mtx=inner_pdt_mtx)
+		
+		# compute negative log likelihood
+		similarity_mtx[similarity_mtx != 0] = - torch.log(similarity_mtx[similarity_mtx != 0])
+		
+		# get the indices of P and  U samples in the multi-viewed batch
+		# label for M-viewed batch with M=2
+		labels = labels.repeat(2).to(z.device)
+		p_ix = torch.where(labels == 1)[0]
+		u_ix = torch.where(labels == 0)[0]
+		
+		# if no positive labeled it is simply SelfSupConLoss
+		num_labeled = len(p_ix)
+		if num_labeled == 0:
+			unsup_loss = self.sscl(z=z, z_aug=z_aug)
+			return torch.mean(unsup_loss)
+		
+		# get self aug mask - runs once for a set of images of same shape
+		if self.bs != z.shape[0] or self.self_aug_mask is None:
+			self.bs = z.shape[0]
+			self.self_aug_mask, _ = get_self_aug_mask(z=z)
+		
+		# Loss on P samples
+		risk_p = similarity_mtx[p_ix, :]
+		risk_p = risk_p[:, p_ix]
+		risk_p = risk_p.sum(dim=1) / (num_labeled - 1)
+		
+		# Loss on U Samples
+		risk_u = similarity_mtx[u_ix, :]
+		risk_up = risk_u[:, p_ix]
+		risk_up = risk_up.sum(dim=1) / num_labeled
+		risk_uu = risk_u * self.self_aug_mask[u_ix, :]
+		risk_uu = risk_uu.sum(dim=1)
+		
+		# combine
+		# puNCE-III
+		# risk_u = (self.class_prior ** 2 * risk_up + risk_uu) / (1 + self.class_prior ** 2)
+		# puNCE-II
+		# risk_u = ((2 * self.class_prior - 1) * risk_up + risk_uu) / (2 * self.class_prior)
+		# puNCE-I
+		risk_u = (self.class_prior * risk_up + risk_uu) / (1 + self.class_prior)
+		
+		loss = torch.cat([risk_p, risk_u], dim=0)
+		return torch.mean(loss)
+
+
+class DCL(nn.Module):
+	"""
+	https://arxiv.org/abs/2007.00224
+	"""
+	
+	def __init__(self, temperature: float = 0.5, prior: float = 0.5, reduction: str = 'mean'):
+		super(DCL, self).__init__()
+		self.temp = temperature
+		self.reduction = reduction
+		
+		self.pi_p = prior
+		self.pi_n = 1 - self.pi_p
+		
+		self.tau_p = self.pi_p  # 1 - 2 * self.pi_p * self.pi_n  # prob of two U samples having same label
+		self.tau_n = self.pi_n  # 1 - self.tau_p
+		
+		self.neg_mask = None
+		self.self_aug_mask = None
+		self.bs = None
+		self.N = None
+	
+	def forward(self, z, z_aug, *kwargs):
+		"""
+
+		:param z:
+		:param z_aug:
+		:return:
+		"""
+		# calculate: <(z_i^Tz_j/\tau)>
+		inner_pdt_mtx = compute_inner_pdt_mtx(z=z, z_aug=z_aug, temp=self.temp)
+		# compute < exp(z_i^Tz_j/\tau)>
+		similarity_mtx = torch.exp(inner_pdt_mtx)
+		
+		# get masks
+		if self.bs != z.shape[0] or self.self_aug_mask is None:
+			self.bs = z.shape[0]
+			self.N = 2 * self.bs - 2
+			self.self_aug_mask, self.neg_mask = get_self_aug_mask(z=z)
+		
+		# similarity with self_aug ~ R_pp
+		pos = (similarity_mtx * self.self_aug_mask).sum(dim=1)
+		# similarity with everything else ~ R_un
+		neg = (similarity_mtx * self.neg_mask).sum(dim=1)
+		
+		# unbiased R_nn = (R_un - \tau_p N R_pp) / tau_n
+		Ng = (-self.tau_p * self.N * pos + neg) / self.tau_n
+		# clamp at farthest point on the hypersphere for sample i
+		Ng = torch.clamp(Ng, min=self.N * np.e ** (-1 / self.temp))
+		
+		# estimate infoNCE loss
+		debiased_loss = -torch.log(pos / (pos + Ng))
+		
+		if self.reduction == 'mean':
+			return torch.mean(debiased_loss)
+		
+		return debiased_loss
+
+
+class PuDCL(nn.Module):
+	"""
+	leveraging available positives + DCL on unlabeled
+	"""
+	
+	def __init__(self, prior: float, temperature: float = 0.5, reduction='mean'):
+		super(PuDCL, self).__init__()
+		
+		self.pi_p = prior
+		self.temp = temperature
+		self.reduction = reduction
+		
+		self.dcl = DCL(temperature=temperature, prior=self.pi_p, reduction='none')
+		self.scl = SupConLoss(temperature=temperature, reduction='none')
+		
+		self.similarity_mtx = None
+		self.self_aug_mask, self.neg_aug_mask = None, None
+		self.bs = None
+	
+	def forward(self, z, z_aug, labels=None):
+		"""
+		@param z: Anchor
+		@param z_aug: Mirror
+		@param labels: annotations
+		"""
+		# get per sample sup and unsup loss
+		sup_loss = self.scl(z=z, z_aug=z_aug, labels=labels)
+		unsup_loss = self.dcl(z=z, z_aug=z_aug)
+		
+		# label for M-viewed batch with M=2
+		labels = labels.repeat(2)
+		
+		# get the indices of P and  U samples in the multi-viewed batch
+		p_ix = torch.where(labels == 1)[0]
+		u_ix = torch.where(labels == 0)[0]
+		
+		num_labeled = len(p_ix)
+		if num_labeled == 0:
+			return torch.mean(unsup_loss)
+		
+		# compute expected similarity
+		# -------------------------
+		risk_p = sup_loss[p_ix]
+		risk_u = unsup_loss[u_ix]
+		
+		loss = torch.cat([risk_p, risk_u], dim=0)
+		
+		if self.reduction == 'mean':
+			return torch.mean(loss)
+		return loss
 
 
 class PULoss(nn.Module):
