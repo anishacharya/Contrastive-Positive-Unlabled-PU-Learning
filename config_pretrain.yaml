@@ -100,7 +100,7 @@
         },
       "training_config":
         {
-          "epochs": 400,
+          "epochs": 300,
           "eval_freq": 1,
           "save_model_freq": 100,
 
