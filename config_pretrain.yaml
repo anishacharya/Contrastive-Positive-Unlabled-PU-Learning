@@ -78,7 +78,7 @@
           # non-contrastive: ce, uPU, nnPU
           "loss": 'dcl',
           "temp": 0.5,
-          "prior": 0.9,  # nnPU, uPU, puNCE uses \pi = p(y=1)
+          "prior": 0.1,  # nnPU, uPU, puNCE uses \pi = p(y=1)
 
           # ---- validation
           "knn_k": 200,  # knn k for validation steps in contrastive training
