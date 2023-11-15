@@ -146,6 +146,8 @@ class DataManager:
 			self.pos_classes = binary_class_mapping[self.data_set]['pos_classes']
 			self.neg_classes = binary_class_mapping[self.data_set]['neg_classes']
 			root_dataset = 'binary_cifar'
+		elif self.data_set == 'binary_imagenet100':
+			pass
 		# elif self.data_set == "image_woof":
 		# 	source = untar_data(URLs.IMAGENETTE_160)
 		# 	train_files = get_image_files(source/'train')
