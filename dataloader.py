@@ -103,6 +103,14 @@ class DataManager:
 				cj_strength=0.5,
 				gaussian_blur=0.0
 			)
+		elif self.data_set in ['fmnist.1', 'fmnist.2']:
+			mean, std = (0.5,), (0.5,)
+			model_ip_shape = 28
+			mv_transform = SimCLRTransform(
+				input_size=model_ip_shape,
+				cj_strength=0.5,
+				gaussian_blur=0.0
+			)
 		else:
 			raise NotImplementedError
 		
@@ -254,6 +262,32 @@ class BinaryCIFAR10(datasets.CIFAR10):
 			num_unlabeled=num_unlabeled,
 			prior=prior
 		)
+
+
+class BinaryFMNIST(datasets.FashionMNIST):
+	"""
+		Binarize FMNIST
+	"""
+	
+	def __init__(self,
+	             pos_class: List,
+	             neg_class: List = None,
+	             setting: str = None,
+	             num_labeled: int = None,
+	             root=root_dir,
+	             train: bool = True,
+	             download: bool = True):
+		super().__init__(root=root, train=train, download=download)
+		self.data, self.targets = np.array(self.data), np.array(self.targets)
+		self.data, self.targets = binarize_dataset(
+			features=self.data,
+			targets=self.targets,
+			pos_class=pos_class,
+			neg_class=neg_class,
+			setting=setting,
+			num_labeled=num_labeled
+		)
+		self.data = torch.from_numpy(self.data)
 
 
 def binarize_dataset(
