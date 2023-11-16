@@ -13,7 +13,7 @@ def get_loss(framework_config: Dict) -> nn.Module:
 	loss_fn = framework_config.get('loss')
 	temp = framework_config.get('temp', 0.5)
 	prior = framework_config.get('prior', 0)
-	
+	# ICLR 2024 Submission
 	if loss_fn == 'ce':
 		return nn.CrossEntropyLoss()
 	elif loss_fn in ['uPU', 'nnPU']:
@@ -22,16 +22,16 @@ def get_loss(framework_config: Dict) -> nn.Module:
 		return SelfSupConLoss(temperature=temp, reduction='mean')
 	elif loss_fn == 'dcl':
 		return DCL(temperature=temp, prior=prior)
-	elif loss_fn == 'pu_dcl':
-		return PuDCL(temperature=temp, prior=prior)
 	elif loss_fn == 'sCL':
 		return SupConLoss(temperature=temp, reduction='mean')
 	elif loss_fn == 'puCL':
-		# ICLR 2024 Submission
 		return PUConLoss(temperature=temp, reduction='mean')
+	
+	# puNCE - Next Submission
 	elif loss_fn == 'puNCE':
-		# puNCE - Next Submission
 		return PUinfoNCELoss(temperature=temp, class_prior=prior)
+	elif loss_fn == 'pu_dcl':
+		return PuDCL(temperature=temp, prior=prior)
 	else:
 		raise NotImplementedError
 

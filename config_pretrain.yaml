@@ -61,6 +61,7 @@
           "eta_min": 0.00001,                       # for cosine lrs
         }
     },
+
   "cifar10.dog_cat":
     {
       # we use the hyper-params proposed in SimCLR-v2 : https://github.com/google-research/simclr#pretraining
@@ -99,7 +100,7 @@
         },
       "training_config":
         {
-          "epochs": 1000,
+          "epochs": 300,
           "eval_freq": 1,
           "save_model_freq": 100,
 
@@ -119,7 +120,7 @@
           "milestones": [ 20, 60, 120 ],            # for multistep lrs
           "gamma": 0.9,                             # for step and multistep lrs
 
-          "T_max": 1000,                            # for cosine lrs
+          "T_max": 300,                            # for cosine lrs
           "eta_min": 0.00001,                       # for cosine lrs
         }
     },

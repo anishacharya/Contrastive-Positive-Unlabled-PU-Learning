@@ -5,7 +5,7 @@ import os
 from typing import Dict, List
 
 import lightly.data as data
-# from fastai.vision.all import *
+from fastai.vision.all import untar_data, URLs
 import numpy as np
 import torch
 from lightly.transforms import SimCLRTransform
