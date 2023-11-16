@@ -82,6 +82,7 @@ def run_contrastive_training(args, config):
 			gpu_strategy="ddp" if n_gpus >= 2 else "auto"
 		)
 		dataloader_train_mv, _, dataloader_train_val, dataloader_test = data_manager.get_data()
+		print("Done with Data Loading")
 		# --- Model -------
 		if args.checkpoint is not None:
 			print('Loading PreTrained Model from Checkpoint {}'.format(args.checkpoint))
