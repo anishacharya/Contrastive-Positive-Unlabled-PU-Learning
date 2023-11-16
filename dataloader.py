@@ -212,10 +212,10 @@ class DataManager:
 		dataset_train_val.transform = self.basic_transform  # for kNN
 		dataset_test.transform = self.basic_transform
 		
-		dataset_train_ssl = data.LightlyDataset.from_torch_dataset(dataset_train_ssl)
-		dataset_train_sv = data.LightlyDataset.from_torch_dataset(dataset_train_sv)
-		dataset_train_val = data.LightlyDataset.from_torch_dataset(dataset_train_val)
-		dataset_test = data.LightlyDataset.from_torch_dataset(dataset_test)
+		# dataset_train_ssl = data.LightlyDataset.from_torch_dataset(dataset_train_ssl)
+		# dataset_train_sv = data.LightlyDataset.from_torch_dataset(dataset_train_sv)
+		# dataset_train_val = data.LightlyDataset.from_torch_dataset(dataset_train_val)
+		# dataset_test = data.LightlyDataset.from_torch_dataset(dataset_test)
 		
 		dataloader_train_mv = DataLoader(
 			dataset_train_ssl,
