@@ -174,6 +174,9 @@ class DataManager:
 			self.neg_classes = binary_class_mapping[self.data_set]['neg_classes']
 			root_dataset = 'binary_fmnist'
 		
+		elif self.data_set == 'imagenet':
+			pass
+		
 		else:
 			raise NotImplementedError
 		
