@@ -112,7 +112,7 @@ class DataManager:
 			model_ip_shape = 28
 			mv_transform = SimCLRTransform(
 				input_size=model_ip_shape,
-				cj_strength=0.5,
+				cj_strength=0,
 				gaussian_blur=0.0
 			)
 		else:
@@ -161,7 +161,7 @@ class DataManager:
 		
 		elif self.data_set in ['fmnist.1', 'fmnist.2']:
 			self.num_classes = 2
-			self.num_channels, self.height, self.width = 3, 28, 28
+			self.num_channels, self.height, self.width = 1, 28, 28
 			self.pos_classes = binary_class_mapping[self.data_set]['pos_classes']
 			self.neg_classes = binary_class_mapping[self.data_set]['neg_classes']
 			root_dataset = 'binary_fmnist'
