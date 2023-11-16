@@ -137,7 +137,7 @@ class DataManager:
 	def get_data(self) -> [DataLoader, DataLoader, DataLoader]:
 		"""
         Returns:
-        	train and test dataset
+        train and test dataset
         """
 		if self.data_set in supported_binary_cifar_datasets:
 			# get attributes
