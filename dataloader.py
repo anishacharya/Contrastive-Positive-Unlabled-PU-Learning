@@ -13,6 +13,7 @@ from skimage import color
 from sklearn.utils import shuffle
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
+from lightly.transforms.multi_view_transform import MultiViewTransform
 
 root_dir = os.path.join(os.path.dirname(__file__), './data/')
 supported_binary_cifar_datasets = [
@@ -110,7 +111,7 @@ class DataManager:
 		elif self.data_set in ['fmnist.1', 'fmnist.2']:
 			mean, std = (0.5,), (0.5,)
 			model_ip_shape = 28
-			mv_transform = transforms.Compose([
+			transform = transforms.Compose([
 				transforms.RandomResizedCrop(28),
 				transforms.RandomApply([transforms.ColorJitter(0.4, 0.4, 0.2, 0.1)], p=0.8),
 				# transforms.RandomApply([GaussianBlur([0.1, 2.0])], p=0.5),
@@ -121,6 +122,7 @@ class DataManager:
 				transforms.ToTensor(),
 				transforms.Normalize(mean=mean, std=std)
 			])
+			mv_transform = MultiViewTransform(transforms=[transform, transform])
 		else:
 			raise NotImplementedError
 		
@@ -212,10 +214,10 @@ class DataManager:
 		dataset_train_val.transform = self.basic_transform  # for kNN
 		dataset_test.transform = self.basic_transform
 		
-		# dataset_train_ssl = data.LightlyDataset.from_torch_dataset(dataset_train_ssl)
-		# dataset_train_sv = data.LightlyDataset.from_torch_dataset(dataset_train_sv)
-		# dataset_train_val = data.LightlyDataset.from_torch_dataset(dataset_train_val)
-		# dataset_test = data.LightlyDataset.from_torch_dataset(dataset_test)
+		dataset_train_ssl = data.LightlyDataset.from_torch_dataset(dataset_train_ssl)
+		dataset_train_sv = data.LightlyDataset.from_torch_dataset(dataset_train_sv)
+		dataset_train_val = data.LightlyDataset.from_torch_dataset(dataset_train_val)
+		dataset_test = data.LightlyDataset.from_torch_dataset(dataset_test)
 		
 		dataloader_train_mv = DataLoader(
 			dataset_train_ssl,
