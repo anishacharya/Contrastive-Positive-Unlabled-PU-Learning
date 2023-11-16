@@ -110,11 +110,17 @@ class DataManager:
 		elif self.data_set in ['fmnist.1', 'fmnist.2']:
 			mean, std = (0.5,), (0.5,)
 			model_ip_shape = 28
-			mv_transform = SimCLRTransform(
-				input_size=model_ip_shape,
-				cj_strength=0,
-				gaussian_blur=0.0
-			)
+			mv_transform = transforms.Compose([
+				transforms.RandomResizedCrop(28),
+				transforms.RandomApply([transforms.ColorJitter(0.4, 0.4, 0.2, 0.1)], p=0.8),
+				# transforms.RandomApply([GaussianBlur([0.1, 2.0])], p=0.5),
+				# transforms.RandomHorizontalFlip(p=0.5),
+				# transforms.RandomPerspective(p=0.5),
+				# transforms.RandomVerticalFlip(p=0.5),
+				# RandomRotate(prob=0.5, angle=90),
+				transforms.ToTensor(),
+				transforms.Normalize(mean=mean, std=std)
+			])
 		else:
 			raise NotImplementedError
 		
