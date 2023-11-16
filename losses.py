@@ -21,7 +21,9 @@ def get_loss(framework_config: Dict) -> nn.Module:
 	elif loss_fn == 'ssCL':
 		return SelfSupConLoss(temperature=temp, reduction='mean')
 	elif loss_fn == 'dcl':
-		return DCL(temperature=temp, prior=prior)
+		return DCL(temperature=temp, prior=prior, reduction='mean')
+	elif loss_fn == 'mcl':
+		return MixedContrastiveLoss(mixing_wt=prior, temperature=temp, reduction='mean')
 	elif loss_fn == 'sCL':
 		return SupConLoss(temperature=temp, reduction='mean')
 	elif loss_fn == 'puCL':
