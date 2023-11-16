@@ -276,14 +276,18 @@ class BinaryFMNIST(datasets.FashionMNIST):
 		Binarize FMNIST
 	"""
 	
-	def __init__(self,
-	             pos_class: List,
-	             neg_class: List = None,
-	             setting: str = None,
-	             num_labeled: int = None,
-	             root=root_dir,
-	             train: bool = True,
-	             download: bool = True):
+	def __init__(
+			self,
+			pos_class: List,
+			neg_class: List = None,
+			root=root_dir,
+			train: bool = True,
+			download: bool = True,
+			setting: str = None,
+			num_labeled: int = None,
+			num_unlabeled: int = None,
+			prior: float = None
+	):
 		super().__init__(root=root, train=train, download=download)
 		self.data, self.targets = np.array(self.data), np.array(self.targets)
 		self.data, self.targets = binarize_dataset(
@@ -292,7 +296,9 @@ class BinaryFMNIST(datasets.FashionMNIST):
 			pos_class=pos_class,
 			neg_class=neg_class,
 			setting=setting,
-			num_labeled=num_labeled
+			num_labeled=num_labeled,
+			num_unlabeled=num_unlabeled,
+			prior=prior
 		)
 		self.data = torch.from_numpy(self.data)
 
