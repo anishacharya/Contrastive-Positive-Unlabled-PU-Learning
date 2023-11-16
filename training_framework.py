@@ -19,6 +19,7 @@ from utils import (
 	cifarresnet18,
 	cifarresnet50,
 	CIFARCNN,
+	FMNISTLeNet
 )
 
 
@@ -113,6 +114,12 @@ class BaseFramework(LightningModule):
 			self.proj_dim = 128
 			self.proj_num_layers = 2
 		
+		elif encoder_arch == 'fmnist-lenet':
+			self.backbone = FMNISTLeNet()
+			self.feat_dim = 84
+			self.proj_hidden_dim = 512
+			self.proj_dim = 128
+			self.proj_num_layers = 2
 		else:
 			raise NotImplementedError
 		

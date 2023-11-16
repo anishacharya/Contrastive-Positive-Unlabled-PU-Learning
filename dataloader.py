@@ -49,6 +49,9 @@ binary_class_mapping = {
 	'cifar10.horse': {'pos_classes': [7], 'neg_classes': None},
 	'cifar10.ship': {'pos_classes': [8], 'neg_classes': None},
 	'cifar10.truck': {'pos_classes': [9], 'neg_classes': None},
+	
+	'fmnist.1': {'pos_classes': [1, 4, 7], 'neg_classes': None},
+	'fmnist.2': {'pos_classes': [0, 2, 3, 5, 6, 8, 9], 'neg_classes': None}
 }
 
 
@@ -88,6 +91,7 @@ class DataManager:
 		self.num_worker = self.data_config.get('num_worker', 1)
 		self.dataset_map = {
 			"binary_cifar": BinaryCIFAR10,
+			"binary_fmnist": BinaryFMNIST
 		}
 	
 	def get_transforms(self):
@@ -154,11 +158,14 @@ class DataManager:
 			self.pos_classes = binary_class_mapping[self.data_set]['pos_classes']
 			self.neg_classes = binary_class_mapping[self.data_set]['neg_classes']
 			root_dataset = 'binary_cifar'
-		elif self.data_set == 'binary_imagenet100':
-			pass
-		# elif self.data_set == "image_woof":
-		# 	source = untar_data(URLs.IMAGENETTE_160)
-		# 	train_files = get_image_files(source/'train')
+		
+		elif self.data_set in ['fmnist.1', 'fmnist.2']:
+			self.num_classes = 2
+			self.num_channels, self.height, self.width = 1, 28, 28
+			self.pos_classes = binary_class_mapping[self.data_set]['pos_classes']
+			self.neg_classes = binary_class_mapping[self.data_set]['neg_classes']
+			root_dataset = 'binary_fmnist'
+		
 		else:
 			raise NotImplementedError
 		
