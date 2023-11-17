@@ -113,6 +113,12 @@ class DataManager:
 				cj_strength=0.5,
 				gaussian_blur=0.0
 			)
+			basic_transform = self.BasicTransform(
+				mean=mean,
+				std=std,
+				input_shape=model_ip_shape
+			)
+		
 		elif self.data_set in ['fmnist.1', 'fmnist.2']:
 			mean, std = (0.5,), (0.5,)
 			model_ip_shape = 28
@@ -128,14 +134,27 @@ class DataManager:
 				transforms.Normalize(mean=mean, std=std)
 			])
 			mv_transform = MultiViewTransform(transforms=[transform, transform])
+			basic_transform = self.BasicTransform(
+				mean=mean,
+				std=std,
+				input_shape=28
+			)
+		
+		elif self.data_set == 'imagenet':
+			mean, std = [0.485, 0.456, 0.406], [0.229, 0.224, 0.225]
+			model_ip_shape = 256
+			mv_transform = SimCLRTransform()
+			basic_transform = transforms.Compose(
+				[
+					transforms.Resize(256),
+					transforms.CenterCrop(224),
+					transforms.ToTensor(),
+					transforms.Normalize(mean=mean, std=std),
+				]
+			)
 		else:
 			raise NotImplementedError
 		
-		basic_transform = self.BasicTransform(
-			mean=mean,
-			std=std,
-			input_shape=model_ip_shape
-		)
 		return mv_transform, basic_transform
 	
 	class BasicTransform:
