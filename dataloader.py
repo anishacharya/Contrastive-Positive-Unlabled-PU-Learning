@@ -17,6 +17,7 @@ from torchvision import datasets, transforms
 from lightly.transforms.multi_view_transform import MultiViewTransform
 
 root_dir = os.path.join(os.path.dirname(__file__), './data/')
+
 supported_binary_cifar_datasets = [
 	'cifar10.dog_cat',
 	'cifar10.1',  # vehicle - animal
@@ -53,7 +54,7 @@ binary_class_mapping = {
 	'cifar10.truck': {'pos_classes': [9], 'neg_classes': None},
 	
 	'fmnist.1': {'pos_classes': [1, 4, 7], 'neg_classes': None},
-	'fmnist.2': {'pos_classes': [0, 2, 3, 5, 6, 8, 9], 'neg_classes': None}
+	'fmnist.2': {'pos_classes': [0, 2, 3, 5, 6, 8, 9], 'neg_classes': None},
 	
 	'imagenet': {'pos_classes': [1], 'neg_classes': [0]},
 }
@@ -262,6 +263,8 @@ class BinaryImageNet(Dataset):
 	
 	def __init__(
 			self,
+			pos_class: List,
+			neg_class: List = None,
 			transform=None,
 			train: bool = True,
 			setting: str = None,
