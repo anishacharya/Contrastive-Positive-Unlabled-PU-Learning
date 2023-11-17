@@ -233,12 +233,6 @@ class SimCLR(BaseFramework):
 			num_classes=num_classes,
 			gather_distributed=gather_distributed,
 		)
-		self.projection_head = heads.SimCLRProjectionHead(
-			input_dim=self.feat_dim,
-			hidden_dim=512,
-			output_dim=128,
-			num_layers=2
-		)
 	
 	def forward(self, x) -> torch.Tensor:
 		"""
