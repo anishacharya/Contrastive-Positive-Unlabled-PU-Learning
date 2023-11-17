@@ -10,8 +10,10 @@ from torch.utils.data import DataLoader
 import torch.nn.functional as F
 from torch.nn import Identity
 from torchvision.models import resnet18
+import torch.distributed as dist
 
 from lightly.models.modules import heads
+from lightly.utils.benchmarking import BenchmarkModule
 from lightly.utils.benchmarking.knn import knn_predict
 from pytorch_lightning import LightningModule
 
@@ -26,7 +28,7 @@ from utils import (
 )
 
 
-class BaseFramework(LightningModule):
+class BaseFramework(BenchmarkModule):
 	def __init__(
 			self,
 			framework_config: Dict,
@@ -140,46 +142,46 @@ class BaseFramework(LightningModule):
 			num_layers=self.proj_num_layers
 		)
 	
-	def extract_features(self, dataloader: DataLoader) -> [torch.Tensor, torch.Tensor]:
-		"""
-		Given a dataloader return the extracted features and labels
-		:param dataloader:
-		:return:
-		"""
-		features = []
-		labels = []
-		with torch.no_grad():
-			for mini_batch in dataloader:
-				img, target, _ = mini_batch
-				img = img.to(self.device)
-				target = target.to(self.device)
-				feature = self.backbone(img).squeeze()
-				feature = F.normalize(feature, dim=1)
-				features.append(feature)
-				labels.append(target)
-		extracted_features = torch.cat(features, dim=0).t().contiguous()
-		extracted_labels = torch.cat(labels, dim=0).t().contiguous()
-		return extracted_features, extracted_labels
-	
-	def on_validation_epoch_start(self) -> None:
-		self._train_features, self._train_targets = self.extract_features(dataloader=self.val_dataloader)
-	
-	def validation_step(self, batch, batch_idx: int) -> None:
-		# we can only do kNN predictions once we have a feature bank
-		if self._train_features is not None and self._train_targets is not None:
-			images, targets, _ = batch
-			feature = self.backbone(images).squeeze()
-			feature = F.normalize(feature, dim=1)
-			predicted_labels = knn_predict(
-				feature,
-				self._train_features,
-				self._train_targets,
-				self.num_classes,
-				self.knn_k,
-				self.knn_t,
-			)
-			self._val_predicted_labels.append(predicted_labels.cpu())
-			self._val_targets.append(targets.cpu())
+	# def extract_features(self, dataloader: DataLoader) -> [torch.Tensor, torch.Tensor]:
+	# 	"""
+	# 	Given a dataloader return the extracted features and labels
+	# 	:param dataloader:
+	# 	:return:
+	# 	"""
+	# 	features = []
+	# 	labels = []
+	# 	with torch.no_grad():
+	# 		for mini_batch in dataloader:
+	# 			img, target, _ = mini_batch
+	# 			img = img.to(self.device)
+	# 			target = target.to(self.device)
+	# 			feature = self.backbone(img).squeeze()
+	# 			feature = F.normalize(feature, dim=1)
+	# 			features.append(feature)
+	# 			labels.append(target)
+	# 	extracted_features = torch.cat(features, dim=0).t().contiguous()
+	# 	extracted_labels = torch.cat(labels, dim=0).t().contiguous()
+	# 	return extracted_features, extracted_labels
+	#
+	# def on_validation_epoch_start(self) -> None:
+	# 	self._train_features, self._train_targets = self.extract_features(dataloader=self.val_dataloader)
+	#
+	# def validation_step(self, batch, batch_idx: int) -> None:
+	# 	# we can only do kNN predictions once we have a feature bank
+	# 	if self._train_features is not None and self._train_targets is not None:
+	# 		images, targets, _ = batch
+	# 		feature = self.backbone(images).squeeze()
+	# 		feature = F.normalize(feature, dim=1)
+	# 		predicted_labels = knn_predict(
+	# 			feature,
+	# 			self._train_features,
+	# 			self._train_targets,
+	# 			self.num_classes,
+	# 			self.knn_k,
+	# 			self.knn_t,
+	# 		)
+	# 		self._val_predicted_labels.append(predicted_labels.cpu())
+	# 		self._val_targets.append(targets.cpu())
 	
 	def on_validation_epoch_end(self) -> None:
 		if self._val_predicted_labels and self._val_targets:
