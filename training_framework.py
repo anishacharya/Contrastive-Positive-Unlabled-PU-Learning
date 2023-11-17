@@ -128,7 +128,7 @@ class BaseFramework(LightningModule):
 		elif encoder_arch == 'resnet18':
 			self.backbone = resnet18()
 			self.backbone.fc = Identity()
-			self.feat_dim = 2048
+			self.feat_dim = 512
 			self.proj_hidden_dim = 512
 			self.proj_dim = 128
 			self.proj_num_layers = 2
