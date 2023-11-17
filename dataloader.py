@@ -312,16 +312,16 @@ class BinaryImageNet(datasets.ImageNet):
 			prior=prior
 		)
 	
-	def __len__(self):
-		return len(self.data)
-	
-	def __getitem__(self, idx):
-		img_path, _ = self.data[idx]
-		label = self.targets[idx]
-		img = Image.open(img_path).convert('RGB')
-		if self.dataset_imagenette.transform is not None:
-			img = self.dataset_imagenette.transform(img)
-		return img, label
+	# def __len__(self):
+	# 	return len(self.data)
+	#
+	# def __getitem__(self, idx):
+	# 	img_path, _ = self.data[idx]
+	# 	label = self.targets[idx]
+	# 	img = Image.open(img_path).convert('RGB')
+	# 	if self.dataset_imagenette.transform is not None:
+	# 		img = self.dataset_imagenette.transform(img)
+	# 	return img, label
 
 
 class BinaryCIFAR10(datasets.CIFAR10):
