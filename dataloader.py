@@ -321,7 +321,7 @@ class BinaryImageNet(datasets):
 		label = self.targets[idx]
 		img = Image.open(img_path).convert('RGB')
 		if self.transform is not None:
-			img = self.dataset_imagenette.transform(img)
+			img = self.transform(img)
 		return img, label
 
 
