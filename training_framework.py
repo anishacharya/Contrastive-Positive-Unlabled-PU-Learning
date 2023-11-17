@@ -4,13 +4,16 @@ Defines contrastive framework SimCLR: https://arxiv.org/abs/2002.05709
 from typing import Dict, Optional, List
 
 import torch
-import torch.nn.functional as F
-from lightly.models.modules import heads
-from lightly.utils.benchmarking.knn import knn_predict
-from pytorch_lightning import LightningModule
 from torch import Tensor
 from torch import distributed as torch_dist
 from torch.utils.data import DataLoader
+import torch.nn.functional as F
+from torch.nn import Identity
+from torchvision.models import resnet18
+
+from lightly.models.modules import heads
+from lightly.utils.benchmarking.knn import knn_predict
+from pytorch_lightning import LightningModule
 
 from losses import get_loss
 from utils import (
@@ -120,6 +123,11 @@ class BaseFramework(LightningModule):
 			self.proj_hidden_dim = 512
 			self.proj_dim = 128
 			self.proj_num_layers = 2
+		
+		elif encoder_arch == 'resnet18':
+			self.backbone = resnet18()
+			self.backbone.fc = Identity()
+		
 		else:
 			raise NotImplementedError
 		
@@ -127,9 +135,9 @@ class BaseFramework(LightningModule):
 		# an MLP with num_layers layers, i/p is encoder o/p
 		self.projection_head = heads.SimCLRProjectionHead(
 			input_dim=self.feat_dim,
-			hidden_dim=self.framework_config.get('proj_hidden_dim', 512),
-			output_dim=self.framework_config.get('proj_dim', 128),
-			num_layers=self.framework_config.get('proj_num_layers', 2),
+			hidden_dim=self.proj_hidden_dim,
+			output_dim=self.proj_dim,
+			num_layers=self.proj_num_layers
 		)
 	
 	def extract_features(self, dataloader: DataLoader) -> [torch.Tensor, torch.Tensor]:
