@@ -149,13 +149,16 @@ class BaseFramework(LightningModule):
 		"""
 		features = []
 		labels = []
-		with torch.no_grad():
+		with ((torch.no_grad())):
 			for mini_batch in dataloader:
 				img, target, _ = mini_batch
 				img = img.to(self.device)
 				target = target.to(self.device)
-				feature = self.backbone(img).squeeze()
+				
+				feature = self.backbone(img)
 				print(feature.shape)
+				feature = feature.squeeze()
+				
 				feature = F.normalize(feature, dim=1)
 				features.append(feature)
 				labels.append(target)
