@@ -158,7 +158,7 @@ class BaseFramework(LightningModule):
 				feature = self.backbone(img)
 				print(feature.shape)
 				feature = feature.squeeze()
-				
+				print(feature.shape)
 				feature = F.normalize(feature, dim=1)
 				features.append(feature)
 				labels.append(target)
