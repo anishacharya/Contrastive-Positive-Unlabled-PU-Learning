@@ -54,6 +54,8 @@ binary_class_mapping = {
 	
 	'fmnist.1': {'pos_classes': [1, 4, 7], 'neg_classes': None},
 	'fmnist.2': {'pos_classes': [0, 2, 3, 5, 6, 8, 9], 'neg_classes': None}
+	
+	'imagenet': {'pos_classes': [1], 'neg_classes': [0]},
 }
 
 
@@ -161,26 +163,25 @@ class DataManager:
         Returns:
         train and test dataset
         """
+		self.num_classes = 2
 		if self.data_set in supported_binary_cifar_datasets:
 			# get attributes
-			self.num_classes = 2
 			self.num_channels, self.height, self.width = 3, 32, 32
-			self.pos_classes = binary_class_mapping[self.data_set]['pos_classes']
-			self.neg_classes = binary_class_mapping[self.data_set]['neg_classes']
 			root_dataset = 'binary_cifar'
 		
 		elif self.data_set in ['fmnist.1', 'fmnist.2']:
-			self.num_classes = 2
 			self.num_channels, self.height, self.width = 1, 28, 28
-			self.pos_classes = binary_class_mapping[self.data_set]['pos_classes']
-			self.neg_classes = binary_class_mapping[self.data_set]['neg_classes']
 			root_dataset = 'binary_fmnist'
 		
 		elif self.data_set == 'imagenet':
+			self.num_channels, self.height, self.width = 3, 256, 256
 			root_dataset = 'binary_imagenet'
 		
 		else:
 			raise NotImplementedError
+		
+		self.pos_classes = binary_class_mapping[self.data_set]['pos_classes']
+		self.neg_classes = binary_class_mapping[self.data_set]['neg_classes']
 		
 		# obtain datasets
 		dataset_train_ssl = self.dataset_map[root_dataset](
@@ -283,9 +284,6 @@ class BinaryImageNet(Dataset):
 		# 0: ImageNette , 1: Imagewoof
 		self.data = self.dataset_imagenette.samples + self.dataset_imagewoof.samples
 		self.targets = [0] * len(self.dataset_imagenette.samples) + [1] * len(self.dataset_imagewoof.samples)
-		
-		pos_class = [1]
-		neg_class = [0]
 		
 		self.data, self.targets = binarize_dataset(
 			features=self.data,
