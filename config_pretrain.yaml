@@ -13,7 +13,7 @@
           # ---- Losses
           # contrastive: ssCL, sCL, puCL, puNCE, ENpuNCE, piNCE
           # non-contrastive: ce, uPU, nnPU
-          "loss": 'ssCL',
+          "loss": 'puCL',
           "temp": 0.1,
           "prior": 0.1,  # nnPU, uPU, puNCE uses \pi = p(y=1)
 
@@ -26,7 +26,7 @@
           # ---- settings: pu_single_data, pu_case_control, supervised, unsupervised
           # nP =  num_labeled, nU =  num_unlabeled
           "setting": "pu_case_control",
-          "num_labeled": 1317,
+          "num_labeled": 2634,
 
           "num_unlabeled": ,   # only for controlled experiments - leave blank for benchmarks
           "dataset_prior": ,   # leave blank for benchmarks
