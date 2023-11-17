@@ -297,12 +297,12 @@ class BinaryImageNet(datasets.ImageNet):
 		
 		# Combine the datasets and assign binary labels
 		# 0: ImageNette , 1: Imagewoof
-		self.data = self.dataset_imagenette.samples + self.dataset_imagewoof.samples
+		self.samples = self.dataset_imagenette.samples + self.dataset_imagewoof.samples
 		self.targets = [0] * len(self.dataset_imagenette.samples) + [1] * len(self.dataset_imagewoof.samples)
 		
-		self.data, self.targets = np.array(self.data), np.array(self.targets)
-		self.data, self.targets = binarize_dataset(
-			features=self.data,
+		self.samples, self.targets = np.array(self.samples ), np.array(self.targets)
+		self.samples, self.targets = binarize_dataset(
+			features=self.samples,
 			targets=self.targets,
 			pos_class=pos_class,
 			neg_class=neg_class,
