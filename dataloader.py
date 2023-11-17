@@ -267,7 +267,7 @@ class DataManager:
 		return dataloader_train_mv, dataloader_train_sv, dataloader_train_val, dataloader_test
 
 
-class BinaryImageNet(datasets):
+class BinaryImageNet(Dataset):
 	"""
 	Concatenates ImageNette and ImageWoof into a single dataset.
 	All the ImageWoof instances  are treated as positive class, ImageNette is Negative class.
