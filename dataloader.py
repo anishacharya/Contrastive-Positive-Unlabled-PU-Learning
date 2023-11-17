@@ -93,7 +93,8 @@ class DataManager:
 		self.num_worker = self.data_config.get('num_worker', 1)
 		self.dataset_map = {
 			"binary_cifar": BinaryCIFAR10,
-			"binary_fmnist": BinaryFMNIST
+			"binary_fmnist": BinaryFMNIST,
+			"binary_imagenet": BinaryImageNet
 		}
 	
 	def get_transforms(self):
@@ -176,7 +177,7 @@ class DataManager:
 			root_dataset = 'binary_fmnist'
 		
 		elif self.data_set == 'imagenet':
-			pass
+			root_dataset = 'binary_imagenet'
 		
 		else:
 			raise NotImplementedError
@@ -253,6 +254,11 @@ class DataManager:
 
 
 class BinaryImageNet(Dataset):
+	"""
+	Concatenates ImageNette and ImageWoof into a single dataset.
+	All the ImageWoof instances  are treated as positive class, ImageNette is Negative class.
+	"""
+	
 	def __init__(
 			self,
 			transform=None,
@@ -315,13 +321,12 @@ class BinaryCIFAR10(datasets.CIFAR10):
 			neg_class: List = None,
 			root=root_dir,
 			train: bool = True,
-			download: bool = True,
 			setting: str = None,
 			num_labeled: int = None,
 			num_unlabeled: int = None,
 			prior: float = None
 	):
-		super().__init__(root=root, train=train, download=download)
+		super().__init__(root=root, train=train)
 		self.data, self.targets = np.array(self.data), np.array(self.targets)
 		self.data, self.targets = binarize_dataset(
 			features=self.data,
@@ -346,13 +351,12 @@ class BinaryFMNIST(datasets.FashionMNIST):
 			neg_class: List = None,
 			root=root_dir,
 			train: bool = True,
-			download: bool = True,
 			setting: str = None,
 			num_labeled: int = None,
 			num_unlabeled: int = None,
 			prior: float = None
 	):
-		super().__init__(root=root, train=train, download=download)
+		super().__init__(root=root, train=train)
 		self.data, self.targets = np.array(self.data), np.array(self.targets)
 		self.data, self.targets = binarize_dataset(
 			features=self.data,
