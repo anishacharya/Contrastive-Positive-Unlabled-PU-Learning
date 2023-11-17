@@ -128,7 +128,10 @@ class BaseFramework(LightningModule):
 		elif encoder_arch == 'resnet18':
 			self.backbone = resnet18()
 			self.backbone.fc = Identity()
-		
+			self.feat_dim = 2048
+			self.proj_hidden_dim = 512
+			self.proj_dim = 128
+			self.proj_num_layers = 2
 		else:
 			raise NotImplementedError
 		
@@ -155,8 +158,7 @@ class BaseFramework(LightningModule):
 				img = img.to(self.device)
 				target = target.to(self.device)
 				
-				feature = self.backbone(img)
-				feature = feature.flatten(start_dim=1)
+				feature = self.backbone(img).squeeze()
 				
 				feature = F.normalize(feature, dim=1)
 				features.append(feature)
