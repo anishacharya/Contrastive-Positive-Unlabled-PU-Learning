@@ -33,7 +33,7 @@
 
           "train_batch_size": 32,
           "test_batch_size": 32,
-          "num_worker": 1
+          "num_worker": 8
         },
       "training_config":
         {
