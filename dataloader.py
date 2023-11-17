@@ -4,15 +4,15 @@ Data Loader Module
 import os
 from typing import Dict, List
 from PIL import Image
-import lightly.data as data
-from fastai.vision.all import untar_data, URLs
 import numpy as np
-import torch
-from lightly.transforms import SimCLRTransform
-from skimage import color
 from sklearn.utils import shuffle
+
+import torch
 from torch.utils.data import DataLoader, Dataset
 from torchvision import datasets, transforms
+import lightly.data as data
+from lightly.transforms import SimCLRTransform
+from fastai.vision.all import untar_data, URLs
 
 from lightly.transforms.multi_view_transform import MultiViewTransform
 
