@@ -407,7 +407,7 @@ def binarize_dataset(
 			for cls in pos_class:
 				p_cls = np.where(np.isin(targets, cls))[0]
 				p_ix.extend(np.random.choice(a=p_cls, size=num_pos_labeled_per_cls, replace=False))
-			p_data = [features[ix] for ix in p_ix]
+			p_data = features[p_ix]
 			p_labels = np.ones(len(p_data), dtype=targets.dtype)
 			
 			# Obtain U data
@@ -422,13 +422,13 @@ def binarize_dataset(
 					u_ix = np.concatenate((pu_ix, nu_ix), axis=0)
 				else:
 					u_ix = np.concatenate((p_data_idx, n_data_idx), axis=0)
-				u_data = [features[ix] for ix in u_ix]
+				u_data = features[u_ix]
 				u_labels = np.zeros(len(u_data), dtype=targets.dtype)
 			
 			elif setting == 'pu_single_data':
 				remaining_p_ix = np.setdiff1d(ar1=p_data_idx, ar2=p_ix)
 				u_ix = np.concatenate((remaining_p_ix, n_data_idx), axis=0)
-				u_data = [features[ix] for ix in u_ix]
+				u_data = features[u_ix]
 				u_labels = np.zeros(len(u_data), dtype=targets.dtype)
 			
 			else:
@@ -441,8 +441,8 @@ def binarize_dataset(
 		"""
 		Fully Unsupervised setting X
 		"""
-		p_data = [features[ix] for ix in p_data_idx]
-		n_data = [features[ix] for ix in n_data_idx]
+		p_data = features[p_data_idx]
+		n_data = features[n_data_idx]
 		features = np.concatenate((p_data, n_data), axis=0)
 		targets = np.zeros(len(features), dtype=targets.dtype)
 	
@@ -450,8 +450,8 @@ def binarize_dataset(
 		"""
         standard binary (PN) setting Xp ~ p(x | y=1) , Xn ~ p(x | y=0)
         """
-		p_data = [features[ix] for ix in p_data_idx]
-		n_data = [features[ix] for ix in n_data_idx]
+		p_data = features[p_data_idx]
+		n_data = features[n_data_idx]
 		p_labels = np.ones(len(p_data), dtype=targets.dtype)
 		n_labels = np.zeros(len(n_data), dtype=targets.dtype)
 		features = np.concatenate((p_data, n_data), axis=0)
