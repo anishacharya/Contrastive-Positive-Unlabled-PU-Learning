@@ -9,7 +9,7 @@ from torch import distributed as torch_dist
 from torch.utils.data import DataLoader
 import torch.nn.functional as F
 from torch.nn import Identity
-from torchvision.models import resnet18
+from torchvision.models import resnet18, resnet50
 import torch.distributed as dist
 
 from lightly.models.modules import heads
@@ -132,6 +132,15 @@ class BaseFramework(LightningModule):
 			self.proj_hidden_dim = 512
 			self.proj_dim = 128
 			self.proj_num_layers = 2
+		
+		elif encoder_arch == 'resnet50':
+			self.backbone = resnet50()
+			self.backbone.fc = Identity()
+			self.feat_dim = 2048
+			self.proj_hidden_dim = 512
+			self.proj_dim = 128
+			self.proj_num_layers = 2
+		
 		else:
 			raise NotImplementedError
 		
