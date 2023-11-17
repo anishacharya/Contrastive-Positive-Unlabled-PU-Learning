@@ -113,18 +113,15 @@ class DataManager:
 				cj_strength=0.5,
 				gaussian_blur=0.0
 			)
-			basic_transform = self.BasicTransform(
-				mean=mean,
-				std=std,
-				input_shape=model_ip_shape
-			)
+			basic_transform = self.BasicTransform(mean=mean, std=std, input_shape=model_ip_shape)
 		
 		elif self.data_set in ['fmnist.1', 'fmnist.2']:
 			mean, std = (0.5,), (0.5,)
 			model_ip_shape = 28
 			transform = transforms.Compose([
-				transforms.RandomResizedCrop(28),
-				transforms.RandomApply([transforms.ColorJitter(0.4, 0.4, 0.2, 0.1)], p=0.8),
+				transforms.RandomResizedCrop(model_ip_shape),
+				transforms.RandomApply(
+					[transforms.ColorJitter(0.4, 0.4, 0.2, 0.1)], p=0.8),
 				# transforms.RandomApply([GaussianBlur([0.1, 2.0])], p=0.5),
 				# transforms.RandomHorizontalFlip(p=0.5),
 				# transforms.RandomPerspective(p=0.5),
@@ -134,11 +131,7 @@ class DataManager:
 				transforms.Normalize(mean=mean, std=std)
 			])
 			mv_transform = MultiViewTransform(transforms=[transform, transform])
-			basic_transform = self.BasicTransform(
-				mean=mean,
-				std=std,
-				input_shape=28
-			)
+			basic_transform = self.BasicTransform(mean=mean, std=std, input_shape=model_ip_shape)
 		
 		elif self.data_set == 'imagenet':
 			mean, std = [0.485, 0.456, 0.406], [0.229, 0.224, 0.225]
@@ -146,7 +139,7 @@ class DataManager:
 			mv_transform = SimCLRTransform()
 			basic_transform = transforms.Compose(
 				[
-					transforms.Resize(256),
+					transforms.Resize(model_ip_shape),
 					transforms.CenterCrop(224),
 					transforms.ToTensor(),
 					transforms.Normalize(mean=mean, std=std),
