@@ -68,7 +68,7 @@
       "framework_config":
         {
           # ---- model
-          "encoder_arch": "resnet18",
+          "encoder_arch": "cifar-resnet18",
           "proj_num_layers": 2,
           "proj_hidden_dim": 256,
           "proj_dim": 128,
