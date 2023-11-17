@@ -3,7 +3,7 @@ Data Loader Module
 """
 import os
 from typing import Dict, List
-
+from PIL import Image
 import lightly.data as data
 from fastai.vision.all import untar_data, URLs
 import numpy as np
@@ -11,8 +11,9 @@ import torch
 from lightly.transforms import SimCLRTransform
 from skimage import color
 from sklearn.utils import shuffle
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, Dataset
 from torchvision import datasets, transforms
+
 from lightly.transforms.multi_view_transform import MultiViewTransform
 
 root_dir = os.path.join(os.path.dirname(__file__), './data/')
@@ -249,6 +250,58 @@ class DataManager:
 			num_workers=self.num_worker
 		)
 		return dataloader_train_mv, dataloader_train_sv, dataloader_train_val, dataloader_test
+
+
+class BinaryImageNet(Dataset):
+	def __init__(
+			self,
+			transform=None,
+			train: bool = True,
+			setting: str = None,
+			num_labeled: int = None,
+			num_unlabeled: int = None,
+			prior: float = None
+	):
+		# Download and extract the Imagenette and Imagewoof datasets
+		path_imagenette = untar_data(URLs.IMAGENETTE)
+		path_imagewoof = untar_data(URLs.IMAGEWOOF)
+		
+		# Choose the appropriate folder based on train or test
+		folder = 'train' if train else 'val'
+		
+		# Load both datasets
+		self.dataset_imagenette = datasets.ImageFolder(root=os.path.join(path_imagenette, folder), transform=transform)
+		self.dataset_imagewoof = datasets.ImageFolder(root=os.path.join(path_imagewoof, folder), transform=transform)
+		
+		# Combine the datasets and assign binary labels
+		# 0: ImageNette , 1: Imagewoof
+		self.data = self.dataset_imagenette.samples + self.dataset_imagewoof.samples
+		self.targets = [0] * len(self.dataset_imagenette.samples) + [1] * len(self.dataset_imagewoof.samples)
+		
+		pos_class = [1]
+		neg_class = [0]
+		
+		self.data, self.targets = binarize_dataset(
+			features=self.data,
+			targets=self.targets,
+			pos_class=pos_class,
+			neg_class=neg_class,
+			setting=setting,
+			num_labeled=num_labeled,
+			num_unlabeled=num_unlabeled,
+			prior=prior
+		)
+	
+	def __len__(self):
+		return len(self.data)
+	
+	def __getitem__(self, idx):
+		img_path, _ = self.data[idx]
+		label = self.targets[idx]
+		img = Image.open(img_path).convert('RGB')
+		if self.dataset_imagenette.transform is not None:
+			img = self.dataset_imagenette.transform(img)
+		return img, label
 
 
 class BinaryCIFAR10(datasets.CIFAR10):
