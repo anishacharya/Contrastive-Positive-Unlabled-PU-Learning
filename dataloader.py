@@ -267,7 +267,7 @@ class DataManager:
 		return dataloader_train_mv, dataloader_train_sv, dataloader_train_val, dataloader_test
 
 
-class BinaryImageNet(datasets.ImageNet):
+class BinaryImageNet(datasets):
 	"""
 	Concatenates ImageNette and ImageWoof into a single dataset.
 	All the ImageWoof instances  are treated as positive class, ImageNette is Negative class.
@@ -292,17 +292,18 @@ class BinaryImageNet(datasets.ImageNet):
 		folder = 'train' if train else 'val'
 		
 		# Load both datasets
+		self.transform = transform
 		self.dataset_imagenette = datasets.ImageFolder(root=os.path.join(path_imagenette, folder), transform=transform)
 		self.dataset_imagewoof = datasets.ImageFolder(root=os.path.join(path_imagewoof, folder), transform=transform)
 		
 		# Combine the datasets and assign binary labels
 		# 0: ImageNette , 1: Imagewoof
-		self.samples = self.dataset_imagenette.samples + self.dataset_imagewoof.samples
+		self.data = self.dataset_imagenette.samples + self.dataset_imagewoof.samples
 		self.targets = [0] * len(self.dataset_imagenette.samples) + [1] * len(self.dataset_imagewoof.samples)
 		
-		self.samples, self.targets = np.array(self.samples ), np.array(self.targets)
-		self.samples, self.targets = binarize_dataset(
-			features=self.samples,
+		self.data, self.targets = np.array(self.data), np.array(self.targets)
+		self.data, self.targets = binarize_dataset(
+			features=self.data,
 			targets=self.targets,
 			pos_class=pos_class,
 			neg_class=neg_class,
@@ -312,16 +313,16 @@ class BinaryImageNet(datasets.ImageNet):
 			prior=prior
 		)
 	
-	# def __len__(self):
-	# 	return len(self.data)
-	#
-	# def __getitem__(self, idx):
-	# 	img_path, _ = self.data[idx]
-	# 	label = self.targets[idx]
-	# 	img = Image.open(img_path).convert('RGB')
-	# 	if self.dataset_imagenette.transform is not None:
-	# 		img = self.dataset_imagenette.transform(img)
-	# 	return img, label
+	def __len__(self):
+		return len(self.data)
+	
+	def __getitem__(self, idx):
+		img_path, _ = self.data[idx]
+		label = self.targets[idx]
+		img = Image.open(img_path).convert('RGB')
+		if self.transform is not None:
+			img = self.dataset_imagenette.transform(img)
+		return img, label
 
 
 class BinaryCIFAR10(datasets.CIFAR10):
