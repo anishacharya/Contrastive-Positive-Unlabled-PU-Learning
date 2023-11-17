@@ -288,6 +288,7 @@ class BinaryImageNet(Dataset):
 		self.data = self.dataset_imagenette.samples + self.dataset_imagewoof.samples
 		self.targets = [0] * len(self.dataset_imagenette.samples) + [1] * len(self.dataset_imagewoof.samples)
 		
+		self.data, self.targets = np.array(self.data), np.array(self.targets)
 		self.data, self.targets = binarize_dataset(
 			features=self.data,
 			targets=self.targets,
