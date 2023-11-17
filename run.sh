@@ -2,4 +2,4 @@
 # python3 run_linear_eval.py --mode lp --checkpoint $CKPT --exp_name lp-puCL-nnPU-puPL=5000
 
 
-python3 run_representation.py --exp_name nP=100/puCL --dataset imagenet
+python3 run_representation.py --exp_name nP=500/puCL --dataset imagenet
