@@ -404,6 +404,9 @@ def binarize_dataset(
 	n_data_idx = np.where(np.isin(targets, neg_class) if neg_class else
 	                      np.isin(targets, pos_class, invert=True))[0]
 	
+	print('P samples {}'.format(len(p_data_idx)))
+	print('N samples {}'.format(len(n_data_idx)))
+	
 	if setting in ['pu_case_control', 'pu_single_data']:
 		"""
         'pu_case_control': PU setting Xp ~ p(x | y=1), Xu ~ p(x)
