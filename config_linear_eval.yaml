@@ -45,11 +45,11 @@
           "reg": 0.001,                            # L2 Regularizer
 
           # ----- LRS ------
-          "lrs": ,
+          "lrs": 'step',
           "warmup": 10,                             # for linear warmup
-          "step_size": 1,                           # for step lrs
+          "step_size": 25,                           # for step lrs
           "milestones": [ 20, 60, 120 ],            # for multistep lrs
-          "gamma": 0.9,                             # for step and multistep lrs
+          "gamma": 0.5,                             # for step and multistep lrs
 
           "T_max": 100,                            # for cosine lrs
           "eta_min": 0.00001,                       # for cosine lrs
