@@ -1,5 +1,5 @@
 # LP / FT evaluate a pretrained model
-CKPT="logs/checkpoints/imagenet/gamma\=0.5/ssCL/0/epoch\=99.ckpt"
+CKPT="/home/aa56927/CODE/ContrastivePULearning/logs/checkpoints/imagenet/gamma=0.5/ssCL/0/epoch\=99.ckpt"
 python3 run_linear_eval.py --mode lp --checkpoint $CKPT --exp_name gamma=0.05/lp-ssCL-nnPU --dataset imagenet
 
 
