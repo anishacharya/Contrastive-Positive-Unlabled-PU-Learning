@@ -102,7 +102,7 @@ class LinearClassificationHead(LightningModule):
 			optimizer=optimizer,
 			lrs_config=self.training_config
 		)
-		return {"optimizer": optimizer, "lr_schedulers": scheduler}
+		return [optimizer], [{"scheduler": scheduler, "interval": "epoch"}]
 	
 	def on_fit_start(self) -> None:
 		# Freeze model weights.
