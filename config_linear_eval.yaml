@@ -36,7 +36,7 @@
           "save_model_freq": 1000,
 
           # ----- optimization ----
-          "optimizer": "AdamW", # SGD/ Adam, AdamW, LARS
+          "optimizer": "Adam", # SGD/ Adam, AdamW, LARS
           "betas": [ 0.5, 0.99 ],
           "momentum": 0.9,
           "nesterov": true,
@@ -45,8 +45,8 @@
           "reg": 0.001,                            # L2 Regularizer
 
           # ----- LRS ------
-          "lrs": 'step',
-          "warmup": 10,                             # for linear warmup
+          "lrs": 'cosine',
+
           "step_size": 25,                           # for step lrs
           "milestones": [ 20, 60, 120 ],            # for multistep lrs
           "gamma": 0.5,                             # for step and multistep lrs
