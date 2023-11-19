@@ -45,7 +45,7 @@
           "reg": 0.001,                            # L2 Regularizer
 
           # ----- LRS ------
-          "lrs": 'cosine',
+          "lrs": ,
           "warmup": 10,                             # for linear warmup
           "step_size": 1,                           # for step lrs
           "milestones": [ 20, 60, 120 ],            # for multistep lrs
