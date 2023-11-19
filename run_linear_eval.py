@@ -191,6 +191,7 @@ if __name__ == '__main__':
 	if arguments.mode == 'lp':
 		freeze = True
 		print_rank_zero("Running linear probing")
+	
 	elif arguments.mode == 'ft':
 		freeze = False
 		print_rank_zero("Running Finetuning")
@@ -198,6 +199,7 @@ if __name__ == '__main__':
 		raise ValueError(
 			'Need to Linear Probe or Finetune'
 		)
+	
 	run_linear_eval(
 		args=arguments,
 		config=yaml.load(
