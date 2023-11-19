@@ -69,7 +69,7 @@
           # contrastive: ssCL, sCL, puCL
           # non-contrastive: ce, uPU, nnPU
           "loss": 'ce',
-          "prior": 0.5,  # PU baselines use this - we don't
+          "prior": 0.5,  # some methods depend on class prior. # pi_p* =
         },
       "data_config":
         {
