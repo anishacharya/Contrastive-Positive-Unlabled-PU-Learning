@@ -12,14 +12,14 @@
 
           # ---- Losses
           # non-contrastive: ce, uPU, nnPU
-          "loss": 'ce',
+          "loss": 'nnPU',
           "prior": 0.488,  # nnPU, uPU
         },
       "data_config":
         {
           # ---- settings: pu_single_data, pu_case_control, supervised, unsupervised
           # nP =  num_labeled, nU =  num_unlabeled
-          "setting": "supervised",
+          "setting": "pu_case_control",
           "num_labeled": 9000, # gamma = 0.5: 9000, 0.2: 4000, 0.1 = 2000, 0.05 = 1000
 
           "num_unlabeled": ,   # only for controlled experiments - leave blank for benchmarks

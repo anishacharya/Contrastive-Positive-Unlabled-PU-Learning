@@ -85,6 +85,12 @@ class LinearClassificationHead(LightningModule):
 		log_dict = {f"val_top{k}": acc for k, acc in topk.items()}
 		if topk[1] > self.max_accuracy:
 			self.max_accuracy = topk[1]
+		self.log(
+			"max_accuracy",
+			self.max_accuracy * 100.0,
+			prog_bar=True,
+			sync_dist=True
+		)
 		self.log("val_loss", loss, prog_bar=True, sync_dist=True, batch_size=batch_size)
 		self.log_dict(log_dict, prog_bar=True, sync_dist=True, batch_size=batch_size)
 		return loss
