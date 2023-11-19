@@ -36,12 +36,12 @@
           "save_model_freq": 1000,
 
           # ----- optimization ----
-          "optimizer": "Adam", # SGD/ Adam, AdamW, LARS
+          "optimizer": "SGD", # SGD/ Adam, AdamW, LARS
           "betas": [ 0.5, 0.99 ],
           "momentum": 0.9,
           "nesterov": true,
           "amsgrad": false,
-          "lr0": 0.05,                               # lars: imagenet: 0.075 * \sqrt(batch_size), cifar: 1, for bs:512
+          "lr0": 0.001,                               # lars: imagenet: 0.075 * \sqrt(batch_size), cifar: 1, for bs:512
           "reg": 0.001,                            # L2 Regularizer
 
           # ----- LRS ------
