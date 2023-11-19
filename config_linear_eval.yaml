@@ -13,7 +13,7 @@
           # ---- Losses
           # non-contrastive: ce, uPU, nnPU
           "loss": 'nnPU',
-          "prior": 0.488,  # nnPU, uPU
+          "prior": 0.49,  # nnPU, uPU
         },
       "data_config":
         {
@@ -26,12 +26,12 @@
           "dataset_prior": ,   # leave blank for benchmarks
 
           "train_batch_size": 1024,
-          "test_batch_size": 512,
+          "test_batch_size": 1024,
           "num_worker": 8
         },
       "training_config":
         {
-          "epochs": 5,
+          "epochs": 100,
           "eval_freq": 1,
           "save_model_freq": 1000,
 
@@ -42,7 +42,7 @@
           "nesterov": true,
           "amsgrad": false,
           "lr0": 0.00005,                               # lars: imagenet: 0.075 * \sqrt(batch_size), cifar: 1, for bs:512
-          "reg": 0.0001,                            # L2 Regularizer
+          "reg": 0.00001,                            # L2 Regularizer
 
           # ----- LRS ------
           "lrs": 'cosine',
