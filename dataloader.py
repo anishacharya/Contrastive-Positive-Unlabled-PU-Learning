@@ -287,7 +287,6 @@ class BinaryImageNet(Dataset):
 		# Download and extract the Imagenette and Imagewoof datasets
 		path_imagenette = untar_data(URLs.IMAGENETTE)
 		path_imagewoof = untar_data(URLs.IMAGEWOOF)
-		print(path_imagenette)
 		# Choose the appropriate folder based on train or test
 		folder = 'train' if train else 'val'
 		
