@@ -23,6 +23,7 @@ from pytorch_lightning.loggers import TensorBoardLogger
 from dataloader import DataManager
 from linear_head import LinearClassificationHead
 from training_framework import SimCLR
+from torchvision.transforms import v2
 
 
 def _parse_args(verbose=True):
@@ -55,6 +56,12 @@ def _parse_args(verbose=True):
 		"--log_dir",
 		type=Path,
 		default=os.path.join(os.getcwd(), "logs")
+	)
+	parser.add_argument(
+		"--mixup",  # cutmix, mixup,
+		type=bool,
+		default=False,
+		help="logs saved inside exp sub-folder in the logs folder"
 	)
 	parser.add_argument(
 		"--exp_name",
@@ -173,7 +180,7 @@ def run_linear_eval(args: Namespace, config: Dict, freeze_encoder: bool = True) 
 		# 		f"max linear {metric}: {max(metric_callback.val_metrics[metric])}"
 		# 	)
 		if rank() == 0:
-			val_acc.append(lin_classifier.max_accuracy)
+			val_acc.append(lin_classifier.max_accuracy.cpu())
 		# 	runs.append(run)
 		# 	# logger.log_metrics(metrics=run)
 		# 	# logger.log_hyperparams(config)
