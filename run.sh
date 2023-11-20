@@ -8,4 +8,4 @@
 
 # Train contrastive encoder from scratch
 # python3 run_representation.py --exp_name gamma=0.05/sCL --dataset imagenet
-python3 run_representation.py --exp_name nP=2.5k/sCL --dataset cifar10.dog_cat
+python3 run_representation.py --exp_name nP=1k/sCL --dataset cifar10.dog_cat
