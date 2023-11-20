@@ -20,7 +20,7 @@ import pytorch_lightning as pl
 from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import LearningRateMonitor
 from pytorch_lightning.loggers import TensorBoardLogger
-from dataloader import DataManager, PseudoLabeledData
+from dataloader import DataManager, get_pseudo_labels
 from linear_head import LinearClassificationHead
 from training_framework import SimCLR
 from torchvision.transforms import v2
@@ -176,21 +176,28 @@ def run_linear_eval(args: Namespace, config: Dict, freeze_encoder: bool = True) 
 		# Pseudo-label before fitting.
 		# -----------------------------
 		if args.puPL:
-			dataset_train_sv = PseudoLabeledData(
+			pseudo_labels = get_pseudo_labels(
 				original_dataloader=dataloader_train_sv,
 				model=model,
 				algo=args.algo,
 				n_cluster=2
 			)
-			dataset_train_sv.transform = data_manager.sv_transform
-			dataset_train_sv = data.LightlyDataset.from_torch_dataset(dataset_train_sv)
-			dataloader_train_sv = DataLoader(
-				dataset=dataset_train_sv,
-				batch_size=data_manager.train_batch_size,
-				shuffle=True,
-				drop_last=True,
-				num_workers=data_manager.num_worker,
-			)
+			# dataset_train_sv = PseudoLabeledData(
+			# 	original_dataloader=dataloader_train_sv,
+			# 	model=model,
+			# 	algo=args.algo,
+			# 	n_cluster=2
+			# )
+			# dataset_train_sv.transform = data_manager.sv_transform
+			# dataset_train_sv = data.LightlyDataset.from_torch_dataset(dataset_train_sv)
+			# dataloader_train_sv = DataLoader(
+			# 	dataset=dataset_train_sv,
+			# 	batch_size=data_manager.train_batch_size,
+			# 	shuffle=True,
+			# 	drop_last=True,
+			# 	num_workers=data_manager.num_worker,
+			# )
+			dataloader_train_sv.dataset.dataset.targets = pseudo_labels
 		
 		# ---- Kick off Training
 		trainer.fit(
