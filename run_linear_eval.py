@@ -20,7 +20,7 @@ import pytorch_lightning as pl
 from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import LearningRateMonitor
 from pytorch_lightning.loggers import TensorBoardLogger
-from dataloader import DataManager, get_pseudo_labels
+from dataloader import DataManager, get_pseudo_labels, PseudoLabeledData
 from linear_head import LinearClassificationHead
 from training_framework import SimCLR
 from torchvision.transforms import v2
