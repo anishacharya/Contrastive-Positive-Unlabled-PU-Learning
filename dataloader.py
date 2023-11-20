@@ -418,6 +418,10 @@ class PseudoLabeledData(Dataset):
 				extracted_features.extend(feature.cpu().numpy())
 				extracted_labels.extend(target.cpu().numpy())
 		
+		# Convert list of arrays to a single numpy array
+		extracted_features = np.array(extracted_features)
+		extracted_labels = np.array(extracted_labels)
+		
 		# Clustering initialization
 		if algo == 'kMeans':
 			clustering = KMeans(n_clusters=n_cluster, init='random', random_state=0, n_init='auto')
