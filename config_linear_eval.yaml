@@ -95,11 +95,11 @@
           "momentum": 0.9,
           "nesterov": true,
           "amsgrad": false,
-          "lr0": 0.0005,     # lars: imagenet: 0.075 * \sqrt(batch_size), cifar: 1, for bs:512
-          "reg": 0,   # L2 Regularizer
+          "lr0": 0.1,     # lars: imagenet: 0.075 * \sqrt(batch_size), cifar: 1, for bs:512
+          "reg": 0.00001,   # L2 Regularizer
 
           # ----- LRS ------
-          "lrs": ,
+          "lrs": 'cosine',
 
           "warmup": 0,                              # for linear warmup
           "step_size": 1,                           # for step lrs
@@ -107,7 +107,7 @@
           "gamma": 1,                             # for step and multistep lrs
 
           "T_max": 200,                            # for cosine lrs
-          "eta_min": 0.00001,                       # for cosine lrs
+          "eta_min": 0,                       # for cosine lrs
         }
     },
 
