@@ -388,6 +388,63 @@ class BinaryFMNIST(datasets.FashionMNIST):
 		self.data = torch.from_numpy(self.data)
 
 
+def get_pseudo_labels(
+		original_dataloader: DataLoader[data.LightlyDataset],
+		model: torch.nn.Module,
+		algo: str = 'kMeans',
+		n_cluster: int = 2,
+		transform=None):
+	"""
+	Pseudo Label over the representations
+	"""
+	print("Performing Pseudo Labeling using {} Clustering".format(algo))
+	# Iterate through the original dataloader to collect data samples
+	extracted_features, extracted_labels = [], []
+	with ((torch.no_grad())):
+		for mini_batch in original_dataloader:
+			img, target, _ = mini_batch
+			img = img.to(model.device)
+			target = target.to(model.device)
+			feature = model.backbone(img).squeeze()
+			feature = F.normalize(feature, dim=1)
+			extracted_features.extend(feature.cpu().numpy())
+			extracted_labels.extend(target.cpu().numpy())
+	
+	# Convert list of arrays to a single numpy array
+	extracted_features = np.array(extracted_features)
+	extracted_labels = np.array(extracted_labels)
+	
+	# Clustering initialization
+	if algo == 'kMeans':
+		clustering = KMeans(n_clusters=n_cluster, init='random', random_state=0, n_init='auto')
+	elif algo == 'kMeans++':
+		clustering = KMeans(n_clusters=n_cluster, init='k-means++', random_state=0, n_init='auto')
+	else:
+		raise NotImplementedError
+	
+	# Fit the model and get cluster assignments
+	cluster_assignments = clustering.fit_predict(extracted_features)
+	
+	# Declare the cluster center closest to P mean as y=1
+	# -------------
+	# get the indices of P samples in the multi-viewed batch
+	p_ix = np.where(extracted_labels == 1)[0]
+	# Calculate the centroid of P samples
+	p_samples = extracted_features[p_ix]
+	centroid_of_p = np.mean(p_samples, axis=0)
+	# Find the nearest cluster to the centroid of P
+	cluster_centers = clustering.cluster_centers_
+	distances = np.linalg.norm(cluster_centers - centroid_of_p, axis=1)
+	pos_cluster_index = np.argmin(distances)
+	# Assign pseudo labels
+	pseudo_labels = np.zeros_like(cluster_assignments)
+	pseudo_labels[cluster_assignments == pos_cluster_index] = 1
+	
+	# final pseudo labels
+	pseudo_labels = pseudo_labels
+	return pseudo_labels
+
+
 class PseudoLabeledData(Dataset):
 	"""
 	pseudo-label
