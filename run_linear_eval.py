@@ -178,6 +178,7 @@ def run_linear_eval(args: Namespace, config: Dict, freeze_encoder: bool = True) 
 		dataset_train_sv = PseudoLabeledData(
 			original_dataloader=dataloader_train_sv,
 			model=model,
+			algo=args.algo,
 			n_cluster=2
 		)
 		dataset_train_sv.transform = data_manager.sv_transform
