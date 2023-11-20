@@ -419,8 +419,6 @@ class PseudoLabeledData(Dataset):
 		extracted_features = torch.cat(features, dim=0).t().contiguous()
 		extracted_labels = torch.cat(labels, dim=0).t().contiguous()
 		
-		extracted_features_np = extracted_features.cpu().numpy()
-		
 		# Clustering initialization
 		if algo == 'kMeans':
 			clustering = KMeans(n_clusters=n_cluster, init='random', random_state=0, n_init='auto')
@@ -428,11 +426,16 @@ class PseudoLabeledData(Dataset):
 			clustering = KMeans(n_clusters=n_cluster, init='k-means++', random_state=0, n_init='auto')
 		else:
 			raise NotImplementedError
+		
+		# convert to numpy for sciPy
+		extracted_features_np = extracted_features.cpu().numpy()
+		extracted_labels_np = extracted_labels.cpu().numpy()
+		
 		# Fit the model and get cluster assignments
 		cluster_assignments = clustering.fit_predict(extracted_features_np)
 		
 		# get the indices of P samples in the multi-viewed batch
-		p_ix = torch.where(extracted_labels == 1)[0]
+		p_ix = torch.where(extracted_labels_np == 1)[0]
 		
 		# Calculate the centroid of P samples
 		p_samples = extracted_features_np[p_ix]
