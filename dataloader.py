@@ -419,6 +419,8 @@ class PseudoLabeledData(Dataset):
 		extracted_features = torch.cat(features, dim=0).t().contiguous()
 		extracted_labels = torch.cat(labels, dim=0).t().contiguous()
 		
+		extracted_features = extracted_features.cpu().numpy()
+		extracted_labels = extracted_labels.cpu().numpy()
 		# Clustering initialization
 		if algo == 'kMeans':
 			clustering = KMeans(n_clusters=n_cluster, init='random', random_state=0, n_init='auto')
