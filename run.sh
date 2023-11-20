@@ -3,7 +3,7 @@
 #python3 run_linear_eval.py --mode lp --checkpoint $CKPT --exp_name gamma=0.5/nnPU --dataset imagenet
 
 # train from scratch
-python3 run_linear_eval.py --mode ft --exp_name gamma=0.5/nnPU --dataset imagenet
+python3 run_linear_eval.py --mode lp --exp_name gamma=0.5/lp-sup-ce --dataset imagenet
 
 
 # Train contrastive encoder from scratch

@@ -25,8 +25,8 @@
           "num_unlabeled": ,   # only for controlled experiments - leave blank for benchmarks
           "dataset_prior": ,   # leave blank for benchmarks
 
-          "train_batch_size": 1024,
-          "test_batch_size": 1024,
+          "train_batch_size": 512,
+          "test_batch_size": 512,
           "num_worker": 8
         },
       "training_config":
@@ -41,7 +41,7 @@
           "momentum": 0.9,
           "nesterov": true,
           "amsgrad": false,
-          "lr0": 0.00005,                               # lars: imagenet: 0.075 * \sqrt(batch_size), cifar: 1, for bs:512
+          "lr0": 0.1,                               # lars: imagenet: 0.075 * \sqrt(batch_size), cifar: 1, for bs:512
           "reg": 0.00001,                            # L2 Regularizer
 
           # ----- LRS ------
