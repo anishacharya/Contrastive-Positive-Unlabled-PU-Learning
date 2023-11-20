@@ -394,7 +394,7 @@ def binarize_dataset(
 		num_labeled: int = 0,
 		num_unlabeled: int = None,
 		prior: float = None
-) -> [np.array, np.array, Dict]:
+) -> [np.array, np.array]:
 	"""
 		Binarize and flip labels as needed to obtain
 		Case control PU, Single dataset PU or Binary PN data
