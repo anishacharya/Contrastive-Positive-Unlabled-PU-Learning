@@ -20,10 +20,12 @@ import pytorch_lightning as pl
 from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import LearningRateMonitor
 from pytorch_lightning.loggers import TensorBoardLogger
-from dataloader import DataManager
+from dataloader import DataManager, PseudoLabeledData
 from linear_head import LinearClassificationHead
 from training_framework import SimCLR
 from torchvision.transforms import v2
+import lightly.data as data
+from torch.utils.data import DataLoader
 
 
 def _parse_args(verbose=True):
@@ -167,7 +169,20 @@ def run_linear_eval(args: Namespace, config: Dict, freeze_encoder: bool = True) 
 		
 		# Pseudo-label before fitting.
 		# -----------------------------
-		
+		dataset_train_sv = PseudoLabeledData(
+			original_dataloader=dataloader_train_sv,
+			model=model,
+			n_cluster=2
+		)
+		dataset_train_sv.transform = data_manager.sv_transform
+		dataset_train_sv = data.LightlyDataset.from_torch_dataset(dataset_train_sv)
+		dataloader_train_sv = DataLoader(
+			dataset=dataset_train_sv,
+			batch_size=data_manager.train_batch_size,
+			shuffle=True,
+			drop_last=True,
+			num_workers=data_manager.num_worker,
+		)
 		trainer.fit(
 			model=lin_classifier,
 			train_dataloaders=dataloader_train_sv,
