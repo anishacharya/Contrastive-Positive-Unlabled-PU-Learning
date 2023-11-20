@@ -401,12 +401,13 @@ class PseudoLabeledData(Dataset):
 			n_cluster: int = 2,
 			transform=None,
 	):
+		print("Performing Pseudo Labeling using {} Clustering".format(algo))
 		self.data = []  # Collect the data samples here
 		self.pseudo_labels = []  # Collect the pseudo labels
 		self.transform = transform
 		
 		# Iterate through the original dataloader to collect data samples
-		features, labels = [], []
+		extracted_features, extracted_labels = [], []
 		with ((torch.no_grad())):
 			for mini_batch in original_dataloader:
 				img, target, _ = mini_batch
@@ -414,10 +415,8 @@ class PseudoLabeledData(Dataset):
 				target = target.to(model.device)
 				feature = model.backbone(img).squeeze()
 				feature = F.normalize(feature, dim=1)
-				features.append(feature)
-				labels.append(target)
-		extracted_features = torch.cat(features, dim=0).t().contiguous()
-		extracted_labels = torch.cat(labels, dim=0).t().contiguous()
+				extracted_features.extend(feature.cpu().numpy())
+				extracted_labels.extend(target.cpu().numpy())
 		
 		# Clustering initialization
 		if algo == 'kMeans':
@@ -427,19 +426,15 @@ class PseudoLabeledData(Dataset):
 		else:
 			raise NotImplementedError
 		
-		# convert to numpy for sciPy
-		extracted_features_np = extracted_features.cpu().numpy()
-		extracted_labels_np = extracted_labels.cpu().numpy()
-		
 		# Fit the model and get cluster assignments
-		cluster_assignments = clustering.fit_predict(extracted_features_np)
+		cluster_assignments = clustering.fit_predict(extracted_features)
 		
 		# Declare the cluster center closest to P mean as y=1
 		# -------------
 		# get the indices of P samples in the multi-viewed batch
-		p_ix = np.where(extracted_labels_np == 1)[0]
+		p_ix = np.where(extracted_labels == 1)[0]
 		# Calculate the centroid of P samples
-		p_samples = extracted_features_np[p_ix]
+		p_samples = extracted_features[p_ix]
 		centroid_of_p = np.mean(p_samples, axis=0)
 		# Find the nearest cluster to the centroid of P
 		cluster_centers = clustering.cluster_centers_
