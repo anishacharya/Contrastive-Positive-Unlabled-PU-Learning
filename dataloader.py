@@ -458,6 +458,7 @@ class PseudoLabeledData(Dataset):
 			n_cluster: int = 2,
 			transform=None,
 	):
+		self.original_dataset = original_dataloader.dataset.dataset
 		print("Performing Pseudo Labeling using {} Clustering".format(algo))
 		self.data = []  # Collect the data samples here
 		self.pseudo_labels = []  # Collect the pseudo labels
@@ -514,11 +515,11 @@ class PseudoLabeledData(Dataset):
 		return len(self.data)
 	
 	def __getitem__(self, idx):
-		img = self.data[idx]
-		img = Image.fromarray(img)
-		if self.transform is not None:
-			img = self.transform(img)
-		return img, self.pseudo_labels[idx]
+		data_sample = self.original_dataset[idx]
+		# Replace the original label with the pseudo label
+		img, _ = data_sample
+		pseudo_label = self.pseudo_labels[idx]
+		return img, pseudo_label
 
 
 def binarize_dataset(
