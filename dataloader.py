@@ -404,18 +404,21 @@ class PseudoLabeledData(Dataset):
 		self.data = []  # Collect the data samples here
 		self.pseudo_labels = []  # Collect the pseudo labels
 		self.transform = transform
-		extracted_features = []  # collect z = model(input_image)
+		extracted_features, labels = [], []  # collect z = model(input_image)
 		
 		# Iterate through the original dataloader to collect data samples
 		with torch.no_grad():
 			for batch in tqdm(original_dataloader):
-				img, _, _ = batch  # Assuming the original dataloader returns (img, label, other_info)
+				img, target, _ = batch  # Assuming the original dataloader returns (img, label, other_info)
 				# ---- collect representations
 				img = img.to(model.device)
 				feature = model.backbone(img).squeeze()
 				feature = F.normalize(feature, dim=1)
 				extracted_features.extend(feature.cpu().numpy())
 		
+		# get the indices of P and  U samples in the multi-viewed batch
+		p_ix = torch.where(labels == 1)[0]
+		u_ix = torch.where(labels == 0)[0]
 		# Clustering initialization
 		if algo == 'kMeans':
 			clustering = KMeans(n_clusters=n_cluster, init='random', random_state=0, n_init='auto')

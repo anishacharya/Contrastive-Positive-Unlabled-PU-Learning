@@ -166,9 +166,7 @@ class BaseFramework(LightningModule):
 				img, target, _ = mini_batch
 				img = img.to(self.device)
 				target = target.to(self.device)
-				
 				feature = self.backbone(img).squeeze()
-				
 				feature = F.normalize(feature, dim=1)
 				features.append(feature)
 				labels.append(target)
