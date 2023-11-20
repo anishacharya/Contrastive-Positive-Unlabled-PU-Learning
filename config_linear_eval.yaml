@@ -61,7 +61,7 @@
       # we use the hyper-params proposed in SimCLR-v2 : https://github.com/google-research/simclr#pretraining
       "framework_config":
         {
-          "encoder_arch": "resnet18",
+          "encoder_arch": "cifar-resnet18",
           "proj_num_layers": 2,
           "proj_hidden_dim": 256,
           "proj_dim": 128,
