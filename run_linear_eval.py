@@ -175,21 +175,24 @@ def run_linear_eval(args: Namespace, config: Dict, freeze_encoder: bool = True) 
 		
 		# Pseudo-label before fitting.
 		# -----------------------------
-		dataset_train_sv = PseudoLabeledData(
-			original_dataloader=dataloader_train_sv,
-			model=model,
-			algo=args.algo,
-			n_cluster=2
-		)
-		dataset_train_sv.transform = data_manager.sv_transform
-		dataset_train_sv = data.LightlyDataset.from_torch_dataset(dataset_train_sv)
-		dataloader_train_sv = DataLoader(
-			dataset=dataset_train_sv,
-			batch_size=data_manager.train_batch_size,
-			shuffle=True,
-			drop_last=True,
-			num_workers=data_manager.num_worker,
-		)
+		if args.puPL:
+			dataset_train_sv = PseudoLabeledData(
+				original_dataloader=dataloader_train_sv,
+				model=model,
+				algo=args.algo,
+				n_cluster=2
+			)
+			dataset_train_sv.transform = data_manager.sv_transform
+			dataset_train_sv = data.LightlyDataset.from_torch_dataset(dataset_train_sv)
+			dataloader_train_sv = DataLoader(
+				dataset=dataset_train_sv,
+				batch_size=data_manager.train_batch_size,
+				shuffle=True,
+				drop_last=True,
+				num_workers=data_manager.num_worker,
+			)
+		
+		# ---- Kick off Training
 		trainer.fit(
 			model=lin_classifier,
 			train_dataloaders=dataloader_train_sv,
