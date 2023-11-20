@@ -434,25 +434,25 @@ class PseudoLabeledData(Dataset):
 		# Fit the model and get cluster assignments
 		cluster_assignments = clustering.fit_predict(extracted_features_np)
 		
+		# Declare the cluster center closest to P mean as y=1
+		# -------------
 		# get the indices of P samples in the multi-viewed batch
 		p_ix = torch.where(extracted_labels_np == 1)[0]
-		
 		# Calculate the centroid of P samples
 		p_samples = extracted_features_np[p_ix]
 		centroid_of_p = np.mean(p_samples, axis=0)
-		
 		# Find the nearest cluster to the centroid of P
 		cluster_centers = clustering.cluster_centers_
 		distances = np.linalg.norm(cluster_centers - centroid_of_p, axis=1)
 		pos_cluster_index = np.argmin(distances)
-		
 		# Assign pseudo labels
 		pseudo_labels = np.zeros_like(cluster_assignments)
 		pseudo_labels[cluster_assignments == pos_cluster_index] = 1
 		
-		# pseudo labels
+		# final pseudo labels
+		# Assuming original_dataloader is defined
 		self.data = original_dataloader.dataset.dataset.data
-		self.pseudo_labels = clustering.fit_predict(extracted_features)
+		self.pseudo_labels = pseudo_labels
 	
 	def __len__(self):
 		return len(self.data)
