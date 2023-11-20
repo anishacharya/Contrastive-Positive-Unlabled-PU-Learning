@@ -419,8 +419,8 @@ class PseudoLabeledData(Dataset):
 		extracted_features = torch.cat(features, dim=0).t().contiguous()
 		extracted_labels = torch.cat(labels, dim=0).t().contiguous()
 		
-		extracted_features = extracted_features.cpu().numpy()
-		extracted_labels = extracted_labels.cpu().numpy()
+		extracted_features_np = extracted_features.cpu().numpy()
+		
 		# Clustering initialization
 		if algo == 'kMeans':
 			clustering = KMeans(n_clusters=n_cluster, init='random', random_state=0, n_init='auto')
@@ -428,9 +428,8 @@ class PseudoLabeledData(Dataset):
 			clustering = KMeans(n_clusters=n_cluster, init='k-means++', random_state=0, n_init='auto')
 		else:
 			raise NotImplementedError
-		
 		# Fit the model and get cluster assignments
-		cluster_assignments = clustering.fit_predict(extracted_features)
+		cluster_assignments = clustering.fit_predict(extracted_features_np)
 		
 		# get the indices of P samples in the multi-viewed batch
 		p_ix = torch.where(extracted_labels == 1)[0]
