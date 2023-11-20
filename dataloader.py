@@ -3,18 +3,21 @@ Data Loader Module
 """
 import os
 from typing import Dict, List
-from PIL import Image
-import numpy as np
-from sklearn.utils import shuffle
 
+import lightly.data as data
+import numpy as np
 import torch
+import torch.nn.functional as F
+from PIL import Image
+from fastai.vision.all import untar_data, URLs
+from lightly.transforms import SimCLRTransform
+from lightly.transforms.multi_view_transform import MultiViewTransform
+from sklearn.cluster import KMeans
+from sklearn.utils import shuffle
 from torch.utils.data import DataLoader, Dataset
 from torchvision import datasets, transforms
-import lightly.data as data
-from lightly.transforms import SimCLRTransform
-from fastai.vision.all import untar_data, URLs
-
-from lightly.transforms.multi_view_transform import MultiViewTransform
+# from spherecluster import SphericalKMeans
+from tqdm import tqdm
 
 root_dir = os.path.join(os.path.dirname(__file__), './data/')
 
@@ -383,6 +386,49 @@ class BinaryFMNIST(datasets.FashionMNIST):
 			prior=prior
 		)
 		self.data = torch.from_numpy(self.data)
+
+
+class PseudoLabeledData(Dataset):
+	"""
+	pseudo-label
+	"""
+	
+	def __init__(
+			self,
+			original_dataloader: DataLoader[data.LightlyDataset],
+			model: torch.nn.Module,
+			n_cluster: int,
+			transform=None,
+	):
+		self.data = []  # Collect the data samples here
+		self.pseudo_labels = []  # Collect the pseudo labels
+		self.transform = transform
+		extracted_features = []  # collect z = model(input_image)
+		
+		kmeans = KMeans(n_clusters=n_cluster, init='k-means++', random_state=0, n_init='auto')
+		
+		# Iterate through the original dataloader to collect data samples
+		with torch.no_grad():
+			for batch in tqdm(original_dataloader):
+				img, _, _ = batch  # Assuming the original dataloader returns (img, label, other_info)
+				# ---- collect representations
+				img = img.to(model.device)
+				feature = model.backbone(img).squeeze()
+				feature = F.normalize(feature, dim=1)
+				extracted_features.extend(feature.cpu().numpy())
+		
+		self.data = original_dataloader.dataset.dataset.data
+		self.pseudo_labels = kmeans.fit_predict(extracted_features)
+	
+	def __len__(self):
+		return len(self.data)
+	
+	def __getitem__(self, idx):
+		img = self.data[idx]
+		img = Image.fromarray(img)
+		if self.transform is not None:
+			img = self.transform(img)
+		return img, self.pseudo_labels[idx]
 
 
 def binarize_dataset(

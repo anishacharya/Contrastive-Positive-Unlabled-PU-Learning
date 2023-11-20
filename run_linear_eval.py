@@ -46,6 +46,12 @@ def _parse_args(verbose=True):
 		default=None,
 	)
 	parser.add_argument(
+		"--puPL",
+		type=bool,
+		default=False,
+		help="if enabled, pseudo-labeling will happen before training"
+	)
+	parser.add_argument(
 		'--n_repeat',
 		type=int,
 		default=1,
@@ -56,12 +62,6 @@ def _parse_args(verbose=True):
 		"--log_dir",
 		type=Path,
 		default=os.path.join(os.getcwd(), "logs")
-	)
-	parser.add_argument(
-		"--mixup",  # cutmix, mixup,
-		type=bool,
-		default=False,
-		help="logs saved inside exp sub-folder in the logs folder"
 	)
 	parser.add_argument(
 		"--exp_name",
@@ -115,6 +115,7 @@ def run_linear_eval(args: Namespace, config: Dict, freeze_encoder: bool = True) 
 				num_classes=data_manager.num_classes,
 				gather_distributed=True if n_gpus >= 2 else False
 			)
+			model.max_accuracy = 0.0
 		else:
 			print("You need to pass model chkpt to perform evaluation -- "
 			      "since None provided training a model from scratch")
@@ -161,30 +162,20 @@ def run_linear_eval(args: Namespace, config: Dict, freeze_encoder: bool = True) 
 				LearningRateMonitor(logging_interval='step'),
 				metric_callback,
 			],
-			# precision="16-mixed",
-			# strategy="ddp_find_unused_parameters_true",
+			precision="16-mixed",
 		)
+		
+		# Pseudo-label before fitting.
+		# -----------------------------
+		
 		trainer.fit(
 			model=lin_classifier,
 			train_dataloaders=dataloader_train_sv,
 			val_dataloaders=dataloader_test,
 		)
-		# run = {
-		# 	"batch_size": data_manager.train_batch_size,
-		# 	"epochs": training_config.get('epochs'),
-		# 	"max_accuracy": model.max_accuracy,
-		# 	"seed": seed,
-		# }
-		# for metric in ["val_top1", "val_top5"]:
-		# 	print_rank_zero(
-		# 		f"max linear {metric}: {max(metric_callback.val_metrics[metric])}"
-		# 	)
 		if rank() == 0:
 			val_acc.append(lin_classifier.max_accuracy.cpu())
-		# 	runs.append(run)
-		# 	# logger.log_metrics(metrics=run)
-		# 	# logger.log_hyperparams(config)
-		# 	print(run)
+		
 		# ----- delete model and trainer + free up cuda memory ---
 		del model
 		del trainer
