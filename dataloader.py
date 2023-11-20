@@ -397,15 +397,14 @@ class PseudoLabeledData(Dataset):
 			self,
 			original_dataloader: DataLoader[data.LightlyDataset],
 			model: torch.nn.Module,
-			n_cluster: int,
+			algo: str = 'kMeans',
+			n_cluster: int = 2,
 			transform=None,
 	):
 		self.data = []  # Collect the data samples here
 		self.pseudo_labels = []  # Collect the pseudo labels
 		self.transform = transform
 		extracted_features = []  # collect z = model(input_image)
-		
-		kmeans = KMeans(n_clusters=n_cluster, init='k-means++', random_state=0, n_init='auto')
 		
 		# Iterate through the original dataloader to collect data samples
 		with torch.no_grad():
@@ -417,8 +416,17 @@ class PseudoLabeledData(Dataset):
 				feature = F.normalize(feature, dim=1)
 				extracted_features.extend(feature.cpu().numpy())
 		
+		# Clustering initialization
+		if algo == 'kMeans':
+			clustering = KMeans(n_clusters=n_cluster, init='random', random_state=0, n_init='auto')
+		elif algo == 'kMeans++':
+			clustering = KMeans(n_clusters=n_cluster, init='k-means++', random_state=0, n_init='auto')
+		else:
+			raise NotImplementedError
+		
+		# pseudo labels
 		self.data = original_dataloader.dataset.dataset.data
-		self.pseudo_labels = kmeans.fit_predict(extracted_features)
+		self.pseudo_labels = clustering.fit_predict(extracted_features)
 	
 	def __len__(self):
 		return len(self.data)
