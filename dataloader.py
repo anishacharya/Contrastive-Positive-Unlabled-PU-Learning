@@ -437,7 +437,7 @@ class PseudoLabeledData(Dataset):
 		# Declare the cluster center closest to P mean as y=1
 		# -------------
 		# get the indices of P samples in the multi-viewed batch
-		p_ix = torch.where(extracted_labels_np == 1)[0]
+		p_ix = np.where(extracted_labels_np == 1)[0]
 		# Calculate the centroid of P samples
 		p_samples = extracted_features_np[p_ix]
 		centroid_of_p = np.mean(p_samples, axis=0)
