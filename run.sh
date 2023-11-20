@@ -1,6 +1,6 @@
 # LP / FT evaluate a pretrained model
-CKPT="/home/aa56927/CODE/ContrastivePULearning/logs/checkpoints/imagenet/gamma=0.5/puCL/0/epoch=99.ckpt"
-python3 run_linear_eval.py --mode lp --checkpoint $CKPT --exp_name gamma=0.5/lp-puCL-sup-ce --dataset imagenet --puPL True
+CKPT="/home/aa56927/CODE/ContrastivePULearning/logs/checkpoints/cifar10.dog_cat/nP=5k/puCL/0/epoch=299.ckpt"
+python3 run_linear_eval.py --mode lp --checkpoint $CKPT --exp_name nP=5k/lp-puCL-pupL --dataset cifar10.dog_cat --puPL True
 
 # train from scratch
 #python3 run_linear_eval.py --mode lp --exp_name gamma=0.5/nnPU --dataset imagenet

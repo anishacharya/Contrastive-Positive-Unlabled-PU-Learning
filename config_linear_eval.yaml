@@ -74,8 +74,8 @@
       "data_config":
         {
           # settings: pu_single_data, pu_case_control , supervised , unsupervised
-          "setting": "supervised",
-          "num_labeled": ,
+          "setting": "pu_case_control",
+          "num_labeled": 5000,
           "num_unlabeled": ,   # only for controlled experiments - leave blank for benchmarks
           "dataset_prior": ,    # leave blank for benchmarks
 
