@@ -419,10 +419,6 @@ class PseudoLabeledData(Dataset):
 		extracted_features = torch.cat(features, dim=0).t().contiguous()
 		extracted_labels = torch.cat(labels, dim=0).t().contiguous()
 		
-		# get the indices of P and  U samples in the multi-viewed batch
-		p_ix = torch.where(extracted_labels == 1)[0]
-		u_ix = torch.where(extracted_labels == 0)[0]
-		
 		# Clustering initialization
 		if algo == 'kMeans':
 			clustering = KMeans(n_clusters=n_cluster, init='random', random_state=0, n_init='auto')
@@ -430,6 +426,25 @@ class PseudoLabeledData(Dataset):
 			clustering = KMeans(n_clusters=n_cluster, init='k-means++', random_state=0, n_init='auto')
 		else:
 			raise NotImplementedError
+		
+		# Fit the model and get cluster assignments
+		cluster_assignments = clustering.fit_predict(extracted_features)
+		
+		# get the indices of P samples in the multi-viewed batch
+		p_ix = torch.where(extracted_labels == 1)[0]
+		p_samples = extracted_features[p_ix]
+		
+		# Calculate the centroid of P samples
+		centroid_of_p = np.mean(p_samples, axis=0)
+		
+		# Find the nearest cluster to the centroid of P
+		cluster_centers = clustering.cluster_centers_
+		distances = np.linalg.norm(cluster_centers - centroid_of_p, axis=1)
+		pos_cluster_index = np.argmin(distances)
+		
+		# Assign pseudo labels
+		pseudo_labels = np.zeros_like(cluster_assignments)
+		pseudo_labels[cluster_assignments == pos_cluster_index] = 1
 		
 		# pseudo labels
 		self.data = original_dataloader.dataset.dataset.data
