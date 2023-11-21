@@ -83,7 +83,7 @@ def _parse_args(verbose=True):
 	return args
 
 
-def run_linear_eval(args: Namespace, config: Dict, freeze_encoder: bool = True) -> None:
+def run_linear_eval(args: Namespace, config: Dict, freeze_encoder: bool = True, pseudo_label: bool = False) -> None:
 	"""
 	Runs a linear evaluation on the given model. If no model is given trains one from scratch
 	"""
@@ -175,7 +175,7 @@ def run_linear_eval(args: Namespace, config: Dict, freeze_encoder: bool = True) 
 		
 		# Pseudo-label before fitting.
 		# -----------------------------
-		if args.puPL is True:
+		if pseudo_label:
 			print('pseudo-labeling')
 			data, pseudo_labels = get_pseudo_labels(
 				original_dataloader=dataloader_train_sv,
@@ -225,5 +225,6 @@ if __name__ == '__main__':
 			open('config_linear_eval.yaml'),
 			Loader=yaml.FullLoader
 		),
-		freeze_encoder=freeze
+		freeze_encoder=freeze,
+		pseudo_label=True if arguments.puPL is True else False
 	)
