@@ -236,6 +236,11 @@ def run_linear_eval(args: Namespace, config: Dict, freeze_encoder: bool = True, 
 		print("feature extraction")
 		feat_tr, lbl_tr = extract_features(dataloader=dataloader_train_sv, encoder=model.backbone)
 		feat_te, lbl_te = extract_features(dataloader=dataloader_test, encoder=model.backbone)
+		# create new dataset from feat
+		print('feat_tr shape:', feat_tr.shape)
+		print('lbl_tr shape:', lbl_tr.shape)
+		print('feat_tr shape:', feat_tr.shape)
+		print('lbl_tr shape:', lbl_tr.shape)
 		
 		# create new dataset from feat
 		train_dataset = torch.utils.data.TensorDataset(feat_tr, lbl_tr)
