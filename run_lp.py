@@ -146,8 +146,8 @@ def run_linear_eval(args: Namespace, config: Dict, freeze_encoder: bool = True, 
 			raise ValueError("You need to pass model chkpt to perform LP evaluation")
 		
 		print("feature extraction")
-		feat_tr, lbl_tr = model.extract_features(dataloader=dataloader_train_sv)
-		feat_te, lbl_te = model.extract_features(dataloader=dataloader_test)
+		feat_tr, lbl_tr = extract_features(dataloader=dataloader_train_sv, encoder=model.backbone)
+		feat_te, lbl_te = extract_features(dataloader=dataloader_test, encoder=model.backbone)
 		
 		# create new dataset from feat
 		train_dataset = torch.utils.data.TensorDataset(feat_tr, lbl_tr)
