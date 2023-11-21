@@ -68,7 +68,7 @@
           # Losses:
           # contrastive: ssCL, sCL, puCL
           # non-contrastive: ce, uPU, nnPU
-          "loss": 'ce',
+          "loss": 'nnPU',
           "prior": 0.5,  # some methods depend on class prior. # pi_p* =
         },
       "data_config":
@@ -95,16 +95,22 @@
           "momentum": 0.9,
           "nesterov": true,
           "amsgrad": false,
-          "lr0": 0.1,     # lars: imagenet: 0.075 * \sqrt(batch_size), cifar: 1, for bs:512
+          "lr0": 0.001,     # lars: imagenet: 0.075 * \sqrt(batch_size), cifar: 1, for bs:512
           "reg": 0.00001,   # L2 Regularizer
 
           # ----- LRS ------
-          "lrs": 'cosine',
+          "lrs": 'multi_step',
 
           "warmup": 0,                              # for linear warmup
           "step_size": 1,                           # for step lrs
-          "milestones": [ 20, 60, 120 ],            # for multistep lrs
-          "gamma": 1,                             # for step and multistep lrs
+          "milestones": [
+            20,
+            40,
+            60,
+            80,
+            100
+          ],,            # for multistep lrs
+          "gamma": 0.5,                             # for step and multistep lrs
 
           "T_max": 200,                            # for cosine lrs
           "eta_min": 0,                       # for cosine lrs
