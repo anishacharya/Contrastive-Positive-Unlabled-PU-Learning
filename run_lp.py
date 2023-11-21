@@ -14,15 +14,20 @@ import pytorch_lightning as pl
 import torch
 import torch.nn.functional as F
 import yaml
+from lightly.models.utils import activate_requires_grad, deactivate_requires_grad
+from lightly.utils.benchmarking import MetricCallback
+from pytorch_lightning import LightningModule
 from pytorch_lightning import Trainer
+from pytorch_lightning.callbacks import LearningRateMonitor
 from pytorch_lightning.loggers import TensorBoardLogger
+from torch import Tensor
+from torch.nn import CrossEntropyLoss, Linear, Module
 from torch.utils.data import DataLoader
 from tqdm import tqdm
-from pytorch_lightning.callbacks import LearningRateMonitor
+
 from dataloader import DataManager
-from linear_head import LinearClassificationHead
 from training_framework import SimCLR
-from lightly.utils.benchmarking import MetricCallback
+from utils import get_optimizer, get_scheduler
 
 
 def _parse_args(verbose=True):
@@ -78,6 +83,83 @@ def _parse_args(verbose=True):
 	verbose and print(args)
 	
 	return args
+
+
+class LinearClassificationHead(LightningModule):
+	def __init__(
+			self,
+			model: Module,
+			training_config: Dict,
+			feature_dim: int,
+			num_classes: int,
+			freeze_model: bool = True,
+	) -> None:
+		super().__init__()
+		self.model = model
+		self.feature_dim = feature_dim
+		self.num_classes = num_classes
+		self.training_config = training_config
+		self.freeze_model = freeze_model
+		
+		self.classification_head = Linear(
+			feature_dim,
+			num_classes
+		)
+		self.criterion = CrossEntropyLoss()
+		self.max_accuracy = 0.0
+	
+	def training_step(self, batch, batch_idx) -> Tensor:
+		images, targets = batch[0], batch[1]
+		predictions = self.classification_head(images)
+		loss = self.criterion(predictions, targets)
+		# Convert logits to predicted classes
+		_, predicted_classes = torch.max(predictions, 1)
+		# Calculate correct predictions
+		correct_predictions = (predicted_classes == targets).sum().item()
+		# Calculate accuracy
+		accuracy = correct_predictions / targets.size(0)
+		batch_size = len(targets)
+		self.log(
+			"train_loss",
+			loss,
+			prog_bar=True,
+			sync_dist=True,
+			batch_size=batch_size
+		)
+		self.log(
+			"train_acc",
+			accuracy,
+			prog_bar=True,
+			sync_dist=True,
+			batch_size=batch_size
+		)
+		return loss
+	
+	def configure_optimizers(self):
+		parameters = list(self.classification_head.parameters())
+		if not self.freeze_model:
+			print("Encoder not Frozen")
+			# FineTuning backprop through entire model
+			parameters += self.model.backbone.parameters()
+		optimizer = get_optimizer(
+			params=parameters,
+			optimizer_config=self.training_config
+		)
+		scheduler = get_scheduler(
+			optimizer=optimizer,
+			lrs_config=self.training_config
+		)
+		return [optimizer], [{"scheduler": scheduler, "interval": "epoch"}]
+	
+	def on_fit_start(self) -> None:
+		# Freeze model weights.
+		if self.freeze_model:
+			deactivate_requires_grad(model=self.model)
+	
+	def on_fit_end(self) -> None:
+		# Unfreeze model weights.
+		if self.freeze_model:
+			activate_requires_grad(model=self.model)
 
 
 def extract_features(encoder, dataloader: DataLoader) -> [torch.Tensor, torch.Tensor]:
