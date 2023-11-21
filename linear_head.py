@@ -9,6 +9,7 @@ from torch.nn import CrossEntropyLoss, Linear, Module
 from utils import get_optimizer, get_scheduler
 import torch.nn.functional as F
 
+
 # class LinearClassificationHead(LightningModule):
 # 	def __init__(
 # 			self,
@@ -99,7 +100,7 @@ class LinearClassificationHead(LightningModule):
 			training_config: Dict,
 			feature_dim: int,
 			num_classes: int,
-			topk: Tuple[int, ...] = (1, 2),
+			# topk: Tuple[int, ...] = (1, 2),
 			freeze_model: bool = False,
 	) -> None:
 		"""Linear classifier for benchmarking (LP or FT)
@@ -120,25 +121,25 @@ class LinearClassificationHead(LightningModule):
 		"""
 		super().__init__()
 		self.save_hyperparameters(ignore="model")
-
+		
 		self.model = model
 		self.feature_dim = feature_dim
 		self.num_classes = num_classes
-		self.topk = topk
+		# self.topk = topk
 		self.freeze_model = freeze_model
 		self.training_config = training_config
-
+		
 		self.classification_head = Linear(
 			feature_dim,
 			num_classes
 		)
 		self.criterion = CrossEntropyLoss()
 		self.max_accuracy = 0.0
-
+	
 	def forward(self, images: Tensor) -> Tensor:
 		features = self.model.backbone(images).flatten(start_dim=1)
 		return self.classification_head(features)
-
+	
 	def shared_step(self, batch, batch_idx) -> Tuple[Tensor, Dict[int, Tensor]]:
 		"""
 
@@ -149,26 +150,53 @@ class LinearClassificationHead(LightningModule):
 		images, targets = batch[0], batch[1]
 		predictions = self.forward(images)
 		loss = self.criterion(predictions, targets)
-		_, predicted_labels = predictions.topk(max(self.topk))
-		topk = mean_topk_accuracy(predicted_labels, targets, k=self.topk)
-		return loss, topk
-
+		# _, predicted_labels = predictions.topk(max(self.topk))
+		# topk = mean_topk_accuracy(predicted_labels, targets, k=self.topk)
+		# return loss, topk
+		
+		# Convert logits to predicted classes
+		_, predicted_classes = torch.max(predictions, 1)
+		# Calculate correct predictions
+		correct_predictions = (predicted_classes == targets).sum().item()
+		# Calculate accuracy
+		acc = correct_predictions / targets.size(0)
+		
+		return loss, acc
+	
 	def training_step(self, batch, batch_idx) -> Tensor:
-		loss, topk = self.shared_step(batch=batch, batch_idx=batch_idx)
+		loss, acc = self.shared_step(batch=batch, batch_idx=batch_idx)
 		batch_size = len(batch[1])
-		log_dict = {f"train_top{k}": acc for k, acc in topk.items()}
 		self.log(
-			"train_loss", loss, prog_bar=True, sync_dist=True, batch_size=batch_size
+			"train_loss",
+			loss,
+			prog_bar=True,
+			sync_dist=True,
+			batch_size=batch_size
 		)
-		self.log_dict(log_dict, sync_dist=True, batch_size=batch_size)
+		self.log(
+			"train_acc",
+			acc,
+			prog_bar=True,
+			sync_dist=True,
+			batch_size=batch_size
+		)
+		# log_dict = {f"train_top{k}": acc for k, acc in topk.items()}
+		# self.log("train_loss", loss, prog_bar=True, sync_dist=True, batch_size=batch_size)
+		# self.log_dict(log_dict, sync_dist=True, batch_size=batch_size)
 		return loss
-
+	
 	def validation_step(self, batch, batch_idx) -> Tensor:
-		loss, topk = self.shared_step(batch=batch, batch_idx=batch_idx)
+		loss, acc = self.shared_step(batch=batch, batch_idx=batch_idx)
 		batch_size = len(batch[1])
-		log_dict = {f"val_top{k}": acc for k, acc in topk.items()}
-		if topk[1] > self.max_accuracy:
-			self.max_accuracy = topk[1]
+		self.log(
+			"val_accuracy",
+			acc,
+			prog_bar=True,
+			sync_dist=True,
+			batch_size=batch_size
+		)
+		if acc > self.max_accuracy:
+			self.max_accuracy = acc
 		self.log(
 			"max_accuracy",
 			self.max_accuracy * 100.0,
@@ -193,12 +221,12 @@ class LinearClassificationHead(LightningModule):
 			lrs_config=self.training_config
 		)
 		return [optimizer], [{"scheduler": scheduler, "interval": "epoch"}]
-
+	
 	def on_fit_start(self) -> None:
 		# Freeze model weights.
 		if self.freeze_model:
 			deactivate_requires_grad(model=self.model)
-
+	
 	def on_fit_end(self) -> None:
 		# Unfreeze model weights.
 		if self.freeze_model:
