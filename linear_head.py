@@ -203,8 +203,8 @@ class LinearClassificationHead(LightningModule):
 			prog_bar=True,
 			sync_dist=True
 		)
-		self.log("val_loss", loss, prog_bar=True, sync_dist=True, batch_size=batch_size)
-		self.log_dict(log_dict, prog_bar=True, sync_dist=True, batch_size=batch_size)
+		# self.log("val_loss", loss, prog_bar=True, sync_dist=True, batch_size=batch_size)
+		# self.log_dict(log_dict, prog_bar=True, sync_dist=True, batch_size=batch_size)
 		return loss
 	
 	def configure_optimizers(self):
