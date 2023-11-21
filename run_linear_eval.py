@@ -131,7 +131,7 @@ def run_linear_eval(args: Namespace, config: Dict, freeze_encoder: bool = True) 
 				framework_config=framework_config,
 				training_config=training_config,
 				data_config=data_config,
-				val_dataloader=dataloader_test,
+				val_dataloader=dataloader_test,  # since we are not going to do
 				num_classes=data_manager.num_classes,
 				gather_distributed=True if n_gpus >= 2 else False
 			)
@@ -175,7 +175,7 @@ def run_linear_eval(args: Namespace, config: Dict, freeze_encoder: bool = True) 
 		
 		# Pseudo-label before fitting.
 		# -----------------------------
-		if args.puPL:
+		if args.puPL is True:
 			data, pseudo_labels = get_pseudo_labels(
 				original_dataloader=dataloader_train_sv,
 				model=model,
