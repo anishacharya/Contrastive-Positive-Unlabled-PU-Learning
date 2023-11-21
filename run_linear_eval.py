@@ -122,7 +122,7 @@ def run_linear_eval(args: Namespace, config: Dict, freeze_encoder: bool = True, 
 				num_classes=data_manager.num_classes,
 				gather_distributed=True if n_gpus >= 2 else False
 			)
-			model.max_accuracy = 0.0
+			model.refresh_attributes()
 		else:
 			print("You need to pass model chkpt to perform evaluation -- "
 			      "since None provided training a model from scratch")

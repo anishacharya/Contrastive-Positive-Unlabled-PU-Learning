@@ -75,6 +75,20 @@ class BaseFramework(LightningModule):
 		self.knn_t = self.framework_config.get("knn_t", 0.1)
 		self.max_accuracy = 0.0
 	
+	def refresh_attributes(self):
+		"""
+		Refresh non-encoder stuff - when loading from checkpoint
+		"""
+		# projection
+		# an MLP with num_layers layers, i/p is encoder o/p
+		self.projection_head = heads.SimCLRProjectionHead(
+			input_dim=self.feat_dim,
+			hidden_dim=self.framework_config.get('proj_hidden_dim', 512),
+			output_dim=self.framework_config.get('proj_dim', 128),
+			num_layers=self.framework_config.get('proj_num_layers', 2),
+		)
+		self.max_accuracy = 0.0
+	
 	def configure_optimizers(self):
 		params = (
 				list(self.backbone.parameters()) +
