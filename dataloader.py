@@ -13,7 +13,7 @@ import torch.nn.functional as F
 from PIL import Image
 from PIL import ImageOps, ImageFilter
 from fastai.vision.all import untar_data, URLs
-from lightly.transforms import SimCLRTransform
+from lightly.transforms import SimCLRTransform, SimCLRViewTransform
 from lightly.transforms.multi_view_transform import MultiViewTransform
 from sklearn.cluster import KMeans
 from sklearn.utils import shuffle
@@ -185,12 +185,17 @@ class DataManager:
 				cj_strength=0.5,
 				gaussian_blur=0.0
 			)
+			sv_transform = SimCLRViewTransform(
+				input_size=model_ip_shape,
+				cj_strength=0.5,
+				gaussian_blur=0.0
+			)
 			basic_transform = self.BasicTransform(mean=mean, std=std, input_shape=model_ip_shape)
 		
 		elif self.data_set in ['fmnist.1', 'fmnist.2']:
 			mean, std = (0.5,), (0.5,)
 			model_ip_shape = 28
-			transform = transforms.Compose([
+			fmnist_transform = transforms.Compose([
 				transforms.RandomResizedCrop(model_ip_shape),
 				transforms.RandomApply(
 					[transforms.ColorJitter(0.4, 0.4, 0.2, 0.1)], p=0.8),
@@ -202,7 +207,8 @@ class DataManager:
 				transforms.ToTensor(),
 				transforms.Normalize(mean=mean, std=std)
 			])
-			mv_transform = MultiViewTransform(transforms=[transform, transform])
+			sv_transform = fmnist_transform
+			mv_transform = MultiViewTransform(transforms=[fmnist_transform, fmnist_transform])
 			basic_transform = self.BasicTransform(mean=mean, std=std, input_shape=model_ip_shape)
 		
 		elif self.data_set == 'imagenet':
