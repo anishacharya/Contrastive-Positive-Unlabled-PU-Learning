@@ -50,14 +50,14 @@ def _parse_args(verbose=True):
 	parser.add_argument(
 		"--puPL",
 		type=bool,
-		default=False,
+		default=True,
 		help="if enabled, pseudo-labeling will happen before training"
 	)
 	parser.add_argument(
 		"--algo",
 		type=str,
 		default='kMeans',
-		help=" kMeans | kMeans++ | PUkMeans | DBSCAN "
+		help=" kMeans | kMeans++ | PUkMeans++ | DBSCAN "
 	)
 	parser.add_argument(
 		'--n_repeat',
@@ -176,21 +176,28 @@ def run_linear_eval(args: Namespace, config: Dict, freeze_encoder: bool = True) 
 		# Pseudo-label before fitting.
 		# -----------------------------
 		if args.puPL:
-			dataset_train_sv = PseudoLabeledData(
+			pseudo_labels = get_pseudo_labels(
 				original_dataloader=dataloader_train_sv,
 				model=model,
 				algo=args.algo,
 				n_cluster=2
 			)
-			dataset_train_sv.transform = data_manager.sv_transform
-			dataset_train_sv = data.LightlyDataset.from_torch_dataset(dataset_train_sv)
-			dataloader_train_sv = DataLoader(
-				dataset=dataset_train_sv,
-				batch_size=data_manager.train_batch_size,
-				shuffle=True,
-				drop_last=True,
-				num_workers=data_manager.num_worker,
-			)
+			dataloader_train_sv.dataset.dataset.targets = pseudo_labels
+			# dataset_train_sv = PseudoLabeledData(
+			# 	original_dataloader=dataloader_train_sv,
+			# 	model=model,
+			# 	algo=args.algo,
+			# 	n_cluster=2
+			# )
+			# dataset_train_sv.transform = data_manager.sv_transform
+			# dataset_train_sv = data.LightlyDataset.from_torch_dataset(dataset_train_sv)
+			# dataloader_train_sv = DataLoader(
+			# 	dataset=dataset_train_sv,
+			# 	batch_size=data_manager.train_batch_size,
+			# 	shuffle=True,
+			# 	drop_last=True,
+			# 	num_workers=data_manager.num_worker,
+			# )
 		
 		# ---- Kick off Training
 		trainer.fit(
@@ -219,6 +226,7 @@ if __name__ == '__main__':
 	elif arguments.mode == 'ft':
 		freeze = False
 		print_rank_zero("Running Finetuning")
+	
 	else:
 		raise ValueError(
 			'Need to Linear Probe or Finetune'

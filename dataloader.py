@@ -343,7 +343,7 @@ class BinaryCIFAR10(datasets.CIFAR10):
 			num_unlabeled: int = None,
 			prior: float = None
 	):
-		super().__init__(root=root, train=train)
+		super().__init__(root=root, train=train, download=True)
 		self.data, self.targets = np.array(self.data), np.array(self.targets)
 		self.data, self.targets = binarize_dataset(
 			features=self.data,
@@ -392,16 +392,15 @@ def get_pseudo_labels(
 		original_dataloader: DataLoader[data.LightlyDataset],
 		model: torch.nn.Module,
 		algo: str = 'kMeans',
-		n_cluster: int = 2,
-		transform=None):
+		n_cluster: int = 2):
 	"""
 	Pseudo Label over the representations
 	"""
-	print("Performing Pseudo Labeling using {} Clustering".format(algo))
 	# Iterate through the original dataloader to collect data samples
 	extracted_features, extracted_labels = [], []
+	print("Getting Embeddings")
 	with ((torch.no_grad())):
-		for mini_batch in original_dataloader:
+		for mini_batch in tqdm(original_dataloader):
 			img, target, _ = mini_batch
 			img = img.to(model.device)
 			target = target.to(model.device)
@@ -422,6 +421,7 @@ def get_pseudo_labels(
 	else:
 		raise NotImplementedError
 	
+	print("Performing Pseudo Labeling using {} Clustering".format(algo))
 	# Fit the model and get cluster assignments
 	cluster_assignments = clustering.fit_predict(extracted_features)
 	
@@ -429,19 +429,20 @@ def get_pseudo_labels(
 	# -------------
 	# get the indices of P samples in the multi-viewed batch
 	p_ix = np.where(extracted_labels == 1)[0]
+	
 	# Calculate the centroid of P samples
 	p_samples = extracted_features[p_ix]
 	centroid_of_p = np.mean(p_samples, axis=0)
+	
 	# Find the nearest cluster to the centroid of P
 	cluster_centers = clustering.cluster_centers_
 	distances = np.linalg.norm(cluster_centers - centroid_of_p, axis=1)
 	pos_cluster_index = np.argmin(distances)
+	
 	# Assign pseudo labels
 	pseudo_labels = np.zeros_like(cluster_assignments)
 	pseudo_labels[cluster_assignments == pos_cluster_index] = 1
 	
-	# final pseudo labels
-	pseudo_labels = pseudo_labels
 	return pseudo_labels
 
 
@@ -459,15 +460,15 @@ class PseudoLabeledData(Dataset):
 			transform=None,
 	):
 		self.original_dataset = original_dataloader.dataset.dataset
-		print("Performing Pseudo Labeling using {} Clustering".format(algo))
 		self.data = []  # Collect the data samples here
 		self.pseudo_labels = []  # Collect the pseudo labels
 		self.transform = transform
 		
 		# Iterate through the original dataloader to collect data samples
 		extracted_features, extracted_labels = [], []
+		print("Getting Embeddings")
 		with ((torch.no_grad())):
-			for mini_batch in original_dataloader:
+			for mini_batch in tqdm(original_dataloader):
 				img, target, _ = mini_batch
 				img = img.to(model.device)
 				target = target.to(model.device)
@@ -488,6 +489,7 @@ class PseudoLabeledData(Dataset):
 		else:
 			raise NotImplementedError
 		
+		print("Performing Pseudo Labeling using {} Clustering".format(algo))
 		# Fit the model and get cluster assignments
 		cluster_assignments = clustering.fit_predict(extracted_features)
 		
