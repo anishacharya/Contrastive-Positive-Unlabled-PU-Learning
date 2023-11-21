@@ -194,13 +194,13 @@ def run_linear_eval(args: Namespace, config: Dict, freeze_encoder: bool = True, 
 		)
 		if rank() == 0:
 			val_acc.append(lin_classifier.max_accuracy.cpu())
-		
-		# ----- delete model and trainer + free up cuda memory ---
-		del model
-		del trainer
-		torch.cuda.reset_peak_memory_stats()
-		torch.cuda.empty_cache()
-		print('val acc = {} +- {}'.format(np.mean(val_acc), np.var(val_acc)))
+	
+	# ----- delete model and trainer + free up cuda memory ---
+	del model
+	del trainer
+	torch.cuda.reset_peak_memory_stats()
+	torch.cuda.empty_cache()
+	print('val acc = {} +- {}'.format(np.mean(val_acc), np.var(val_acc)))
 
 
 if __name__ == '__main__':
