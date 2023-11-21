@@ -134,7 +134,7 @@ class LinearClassificationHead(LightningModule):
 			num_classes
 		)
 		self.criterion = CrossEntropyLoss()
-		self.max_accuracy = 0.0
+		self.max_acc = 0.0
 	
 	def forward(self, images: Tensor) -> Tensor:
 		features = self.model.backbone(images).flatten(start_dim=1)
@@ -175,7 +175,7 @@ class LinearClassificationHead(LightningModule):
 		)
 		self.log(
 			"train_acc",
-			acc,
+			acc * 100,
 			prog_bar=True,
 			sync_dist=True,
 			batch_size=batch_size
@@ -190,16 +190,16 @@ class LinearClassificationHead(LightningModule):
 		batch_size = len(batch[1])
 		self.log(
 			"val_accuracy",
-			acc,
+			acc * 100,
 			prog_bar=True,
 			sync_dist=True,
 			batch_size=batch_size
 		)
 		if acc > self.max_accuracy:
-			self.max_accuracy = acc
+			self.max_acc = acc
 		self.log(
 			"max_accuracy",
-			self.max_accuracy * 100.0,
+			self.max_acc * 100.0,
 			prog_bar=True,
 			sync_dist=True,
 			batch_size=batch_size
