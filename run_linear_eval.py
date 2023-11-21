@@ -2,30 +2,29 @@
 Perform Linear Evaluation : Supports FineTuning, Linear Probing etc
 """
 import os
-from typing import Dict
 from argparse import (
 	ArgumentParser,
 	Namespace
 )
 from pathlib import Path
-import yaml
+from typing import Dict
+
 import numpy as np
+import pytorch_lightning as pl
 import torch
+import yaml
 from lightly.utils.benchmarking import MetricCallback
 from lightly.utils.dist import (
 	print_rank_zero,
 	rank
 )
-import pytorch_lightning as pl
 from pytorch_lightning import Trainer
 from pytorch_lightning.callbacks import LearningRateMonitor
 from pytorch_lightning.loggers import TensorBoardLogger
-from dataloader import DataManager, get_pseudo_labels, PseudoLabeledData
+
+from dataloader import DataManager, get_pseudo_labels
 from linear_head import LinearClassificationHead
 from training_framework import SimCLR
-from torchvision.transforms import v2
-import lightly.data as data
-from torch.utils.data import DataLoader
 
 
 def _parse_args(verbose=True):
@@ -141,7 +140,6 @@ def run_linear_eval(args: Namespace, config: Dict, freeze_encoder: bool = True, 
 			feature_dim=model.feat_dim,
 			num_classes=data_manager.num_classes,
 			freeze_model=freeze_encoder,
-			topk=(1, 2),
 		)
 		# --- Logging -----
 		logger = TensorBoardLogger(
