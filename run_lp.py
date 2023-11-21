@@ -183,8 +183,8 @@ def extract_features(encoder, dataloader: DataLoader) -> [torch.Tensor, torch.Te
 			feature = F.normalize(feature, dim=1)
 			features.append(feature)
 			labels.append(target)
-	extracted_features = torch.cat(features, dim=0).t().contiguous()
-	extracted_labels = torch.cat(labels, dim=0).t().contiguous()
+	extracted_features = torch.cat(features, dim=0).contiguous()
+	extracted_labels = torch.cat(labels, dim=0).contiguous()
 	print(extracted_features.shape)
 	print(extracted_labels.shape)
 	return extracted_features, extracted_labels
