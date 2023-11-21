@@ -442,8 +442,9 @@ def get_pseudo_labels(
 	# Assign pseudo labels
 	pseudo_labels = np.zeros_like(cluster_assignments)
 	pseudo_labels[cluster_assignments == pos_cluster_index] = 1
+	data = original_dataloader.dataset.dataset.data
 	
-	return pseudo_labels
+	return data, pseudo_labels
 
 
 class PseudoLabeledData(Dataset):

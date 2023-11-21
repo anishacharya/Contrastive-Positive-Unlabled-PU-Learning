@@ -176,12 +176,13 @@ def run_linear_eval(args: Namespace, config: Dict, freeze_encoder: bool = True) 
 		# Pseudo-label before fitting.
 		# -----------------------------
 		if args.puPL:
-			pseudo_labels = get_pseudo_labels(
+			data, pseudo_labels = get_pseudo_labels(
 				original_dataloader=dataloader_train_sv,
 				model=model,
 				algo=args.algo,
 				n_cluster=2
 			)
+			dataloader_train_sv.dataset.dataset.data = data
 			dataloader_train_sv.dataset.dataset.targets = pseudo_labels
 			# dataset_train_sv = PseudoLabeledData(
 			# 	original_dataloader=dataloader_train_sv,
