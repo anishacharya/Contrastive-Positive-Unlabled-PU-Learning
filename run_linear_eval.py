@@ -176,6 +176,7 @@ def run_linear_eval(args: Namespace, config: Dict, freeze_encoder: bool = True) 
 		# Pseudo-label before fitting.
 		# -----------------------------
 		if args.puPL is True:
+			print('pseudo-labeling')
 			data, pseudo_labels = get_pseudo_labels(
 				original_dataloader=dataloader_train_sv,
 				model=model,
