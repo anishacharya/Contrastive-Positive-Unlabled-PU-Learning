@@ -227,7 +227,6 @@ def run_linear_eval(args: Namespace, config: Dict, freeze_encoder: bool = True, 
 		del model
 		torch.cuda.reset_peak_memory_stats()
 		torch.cuda.empty_cache()
-		print('val acc = {} +- {}'.format(np.mean(val_acc), np.var(val_acc)))
 
 
 if __name__ == '__main__':
