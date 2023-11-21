@@ -322,7 +322,7 @@ class DataManager:
 		self.mv_transform, self.sv_transform, self.basic_transform = self.get_transforms()
 		
 		dataset_train_ssl.transform = self.mv_transform
-		dataset_train_sv.transform = self.sv_transform  # for Linear Probing / FineTuning
+		dataset_train_sv.transform = self.basic_transform  # for Linear Probing / FineTuning
 		dataset_train_val.transform = self.basic_transform  # for kNN
 		dataset_test.transform = self.basic_transform
 		
