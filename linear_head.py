@@ -140,7 +140,7 @@ class LinearClassificationHead(LightningModule):
 		features = self.model.backbone(images).flatten(start_dim=1)
 		return self.classification_head(features)
 	
-	def shared_step(self, batch, batch_idx) -> Tuple[Tensor, Dict[int, Tensor]]:
+	def shared_step(self, batch, batch_idx) -> Tuple[Tensor, float]:
 		"""
 
 		:param batch:
@@ -157,9 +157,9 @@ class LinearClassificationHead(LightningModule):
 		# Convert logits to predicted classes
 		_, predicted_classes = torch.max(predictions, 1)
 		# Calculate correct predictions
-		correct_predictions = (predicted_classes == targets).sum().item()
+		correct_predictions = (predicted_classes == targets).float().sum()
 		# Calculate accuracy
-		acc = correct_predictions / targets.size(0)
+		acc = correct_predictions / len(targets)
 		
 		return loss, acc
 	
@@ -201,7 +201,8 @@ class LinearClassificationHead(LightningModule):
 			"max_accuracy",
 			self.max_accuracy * 100.0,
 			prog_bar=True,
-			sync_dist=True
+			sync_dist=True,
+			batch_size=batch_size
 		)
 		# self.log("val_loss", loss, prog_bar=True, sync_dist=True, batch_size=batch_size)
 		# self.log_dict(log_dict, prog_bar=True, sync_dist=True, batch_size=batch_size)
