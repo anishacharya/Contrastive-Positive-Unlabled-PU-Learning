@@ -189,7 +189,9 @@ def run_linear_eval(args: Namespace, config: Dict) -> None:
 			save_dir=os.path.join(args.log_dir, f"tf_logging/{args.dataset}"),
 			name=f"{args.exp_name}",
 			version=f"seed={seed}",
-		),
+		)
+		curr_epoch = 0
+		num_epochs = training_config.get('epochs', 100)
 		
 		# ----- delete model and trainer + free up cuda memory ---
 		del model

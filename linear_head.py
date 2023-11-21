@@ -3,9 +3,59 @@ from typing import Dict, Tuple
 from lightly.models.utils import activate_requires_grad, deactivate_requires_grad
 from lightly.utils.benchmarking.topk import mean_topk_accuracy
 from pytorch_lightning import LightningModule
+import torch
 from torch import Tensor
 from torch.nn import CrossEntropyLoss, Linear, Module
 from utils import get_optimizer, get_scheduler
+
+
+class LinearProbing(LightningModule):
+	def __init__(
+			self,
+			model: Module,
+			training_config: Dict,
+			feature_dim: int,
+			num_classes: int
+	) -> None:
+		super().__init__()
+		self.model = model
+		self.feature_dim = feature_dim
+		self.num_classes = num_classes
+		self.training_config = training_config
+		
+		self.classification_head = Linear(
+			feature_dim,
+			num_classes
+		)
+		self.criterion = CrossEntropyLoss()
+		self.max_accuracy = 0.0
+	
+	def training_step(self, batch, batch_idx) -> Tensor:
+		images, targets = batch[0], batch[1]
+		predictions = self.classification_head(images)
+		loss = self.criterion(predictions, targets)
+		# Convert logits to predicted classes
+		_, predicted_classes = torch.max(predictions, 1)
+		# Calculate correct predictions
+		correct_predictions = (predicted_classes == targets).sum().item()
+		# Calculate accuracy
+		accuracy = correct_predictions / targets.size(0)
+		batch_size = len(targets)
+		self.log(
+			"train_loss",
+			loss,
+			prog_bar=True,
+			sync_dist=True,
+			batch_size=batch_size
+		)
+		self.log(
+			"train_acc",
+			accuracy,
+			prog_bar=True,
+			sync_dist=True,
+			batch_size=batch_size
+		)
+		return loss
 
 
 class LinearClassificationHead(LightningModule):
