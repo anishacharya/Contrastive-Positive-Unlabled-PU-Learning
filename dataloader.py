@@ -174,7 +174,7 @@ class DataManager:
 		def __call__(self, x):
 			return self.transform(x)
 	
-	def get_data(self) -> [DataLoader, DataLoader, DataLoader]:
+	def get_data(self, return_dataloader: bool=True) -> [DataLoader, DataLoader, DataLoader]:
 		"""
         Returns:
         train and test dataset
@@ -216,11 +216,13 @@ class DataManager:
 			num_unlabeled=self.num_unlabeled,
 			prior=self.dataset_prior
 		)
+		# Used For Supervised kNN Evaluation
 		dataset_train_val = self.dataset_map[root_dataset](
 			pos_class=self.pos_classes,
 			neg_class=self.neg_classes,
 			setting='supervised',
 		)
+		# Test Data
 		dataset_test = self.dataset_map[root_dataset](
 			pos_class=self.pos_classes,
 			neg_class=self.neg_classes,
@@ -241,33 +243,37 @@ class DataManager:
 		dataset_train_val = data.LightlyDataset.from_torch_dataset(dataset_train_val)
 		dataset_test = data.LightlyDataset.from_torch_dataset(dataset_test)
 		
-		dataloader_train_mv = DataLoader(
-			dataset_train_ssl,
-			batch_size=self.train_batch_size,
-			shuffle=True,
-			drop_last=True,
-			num_workers=self.num_worker,
-		)
-		dataloader_train_sv = DataLoader(
-			dataset_train_sv,
-			batch_size=self.train_batch_size,
-			shuffle=True,
-			drop_last=True,
-			num_workers=self.num_worker,
-		)
-		dataloader_train_val = DataLoader(
-			dataset_train_val,
-			batch_size=self.train_batch_size,
-			shuffle=False,
-			num_workers=self.num_worker
-		)
-		dataloader_test = DataLoader(
-			dataset_test,
-			batch_size=self.test_batch_size,
-			shuffle=False,
-			num_workers=self.num_worker
-		)
-		return dataloader_train_mv, dataloader_train_sv, dataloader_train_val, dataloader_test
+		if return_dataloader:
+			dataloader_train_mv = DataLoader(
+				dataset_train_ssl,
+				batch_size=self.train_batch_size,
+				shuffle=True,
+				drop_last=True,
+				num_workers=self.num_worker,
+			)
+			dataloader_train_sv = DataLoader(
+				dataset_train_sv,
+				batch_size=self.train_batch_size,
+				shuffle=True,
+				drop_last=True,
+				num_workers=self.num_worker,
+			)
+			dataloader_train_val = DataLoader(
+				dataset_train_val,
+				batch_size=self.train_batch_size,
+				shuffle=False,
+				num_workers=self.num_worker
+			)
+			dataloader_test = DataLoader(
+				dataset_test,
+				batch_size=self.test_batch_size,
+				shuffle=False,
+				num_workers=self.num_worker
+			)
+			return dataloader_train_mv, dataloader_train_sv, dataloader_train_val, dataloader_test
+		
+		else:
+			return dataset_train_ssl, dataset_train_sv, dataset_train_val, dataset_test
 
 
 class BinaryImageNet(Dataset):

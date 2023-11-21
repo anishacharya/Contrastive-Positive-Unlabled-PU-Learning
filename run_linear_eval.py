@@ -119,7 +119,7 @@ def run_linear_eval(args: Namespace, config: Dict, freeze_encoder: bool = True) 
 				framework_config=framework_config,
 				training_config=training_config,
 				data_config=data_config,
-				val_dataloader=dataloader_train_sv,
+				val_dataloader=dataloader_test,
 				num_classes=data_manager.num_classes,
 				gather_distributed=True if n_gpus >= 2 else False
 			)
@@ -131,7 +131,7 @@ def run_linear_eval(args: Namespace, config: Dict, freeze_encoder: bool = True) 
 				framework_config=framework_config,
 				training_config=training_config,
 				data_config=data_config,
-				val_dataloader=dataloader_train_sv,
+				val_dataloader=dataloader_test,
 				num_classes=data_manager.num_classes,
 				gather_distributed=True if n_gpus >= 2 else False
 			)
@@ -184,21 +184,6 @@ def run_linear_eval(args: Namespace, config: Dict, freeze_encoder: bool = True) 
 			)
 			dataloader_train_sv.dataset.dataset.data = data
 			dataloader_train_sv.dataset.dataset.targets = pseudo_labels
-			# dataset_train_sv = PseudoLabeledData(
-			# 	original_dataloader=dataloader_train_sv,
-			# 	model=model,
-			# 	algo=args.algo,
-			# 	n_cluster=2
-			# )
-			# dataset_train_sv.transform = data_manager.sv_transform
-			# dataset_train_sv = data.LightlyDataset.from_torch_dataset(dataset_train_sv)
-			# dataloader_train_sv = DataLoader(
-			# 	dataset=dataset_train_sv,
-			# 	batch_size=data_manager.train_batch_size,
-			# 	shuffle=True,
-			# 	drop_last=True,
-			# 	num_workers=data_manager.num_worker,
-			# )
 		
 		# ---- Kick off Training
 		trainer.fit(
