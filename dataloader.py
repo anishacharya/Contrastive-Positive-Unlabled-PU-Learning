@@ -3,7 +3,8 @@ Data Loader Module
 """
 import os
 import random
-from typing import Dict, List
+from typing import Dict
+from typing import List
 
 import lightly.data as data
 import numpy as np
@@ -18,6 +19,7 @@ from sklearn.cluster import KMeans
 from sklearn.utils import shuffle
 from torch.utils.data import DataLoader, Dataset
 from torchvision import datasets, transforms
+from torchvision.transforms import functional as TF
 # from spherecluster import SphericalKMeans
 from tqdm import tqdm
 
@@ -130,6 +132,46 @@ class DataManager:
 			else:
 				return img
 	
+	class RandomRotate(object):
+		"""Implementation of random rotation.
+
+		Randomly rotates an input image by a fixed angle. By default, we rotate
+		the image by 90 degrees with a probability of 50%.
+
+		This augmentation can be very useful for rotation invariant images such as
+		in medical imaging or satellite imaginary.
+
+		Attributes:
+			prob:
+				Probability with which image is rotated.
+			angle:
+				Angle by which the image is rotated. We recommend multiples of 90
+				to prevent rasterization artifacts. If you pick numbers like
+				90, 180, 270 the tensor will be rotated without introducing
+				any artifacts.
+
+		"""
+		
+		def __init__(self, prob: float = 0.5, angle: int = 90):
+			self.prob = prob
+			self.angle = angle
+		
+		def __call__(self, sample):
+			"""Rotates the images with a given probability.
+
+			Args:
+				sample:
+					PIL image which will be rotated.
+
+			Returns:
+				Rotated image or original image.
+
+			"""
+			prob = np.random.random_sample()
+			if prob < self.prob:
+				sample = TF.rotate(sample, self.angle)
+			return sample
+	
 	def get_transforms(self):
 		"""
 		:return:
@@ -152,11 +194,11 @@ class DataManager:
 				transforms.RandomResizedCrop(model_ip_shape),
 				transforms.RandomApply(
 					[transforms.ColorJitter(0.4, 0.4, 0.2, 0.1)], p=0.8),
-				transforms.RandomApply([GaussianBlur([0.1, 2.0])], p=0.5),
+				transforms.RandomApply([self.GaussianBlur([0.1, 2.0])], p=0.5),
 				transforms.RandomHorizontalFlip(p=0.5),
 				transforms.RandomPerspective(p=0.5),
 				transforms.RandomVerticalFlip(p=0.5),
-				RandomRotate(prob=0.5, angle=90),
+				self.RandomRotate(prob=0.5, angle=90),
 				transforms.ToTensor(),
 				transforms.Normalize(mean=mean, std=std)
 			])
@@ -166,29 +208,19 @@ class DataManager:
 		elif self.data_set == 'imagenet':
 			mean, std = [0.485, 0.456, 0.406], [0.229, 0.224, 0.225]
 			model_ip_shape = 256
-			self.transform = transforms.Compose([
-				transforms.RandomResizedCrop(input_shape, interpolation=Image.BICUBIC),
+			imagenet_transform = transforms.Compose([
+				transforms.RandomResizedCrop(model_ip_shape),
 				transforms.RandomHorizontalFlip(p=0.5),
 				transforms.RandomApply([transforms.ColorJitter(0.4, 0.4, 0.2, 0.1)], p=0.8),
 				transforms.RandomGrayscale(p=0.2),
-				transforms.RandomApply([GaussianBlur([0.1, 2.0])], p=0.5),
-				Solarization(p=0.0),
+				transforms.RandomApply([self.GaussianBlur([0.1, 2.0])], p=0.5),
+				self.Solarization(p=0.0),
 				transforms.ToTensor(),
 				transforms.Normalize(mean=[0.485, 0.456, 0.406],
 				                     std=[0.229, 0.224, 0.225])
 			])
-			self.transform_prime = transforms.Compose([
-				transforms.RandomResizedCrop(224, interpolation=Image.BICUBIC),
-				transforms.RandomHorizontalFlip(p=0.5),
-				transforms.RandomApply([transforms.ColorJitter(0.4, 0.4, 0.2, 0.1)], p=0.8),
-				transforms.RandomGrayscale(p=0.2),
-				transforms.RandomApply([GaussianBlur([0.1, 2.0])], p=0.5),
-				Solarization(p=0.2),
-				transforms.ToTensor(),
-				transforms.Normalize(mean=[0.485, 0.456, 0.406],
-				                     std=[0.229, 0.224, 0.225])
-			])
-			mv_transform = SimCLRTransform()
+			mv_transform = MultiViewTransform(transforms=[imagenet_transform, imagenet_transform])
+			# mv_transform = SimCLRTransform()
 			basic_transform = transforms.Compose(
 				[
 					transforms.Resize(model_ip_shape),
@@ -197,10 +229,11 @@ class DataManager:
 					transforms.Normalize(mean=mean, std=std),
 				]
 			)
+			sv_transform = imagenet_transform
 		else:
 			raise NotImplementedError
 		
-		return mv_transform, basic_transform
+		return mv_transform, sv_transform, basic_transform
 	
 	class BasicTransform:
 		"""
@@ -280,10 +313,10 @@ class DataManager:
 		)
 		
 		# define validation and test transform
-		self.mv_transform, self.basic_transform = self.get_transforms()
+		self.mv_transform, self.sv_transform, self.basic_transform = self.get_transforms()
 		
 		dataset_train_ssl.transform = self.mv_transform
-		dataset_train_sv.transform = self.basic_transform   # for Linear Probing / FineTuning
+		dataset_train_sv.transform = self.sv_transform  # for Linear Probing / FineTuning
 		dataset_train_val.transform = self.basic_transform  # for kNN
 		dataset_test.transform = self.basic_transform
 		
@@ -320,9 +353,7 @@ class DataManager:
 				num_workers=self.num_worker
 			)
 			return dataloader_train_mv, dataloader_train_sv, dataloader_train_val, dataloader_test
-		
-		else:
-			return dataset_train_ssl, dataset_train_sv, dataset_train_val, dataset_test
+		return dataset_train_ssl, dataset_train_sv, dataset_train_val, dataset_test
 
 
 class BinaryImageNet(Dataset):
