@@ -239,8 +239,8 @@ def run_linear_eval(args: Namespace, config: Dict, freeze_encoder: bool = True, 
 		# create new dataset from feat
 		print('feat_tr shape:', feat_tr.shape)
 		print('lbl_tr shape:', lbl_tr.shape)
-		print('feat_tr shape:', feat_tr.shape)
-		print('lbl_tr shape:', lbl_tr.shape)
+		print('feat_te shape:', feat_te.shape)
+		print('lbl_te shape:', lbl_te.shape)
 		
 		# create new dataset from feat
 		train_dataset = torch.utils.data.TensorDataset(feat_tr, lbl_tr)
