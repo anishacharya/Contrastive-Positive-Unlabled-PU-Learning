@@ -170,7 +170,7 @@ def run_linear_eval(args: Namespace, config: Dict, freeze_encoder: bool = True, 
 				LearningRateMonitor(logging_interval='step'),
 				metric_callback,
 			],
-			precision="16-mixed",
+			# precision="16-mixed",
 		)
 		
 		# Pseudo-label before fitting.

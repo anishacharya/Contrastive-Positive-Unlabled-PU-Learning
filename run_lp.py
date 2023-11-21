@@ -14,14 +14,15 @@ import pytorch_lightning as pl
 import torch
 import torch.nn.functional as F
 import yaml
+from pytorch_lightning import Trainer
 from pytorch_lightning.loggers import TensorBoardLogger
-from linear_head import LinearClassificationHead
 from torch.utils.data import DataLoader
 from tqdm import tqdm
+from pytorch_lightning.callbacks import LearningRateMonitor
 from dataloader import DataManager
-from losses import get_loss
+from linear_head import LinearClassificationHead
 from training_framework import SimCLR
-from utils import get_optimizer, get_scheduler
+from lightly.utils.benchmarking import MetricCallback
 
 
 def _parse_args(verbose=True):
@@ -90,7 +91,7 @@ def extract_features(encoder, dataloader: DataLoader) -> [torch.Tensor, torch.Te
 	labels = []
 	encoder.eval()
 	with torch.no_grad():
-		for mini_batch in dataloader:
+		for mini_batch in tqdm(dataloader):
 			img, target, _ = mini_batch
 			if torch.cuda.is_available():
 				img = img.cuda()
@@ -190,8 +191,37 @@ def run_linear_eval(args: Namespace, config: Dict, freeze_encoder: bool = True, 
 			name=f"{args.exp_name}",
 			version=f"seed={seed}",
 		)
-		curr_epoch = 0
-		num_epochs = training_config.get('epochs', 100)
+		metric_callback = MetricCallback()
+		
+		# ----- Train linear classifier.
+		trainer = Trainer(
+			max_epochs=training_config.get('epochs'),
+			# --- devices ----
+			devices=n_gpus,
+			accelerator="gpu" if torch.cuda.is_available() else "mps",
+			strategy="ddp" if n_gpus >= 2 else "auto",
+			# --- reproducibility
+			sync_batchnorm=True if n_gpus >= 2 else False,
+			deterministic=True,
+			use_distributed_sampler=True if n_gpus >= 2 else False,
+			# --- logging ---
+			logger=logger,
+			default_root_dir=args.log_dir,
+			check_val_every_n_epoch=training_config.get('eval_freq', 1),
+			log_every_n_steps=1,
+			callbacks=[
+				LearningRateMonitor(logging_interval='step'),
+				metric_callback,
+			],
+			# precision="16-mixed",
+		)
+		
+		# ---- Kick off Training
+		trainer.fit(
+			model=lin_classifier,
+			train_dataloaders=train_loader,
+			val_dataloaders=test_loader,
+		)
 		
 		# ----- delete model and trainer + free up cuda memory ---
 		del model
