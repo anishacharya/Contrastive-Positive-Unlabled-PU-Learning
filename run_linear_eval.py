@@ -50,7 +50,7 @@ def _parse_args(verbose=True):
 	parser.add_argument(
 		"--puPL",
 		type=bool,
-		default=True,
+		default=False,
 		help="if enabled, pseudo-labeling will happen before training"
 	)
 	parser.add_argument(
