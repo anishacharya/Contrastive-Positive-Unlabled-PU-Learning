@@ -191,7 +191,7 @@ def run_linear_eval(args: Namespace, config: Dict, freeze_encoder: bool = True, 
 			val_dataloaders=dataloader_test,
 		)
 		if rank() == 0:
-			val_acc.append(lin_classifier.max_accuracy.cpu())
+			val_acc.append(lin_classifier.max_acc.cpu())
 	
 	# ----- delete model and trainer + free up cuda memory ---
 	del model

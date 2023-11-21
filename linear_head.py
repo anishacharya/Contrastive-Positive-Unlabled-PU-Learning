@@ -196,6 +196,7 @@ class LinearClassificationHead(LightningModule):
 			batch_size=batch_size
 		)
 		if acc > self.max_acc:
+			print('updating max acc from {} to {}'.format(self.max_acc * 100, acc * 100))
 			self.max_acc = acc
 		self.log(
 			"max_accuracy",
