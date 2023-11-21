@@ -17,7 +17,7 @@ import yaml
 from pytorch_lightning.loggers import TensorBoardLogger
 from linear_head import LinearClassificationHead
 from torch.utils.data import DataLoader
-
+from tqdm import tqdm
 from dataloader import DataManager
 from losses import get_loss
 from training_framework import SimCLR
@@ -88,12 +88,15 @@ def extract_features(encoder, dataloader: DataLoader) -> [torch.Tensor, torch.Te
 	"""
 	features = []
 	labels = []
-	with ((torch.no_grad())):
+	encoder.eval()
+	with torch.no_grad():
 		for mini_batch in dataloader:
 			img, target, _ = mini_batch
-			img = img.to(encoder.device)
-			target = target.to(encoder.device)
-			feature = encoder.backbone(img).squeeze()
+			if torch.cuda.is_available():
+				img = img.cuda()
+				target = target.cuda()
+				encoder = encoder.cuda()
+			feature = encoder(img).squeeze()
 			feature = F.normalize(feature, dim=1)
 			features.append(feature)
 			labels.append(target)
