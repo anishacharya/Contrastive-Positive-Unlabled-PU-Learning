@@ -85,7 +85,7 @@
         },
       "training_config":
         {
-          "epochs": 200,
+          "epochs": 10,
           "eval_freq": 1,
           "save_model_freq": 50,
 
@@ -99,7 +99,7 @@
           "reg": 0.00001,   # L2 Regularizer
 
           # ----- LRS ------
-          "lrs": 'cosine',
+          "lrs": 'step',
 
           "warmup": 0,                              # for linear warmup
           "step_size": 1,                           # for step lrs
