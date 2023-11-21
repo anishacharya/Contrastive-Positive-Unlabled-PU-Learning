@@ -7,7 +7,7 @@ import torch
 from torch import Tensor
 from torch.nn import CrossEntropyLoss, Linear, Module
 from utils import get_optimizer, get_scheduler
-
+import torch.nn.functional as F
 
 class LinearClassificationHead(LightningModule):
 	def __init__(
@@ -58,6 +58,12 @@ class LinearClassificationHead(LightningModule):
 			batch_size=batch_size
 		)
 		return loss
+	
+	def forward(self, x: Tensor) -> Tensor:
+		features = self.model.backbone(x).flatten(start_dim=1)
+		features = F.relu(features)
+		logits = self.classification_head(features)
+		return logits
 	
 	def configure_optimizers(self):
 		parameters = list(self.classification_head.parameters())
