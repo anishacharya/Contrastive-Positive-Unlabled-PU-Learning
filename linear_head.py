@@ -136,6 +136,9 @@ class LinearClassificationHead(LightningModule):
 		self.criterion = CrossEntropyLoss()
 		self.max_acc = 0.0
 	
+	def on_validation_epoch_start(self) -> None:
+		self._train_features, self._train_targets = self.extract_features(dataloader=self.val_dataloader)
+	
 	def forward(self, images: Tensor) -> Tensor:
 		features = self.model.backbone(images).flatten(start_dim=1)
 		return self.classification_head(features)
@@ -150,9 +153,6 @@ class LinearClassificationHead(LightningModule):
 		images, targets = batch[0], batch[1]
 		predictions = self.forward(images)
 		loss = self.criterion(predictions, targets)
-		# _, predicted_labels = predictions.topk(max(self.topk))
-		# topk = mean_topk_accuracy(predicted_labels, targets, k=self.topk)
-		# return loss, topk
 		
 		# Convert logits to predicted classes
 		_, predicted_classes = torch.max(predictions, 1)
@@ -180,16 +180,12 @@ class LinearClassificationHead(LightningModule):
 			sync_dist=True,
 			batch_size=batch_size
 		)
-		# log_dict = {f"train_top{k}": acc for k, acc in topk.items()}
-		# self.log("train_loss", loss, prog_bar=True, sync_dist=True, batch_size=batch_size)
-		# self.log_dict(log_dict, sync_dist=True, batch_size=batch_size)
 		return loss
 	
 	def validation_step(self, batch, batch_idx) -> Tensor:
 		loss, acc = self.shared_step(batch=batch, batch_idx=batch_idx)
 		batch_size = len(batch[1])
 		if acc > self.max_acc:
-			# print('updating max acc from {} to {}'.format(self.max_acc * 100, acc * 100))
 			self.max_acc = acc
 		self.log(
 			"val_accuracy",
@@ -205,8 +201,6 @@ class LinearClassificationHead(LightningModule):
 			sync_dist=True,
 			batch_size=batch_size
 		)
-		# self.log("val_loss", loss, prog_bar=True, sync_dist=True, batch_size=batch_size)
-		# self.log_dict(log_dict, prog_bar=True, sync_dist=True, batch_size=batch_size)
 		return loss
 	
 	def configure_optimizers(self):

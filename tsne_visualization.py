@@ -1,21 +1,24 @@
 """
 Perform tsne eval of encoder
 """
-import os
-import time
-from argparse import ArgumentParser
+
+from argparse import (
+	ArgumentParser
+)
 from pathlib import Path
+
 import pytorch_lightning as pl
 import torch
+import torch.nn.functional as F
 import yaml
-from lightly.utils.dist import rank
-from pytorch_lightning.callbacks import (
-	LearningRateMonitor,
-	ModelCheckpoint
-)
-from pytorch_lightning.loggers import TensorBoardLogger
+from torch.utils.data import DataLoader
+from tqdm import tqdm
+
 from dataloader import DataManager
 from training_framework import SimCLR
+from sklearn.manifold import TSNE
+import seaborn as sns
+import matplotlib.pyplot as plt
 
 
 def _parse_args(verbose=True):
@@ -36,6 +39,34 @@ def _parse_args(verbose=True):
 	args = parser.parse_args()
 	verbose and print(args)
 	return args
+
+
+def extract_embeddings(encoder, dataloader: DataLoader) -> [torch.Tensor, torch.Tensor]:
+	"""
+	Given a dataloader return the extracted features and labels
+	:param encoder:
+	:param dataloader:
+	:return:
+	"""
+	features = []
+	labels = []
+	encoder.eval()
+	with torch.no_grad():
+		for mini_batch in tqdm(dataloader):
+			img, target, _ = mini_batch
+			if torch.cuda.is_available():
+				img = img.cuda()
+				target = target.cuda()
+				encoder = encoder.cuda()
+			feature = encoder(img).squeeze()
+			feature = F.normalize(feature, dim=1)
+			features.append(feature)
+			labels.append(target)
+	extracted_features = torch.cat(features, dim=0).contiguous().cpu().numpy()
+	extracted_labels = torch.cat(labels, dim=0).contiguous().cpu().numpy()
+	# print(extracted_features.shape)
+	# print(extracted_labels.shape)
+	return extracted_features, extracted_labels
 
 
 if __name__ == '__main__':
@@ -68,3 +99,19 @@ if __name__ == '__main__':
 		val_dataloader=None,
 		num_classes=data_manager.num_classes
 	)
+	
+	print("Extracting Embeddings")
+	feat_te, lbl_te = extract_embeddings(dataloader=dataloader_test, encoder=model.backbone)
+	
+	print("TSNE Visualization")
+	tsne = TSNE(n_components=2, verbose=1, random_state=123)
+	z = tsne.fit_transform(feat_te)
+	
+	sns.scatterplot(x=z[:, 0],
+	                y=z[:, 1],
+	                hue=lbl_te,  # .tolist(),
+	                palette=sns.color_palette("hls", 2))
+	plt.xlabel('PC-1')
+	plt.ylabel('PC-2')
+	plt.grid()
+	plt.figure(figsize=(8, 6), dpi=300)
