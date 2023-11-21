@@ -189,7 +189,7 @@ class LinearClassificationHead(LightningModule):
 		loss, acc = self.shared_step(batch=batch, batch_idx=batch_idx)
 		batch_size = len(batch[1])
 		if acc > self.max_acc:
-			print('updating max acc from {} to {}'.format(self.max_acc * 100, acc * 100))
+			# print('updating max acc from {} to {}'.format(self.max_acc * 100, acc * 100))
 			self.max_acc = acc
 		self.log(
 			"val_accuracy",
