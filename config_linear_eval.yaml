@@ -68,18 +68,18 @@
           # Losses:
           # contrastive: ssCL, sCL, puCL
           # non-contrastive: ce, uPU, nnPU
-          "loss": 'nnPU',
+          "loss": 'ce',
           "prior": 0.5,  # some methods depend on class prior. # pi_p* =
         },
       "data_config":
         {
           # settings: pu_single_data, pu_case_control , supervised , unsupervised
-          "setting": "pu_case_control",
-          "num_labeled": 5000,
+          "setting": "supervised",
+          "num_labeled": ,
           "num_unlabeled": ,   # only for controlled experiments - leave blank for benchmarks
           "dataset_prior": ,    # leave blank for benchmarks
 
-          "train_batch_size": 64,
+          "train_batch_size": 512,
           "test_batch_size": 1000,
           "num_worker": 8
         },
