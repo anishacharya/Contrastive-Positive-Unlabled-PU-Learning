@@ -15,7 +15,7 @@ import torch
 import torch.nn.functional as F
 import yaml
 from pytorch_lightning.loggers import TensorBoardLogger
-from torch.nn import Linear
+from linear_head import LinearClassificationHead
 from torch.utils.data import DataLoader
 
 from dataloader import DataManager
@@ -31,6 +31,12 @@ def _parse_args(verbose=True):
 		type=str,
 		default='cifar10.dog_cat',
 		help='Pass Dataset'
+	)
+	parser.add_argument(
+		"--mode",
+		type=str,
+		default="lp",
+		help="lp / ft"
 	)
 	parser.add_argument(
 		"--checkpoint",
@@ -96,7 +102,7 @@ def extract_features(encoder, dataloader: DataLoader) -> [torch.Tensor, torch.Te
 	return extracted_features, extracted_labels
 
 
-def run_linear_eval(args: Namespace, config: Dict) -> None:
+def run_linear_eval(args: Namespace, config: Dict, freeze_encoder: bool = True, pseudo_label bool = False) -> None:
 	"""
 	Runs a linear evaluation on the given model. If no model is given trains one from scratch
 	"""
@@ -165,23 +171,12 @@ def run_linear_eval(args: Namespace, config: Dict) -> None:
 			num_workers=data_manager.num_worker,
 		)
 		
-		# Linear Model
-		classification_head = Linear(
-			model.feat_dim,
-			data_manager.num_classes
-		)
-		
-		# Get objective
-		criterion = get_loss(framework_config=framework_config)
-		opt = get_optimizer(
-			params=classification_head.parameters(),
-			optimizer_config=training_config
-		)
-		
-		scheduler = get_scheduler(
-			optimizer=opt,
-			lrs_config=training_config,
-			verbose=False
+		lin_classifier = LinearClassificationHead(
+			model=model,
+			training_config=training_config,
+			feature_dim=model.feat_dim,
+			num_classes=data_manager.num_classes,
+			freeze_model=freeze_encoder,
 		)
 		
 		# --- Logging -----
@@ -203,10 +198,26 @@ def run_linear_eval(args: Namespace, config: Dict) -> None:
 if __name__ == '__main__':
 	# ----- Parse Arguments ----- #
 	arguments = _parse_args()
+	
+	if arguments.mode == 'lp':
+		freeze = True
+		print("Running linear probing")
+	
+	elif arguments.mode == 'ft':
+		freeze = False
+		print("Running Finetuning")
+	
+	else:
+		raise ValueError(
+			'Need to Linear Probe or Finetune'
+		)
+	
 	run_linear_eval(
 		args=arguments,
 		config=yaml.load(
 			open('config_linear_eval.yaml'),
 			Loader=yaml.FullLoader
-		)
+		),
+		freeze_encoder=freeze,
+		pseudo_label=True if arguments.puPL else False
 	)
