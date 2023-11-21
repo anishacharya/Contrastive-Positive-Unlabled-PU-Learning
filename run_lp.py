@@ -102,6 +102,8 @@ def extract_features(encoder, dataloader: DataLoader) -> [torch.Tensor, torch.Te
 			labels.append(target)
 	extracted_features = torch.cat(features, dim=0).t().contiguous()
 	extracted_labels = torch.cat(labels, dim=0).t().contiguous()
+	print(extracted_features.shape)
+	print(extracted_labels.shape)
 	return extracted_features, extracted_labels
 
 
