@@ -8,7 +8,7 @@ from argparse import (
 )
 from pathlib import Path
 from typing import Dict
-
+import lightly.data as data
 import numpy as np
 import pytorch_lightning as pl
 import torch
@@ -185,8 +185,8 @@ def extract_features(encoder, dataloader: DataLoader) -> [torch.Tensor, torch.Te
 			labels.append(target)
 	extracted_features = torch.cat(features, dim=0).contiguous()
 	extracted_labels = torch.cat(labels, dim=0).contiguous()
-	print(extracted_features.shape)
-	print(extracted_labels.shape)
+	# print(extracted_features.shape)
+	# print(extracted_labels.shape)
 	return extracted_features, extracted_labels
 
 
@@ -236,19 +236,15 @@ def run_linear_eval(args: Namespace, config: Dict, freeze_encoder: bool = True, 
 		print("feature extraction")
 		feat_tr, lbl_tr = extract_features(dataloader=dataloader_train_sv, encoder=model.backbone)
 		feat_te, lbl_te = extract_features(dataloader=dataloader_test, encoder=model.backbone)
-		# create new dataset from feat
-		print('feat_tr shape:', feat_tr.shape)
-		print('lbl_tr shape:', lbl_tr.shape)
-		
-		print('feat_te shape:', feat_te.shape)
-		print('lbl_te shape:', lbl_te.shape)
 		
 		# create new dataset from feat
 		train_dataset = torch.utils.data.TensorDataset(feat_tr, lbl_tr)
-		test_dataset = torch.utils.data.TensorDataset(feat_te, lbl_te)
-		
 		train_dataset.transform = data_manager.basic_transform
+		train_dataset = data.LightlyDataset.from_torch_dataset(train_dataset)
+		
+		test_dataset = torch.utils.data.TensorDataset(feat_te, lbl_te)
 		test_dataset.transform = data_manager.basic_transform
+		test_dataset = data.LightlyDataset.from_torch_dataset(test_dataset)
 		
 		train_loader = DataLoader(
 			train_dataset,
