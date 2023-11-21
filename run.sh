@@ -1,5 +1,5 @@
 # LP / FT evaluate a pretrained model
-CKPT="/home/aa56927/CODE/ContrastivePULearning/logs/checkpoints/cifar10.dog_cat/nP=5k/puCL/0/epoch=299.ckpt"
+CKPT="logs/checkpoints/cifar10.dog_cat/nP=5k/puCL/0/epoch=299.ckpt"
 python3 run_lp.py --mode lp --checkpoint $CKPT --exp_name nP=5k/puCL-nnPU --dataset cifar10.dog_cat
 
 #CKPT="/home/aa56927/CODE/ContrastivePULearning/logs/checkpoints/cifar10.dog_cat/nP=5k/puCL/0/epoch=299.ckpt"
