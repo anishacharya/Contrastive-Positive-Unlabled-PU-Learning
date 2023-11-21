@@ -2,6 +2,7 @@
 Data Loader Module
 """
 import os
+import random
 from typing import Dict, List
 
 import lightly.data as data
@@ -9,6 +10,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 from PIL import Image
+from PIL import ImageOps, ImageFilter
 from fastai.vision.all import untar_data, URLs
 from lightly.transforms import SimCLRTransform
 from lightly.transforms.multi_view_transform import MultiViewTransform
@@ -103,6 +105,31 @@ class DataManager:
 			"binary_imagenet": BinaryImageNet
 		}
 	
+	class GaussianBlur(object):
+		"""Gaussian blur augmentation: https://github.com/facebookresearch/moco/"""
+		
+		def __init__(self, sigma):
+			self.sigma = sigma
+		
+		def __call__(self, x):
+			sigma = random.uniform(self.sigma[0], self.sigma[1])
+			x = x.filter(ImageFilter.GaussianBlur(radius=sigma))
+			return x
+	
+	class Solarization(object):
+		"""
+		..
+		"""
+		
+		def __init__(self, p):
+			self.p = p
+		
+		def __call__(self, img):
+			if random.random() < self.p:
+				return ImageOps.solarize(img)
+			else:
+				return img
+	
 	def get_transforms(self):
 		"""
 		:return:
@@ -125,11 +152,11 @@ class DataManager:
 				transforms.RandomResizedCrop(model_ip_shape),
 				transforms.RandomApply(
 					[transforms.ColorJitter(0.4, 0.4, 0.2, 0.1)], p=0.8),
-				# transforms.RandomApply([GaussianBlur([0.1, 2.0])], p=0.5),
-				# transforms.RandomHorizontalFlip(p=0.5),
-				# transforms.RandomPerspective(p=0.5),
-				# transforms.RandomVerticalFlip(p=0.5),
-				# RandomRotate(prob=0.5, angle=90),
+				transforms.RandomApply([GaussianBlur([0.1, 2.0])], p=0.5),
+				transforms.RandomHorizontalFlip(p=0.5),
+				transforms.RandomPerspective(p=0.5),
+				transforms.RandomVerticalFlip(p=0.5),
+				RandomRotate(prob=0.5, angle=90),
 				transforms.ToTensor(),
 				transforms.Normalize(mean=mean, std=std)
 			])
@@ -139,6 +166,28 @@ class DataManager:
 		elif self.data_set == 'imagenet':
 			mean, std = [0.485, 0.456, 0.406], [0.229, 0.224, 0.225]
 			model_ip_shape = 256
+			self.transform = transforms.Compose([
+				transforms.RandomResizedCrop(input_shape, interpolation=Image.BICUBIC),
+				transforms.RandomHorizontalFlip(p=0.5),
+				transforms.RandomApply([transforms.ColorJitter(0.4, 0.4, 0.2, 0.1)], p=0.8),
+				transforms.RandomGrayscale(p=0.2),
+				transforms.RandomApply([GaussianBlur([0.1, 2.0])], p=0.5),
+				Solarization(p=0.0),
+				transforms.ToTensor(),
+				transforms.Normalize(mean=[0.485, 0.456, 0.406],
+				                     std=[0.229, 0.224, 0.225])
+			])
+			self.transform_prime = transforms.Compose([
+				transforms.RandomResizedCrop(224, interpolation=Image.BICUBIC),
+				transforms.RandomHorizontalFlip(p=0.5),
+				transforms.RandomApply([transforms.ColorJitter(0.4, 0.4, 0.2, 0.1)], p=0.8),
+				transforms.RandomGrayscale(p=0.2),
+				transforms.RandomApply([GaussianBlur([0.1, 2.0])], p=0.5),
+				Solarization(p=0.2),
+				transforms.ToTensor(),
+				transforms.Normalize(mean=[0.485, 0.456, 0.406],
+				                     std=[0.229, 0.224, 0.225])
+			])
 			mv_transform = SimCLRTransform()
 			basic_transform = transforms.Compose(
 				[
@@ -234,7 +283,7 @@ class DataManager:
 		self.mv_transform, self.basic_transform = self.get_transforms()
 		
 		dataset_train_ssl.transform = self.mv_transform
-		dataset_train_sv.transform = self.basic_transform  # for Linear Probing / FineTuning
+		dataset_train_sv.transform = self.basic_transform   # for Linear Probing / FineTuning
 		dataset_train_val.transform = self.basic_transform  # for kNN
 		dataset_test.transform = self.basic_transform
 		

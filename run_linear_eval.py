@@ -131,7 +131,7 @@ def run_linear_eval(args: Namespace, config: Dict, freeze_encoder: bool = True, 
 				framework_config=framework_config,
 				training_config=training_config,
 				data_config=data_config,
-				val_dataloader=dataloader_test,  # since we are not going to do
+				val_dataloader=dataloader_test,  # since we are not going to do kNN
 				num_classes=data_manager.num_classes,
 				gather_distributed=True if n_gpus >= 2 else False
 			)
@@ -226,5 +226,5 @@ if __name__ == '__main__':
 			Loader=yaml.FullLoader
 		),
 		freeze_encoder=freeze,
-		pseudo_label=True if arguments.puPL is True else False
+		pseudo_label=True if arguments.puPL else False
 	)
