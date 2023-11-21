@@ -103,13 +103,7 @@
 
           "warmup": 0,                              # for linear warmup
           "step_size": 1,                           # for step lrs
-          "milestones": [
-            20,
-            40,
-            60,
-            80,
-            100
-          ],,            # for multistep lrs
+          "milestones": [ 20, 40, 60, 80, 100 ],    # for multistep lrs
           "gamma": 0.5,                             # for step and multistep lrs
 
           "T_max": 200,                            # for cosine lrs
