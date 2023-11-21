@@ -102,7 +102,7 @@ def extract_features(encoder, dataloader: DataLoader) -> [torch.Tensor, torch.Te
 	return extracted_features, extracted_labels
 
 
-def run_linear_eval(args: Namespace, config: Dict, freeze_encoder: bool = True, pseudo_label bool = False) -> None:
+def run_linear_eval(args: Namespace, config: Dict, freeze_encoder: bool = True, pseudo_label: bool = False) -> None:
 	"""
 	Runs a linear evaluation on the given model. If no model is given trains one from scratch
 	"""
