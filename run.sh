@@ -6,7 +6,7 @@
 #python3 run_linear_eval.py --mode lp --checkpoint $CKPT --exp_name nP=5k/lp-puCL-pupL --dataset cifar10.dog_cat --puPL True
 
 # train from scratch
-python3 run_linear_eval.py --mode ft --exp_name gamma=0.5/nnPU --dataset cifar10.dog_cat
+python3 run_lp.py --mode ft --exp_name gamma=0.5/nnPU --dataset cifar10.dog_cat
 
 
 # Train contrastive encoder from scratch
