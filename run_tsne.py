@@ -143,14 +143,14 @@ if __name__ == '__main__':
 	
 	print("TSNE Visualization")
 	tsne = TSNE(n_components=2, verbose=1, random_state=123)
-	z = tsne.fit_transform(feat_te)
+	z = tsne.fit_transform(feat_tr)
 	# if args.sphere:
 	# 	z = z / np.sqrt((z ** 2).sum(axis=1))[:, np.newaxis]
 	plt.figure(figsize=(8, 6), dpi=300)
 	ax = sns.scatterplot(
 		x=z[:, 0],
 		y=z[:, 1],
-		hue=lbl_te,  # Class labels
+		hue=lbl_tr,  # Class labels
 		palette=['cornflowerblue', 'rosybrown'],  # Adjust number of colors based on classes
 		s=100,  # Increase scatter point size
 		alpha=0.9  # Slight transparency
