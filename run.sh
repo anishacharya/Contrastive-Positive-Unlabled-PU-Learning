@@ -23,5 +23,5 @@
 
 
 ##### Linear Probing
-CKPT="logs/checkpoints/cifar10.easy/sup-sCL/0/epoch=299.ckpt"
-python3 run_lp.py --checkpoint $CKPT --dataset 'cifar10.easy'
+CKPT="logs/checkpoints/imagenet/gamma=0.5/puCL/0/epoch=99.ckpt"
+python3 run_lp.py --checkpoint $CKPT --dataset 'imagenet'
