@@ -264,7 +264,7 @@ class DataManager:
 		def __call__(self, x):
 			return self.transform(x)
 	
-	def get_data(self, return_dataloader: bool = False, augmentation: bool = False) -> \
+	def get_data(self, augmentation: bool = False) -> \
 			[DataLoader, DataLoader, DataLoader]:
 		"""
         Returns:
@@ -334,35 +334,33 @@ class DataManager:
 		dataset_train_val = data.LightlyDataset.from_torch_dataset(dataset_train_val)
 		dataset_test = data.LightlyDataset.from_torch_dataset(dataset_test)
 		
-		if return_dataloader:
-			dataloader_train_mv = DataLoader(
-				dataset_train_ssl,
-				batch_size=self.train_batch_size,
-				shuffle=True,
-				drop_last=True,
-				num_workers=self.num_worker,
-			)
-			dataloader_train_sv = DataLoader(
-				dataset_train_sv,
-				batch_size=self.train_batch_size,
-				shuffle=True,
-				drop_last=True,
-				num_workers=self.num_worker,
-			)
-			dataloader_train_val = DataLoader(
-				dataset_train_val,
-				batch_size=self.train_batch_size,
-				shuffle=False,
-				num_workers=self.num_worker
-			)
-			dataloader_test = DataLoader(
-				dataset_test,
-				batch_size=self.test_batch_size,
-				shuffle=False,
-				num_workers=self.num_worker
-			)
-			return dataloader_train_mv, dataloader_train_sv, dataloader_train_val, dataloader_test
-		return dataset_train_ssl, dataset_train_sv, dataset_train_val, dataset_test
+		dataloader_train_mv = DataLoader(
+			dataset_train_ssl,
+			batch_size=self.train_batch_size,
+			shuffle=True,
+			drop_last=True,
+			num_workers=self.num_worker,
+		)
+		dataloader_train_sv = DataLoader(
+			dataset_train_sv,
+			batch_size=self.train_batch_size,
+			shuffle=True,
+			drop_last=True,
+			num_workers=self.num_worker,
+		)
+		dataloader_train_val = DataLoader(
+			dataset_train_val,
+			batch_size=self.train_batch_size,
+			shuffle=False,
+			num_workers=self.num_worker
+		)
+		dataloader_test = DataLoader(
+			dataset_test,
+			batch_size=self.test_batch_size,
+			shuffle=False,
+			num_workers=self.num_worker
+		)
+		return dataloader_train_mv, dataloader_train_sv, dataloader_train_val, dataloader_test
 
 
 class BinaryImageNet(Dataset):
