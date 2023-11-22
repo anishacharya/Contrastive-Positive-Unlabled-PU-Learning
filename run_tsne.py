@@ -117,7 +117,7 @@ if __name__ == '__main__':
 		x=z[:, 0],
 		y=z[:, 1],
 		hue=lbl_te,  # Class labels
-		palette=['slategray', 'tan'],  # Adjust number of colors based on classes
+		palette=['b', 'r'],  # Adjust number of colors based on classes
 		s=50,  # Increase scatter point size
 		alpha=0.7  # Slight transparency
 	)
