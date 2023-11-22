@@ -20,6 +20,8 @@ from sklearn.manifold import TSNE
 import seaborn as sns
 import matplotlib.pyplot as plt
 from sklearn.decomposition import KernelPCA
+import numpy as np
+
 
 def _parse_args(verbose=True):
 	parser = ArgumentParser(description="PreTraining Arguments")
@@ -109,17 +111,19 @@ if __name__ == '__main__':
 	print("Extracting Embeddings")
 	feat_te, lbl_te = extract_embeddings(dataloader=dataloader_test, encoder=model.backbone)
 	
-	# Step 1: Kernel PCA with RBF kernel
-	kernel_pca = KernelPCA(n_components=50, kernel='rbf', gamma=15)  # You can adjust 'gamma' and 'n_components'
-	X_kernel_pca = kernel_pca.fit_transform(feat_te)
-	
-	# Step 2: Apply t-SNE on the output of Kernel PCA
-	tsne = TSNE(n_components=2, verbose=1, random_state=123)
-	z = tsne.fit_transform(X_kernel_pca)
-	
-	# print("TSNE Visualization")
+	# # Step 1: Kernel PCA with RBF kernel
+	# kernel_pca = KernelPCA(n_components=50, kernel='rbf', gamma=15)  # You can adjust 'gamma' and 'n_components'
+	# X_kernel_pca = kernel_pca.fit_transform(feat_te)
+	#
+	# # Step 2: Apply t-SNE on the output of Kernel PCA
 	# tsne = TSNE(n_components=2, verbose=1, random_state=123)
-	# z = tsne.fit_transform(feat_te)
+	# z = tsne.fit_transform(X_kernel_pca)
+	
+	print("TSNE Visualization")
+	tsne = TSNE(n_components=2, verbose=1, random_state=123)
+	z = tsne.fit_transform(feat_te)
+	# Assuming 'z' is the output from t-SNE
+	z = z / np.sqrt((z ** 2).sum(axis=1))[:, np.newaxis]
 	plt.figure(figsize=(8, 6), dpi=300)
 	ax = sns.scatterplot(
 		x=z[:, 0],
