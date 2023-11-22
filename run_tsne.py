@@ -118,8 +118,8 @@ if __name__ == '__main__':
 		y=z[:, 1],
 		hue=lbl_te,  # Class labels
 		palette=['cornflowerblue', 'rosybrown'],  # Adjust number of colors based on classes
-		s=50,  # Increase scatter point size
-		alpha=0.7  # Slight transparency
+		s=100,  # Increase scatter point size
+		alpha=0.5  # Slight transparency
 	)
 	sns.despine()
 	handles, labels = ax.get_legend_handles_labels()
