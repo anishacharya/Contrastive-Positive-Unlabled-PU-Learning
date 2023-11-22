@@ -119,7 +119,7 @@ def train_and_evaluate(model, criterion, optimizer, train_loader, test_loader, e
 if __name__ == '__main__':
 	args = _parse_args()
 	config = yaml.load(
-		open('config_pretrain.yaml'),
+		open('config_lp.yaml'),
 		Loader=yaml.FullLoader
 	)
 	torch.set_float32_matmul_precision("high")
