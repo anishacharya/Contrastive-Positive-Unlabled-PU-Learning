@@ -36,6 +36,12 @@ def _parse_args(verbose=True):
 		default='cifar10.dog_cat',
 		help='Pass Dataset'
 	)
+	parser.add_argument(
+		'--fig_name',
+		type=str,
+		default='tsne_plots/test.pdf',
+		help='Save Figure'
+	)
 	args = parser.parse_args()
 	verbose and print(args)
 	return args
@@ -115,3 +121,5 @@ if __name__ == '__main__':
 	plt.ylabel('PC-2')
 	plt.grid()
 	plt.figure(figsize=(8, 6), dpi=300)
+	
+	plt.savefig()
