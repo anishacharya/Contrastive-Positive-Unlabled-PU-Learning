@@ -30,7 +30,7 @@ def _parse_args(verbose=True):
 	parser.add_argument(
 		"--checkpoint",
 		type=Path,
-		default=None,
+		default="/Users/aa56927-admin/Desktop/cifar.ckpt",
 		help="path of the ckpt e.g. os.path.join(os.getcwd(), pl_logs/checkpoints/cifar10/pt-SimCLR-0-v1.ckpt)"
 	)
 	parser.add_argument(
@@ -145,7 +145,8 @@ if __name__ == '__main__':
 		training_config=training_config,
 		data_config=data_config,
 		val_dataloader=None,
-		num_classes=data_manager.num_classes
+		num_classes=data_manager.num_classes,
+		map_location=torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 	)
 	
 	print("Extracting Train Embeddings")

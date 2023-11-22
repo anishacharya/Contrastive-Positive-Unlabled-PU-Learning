@@ -273,7 +273,7 @@ class DataManager:
 		def __call__(self, x):
 			return self.transform(x)
 	
-	def get_data(self, augmentation: bool = False) -> \
+	def get_data(self, augmentation: bool = True) -> \
 			[DataLoader, DataLoader, DataLoader]:
 		"""
         Returns:
