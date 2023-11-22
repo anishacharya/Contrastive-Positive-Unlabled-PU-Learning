@@ -650,7 +650,7 @@ def binarize_dataset(
 	
 	print('P samples {}'.format(len(p_data_idx)))
 	print('N samples {}'.format(len(n_data_idx)))
-	
+	print("PU Learning Setting: {}".format(setting))
 	if setting in ['pu_case_control', 'pu_single_data']:
 		"""
         'pu_case_control': PU setting Xp ~ p(x | y=1), Xu ~ p(x)
