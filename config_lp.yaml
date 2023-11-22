@@ -39,10 +39,10 @@
         {
           "epochs": 50,
           "eval_freq": 1,
-          "save_model_freq": 100,
+          "save_model_freq": 10000,
 
           # ----- optimization ----
-          "optimizer": "LARS", # SGD/ Adam, AdamW, LARS
+          "optimizer": "Adam", # SGD/ Adam, AdamW, LARS
           "betas": [ 0.5, 0.99 ],
           "momentum": 0.9,
           "nesterov": true,
