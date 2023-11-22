@@ -112,14 +112,12 @@ if __name__ == '__main__':
 	print("TSNE Visualization")
 	tsne = TSNE(n_components=2, verbose=1, random_state=123)
 	z = tsne.fit_transform(feat_te)
-	
-	sns_plot = sns.scatterplot(x=z[:, 0],
-	                           y=z[:, 1],
-	                           hue=lbl_te,  # .tolist(),
-	                           palette=sns.color_palette("hls", 2))
+	plt.figure(figsize=(8, 6), dpi=300)
+	ax = sns.scatterplot(x=z[:, 0],
+	                     y=z[:, 1],
+	                     hue=lbl_te,  # .tolist(),
+	                     palette=sns.color_palette("hls", 2))
 	plt.xlabel('PC-1')
 	plt.ylabel('PC-2')
 	plt.grid()
-	fig = plt.figure(figsize=(8, 6), dpi=300)
-	
-	fig.savefig("test.png")
+	ax.figure.savefig("test.png")
