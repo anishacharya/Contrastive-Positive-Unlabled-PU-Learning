@@ -121,6 +121,7 @@ if __name__ == '__main__':
 		s=50,  # Increase scatter point size
 		alpha=0.7  # Slight transparency
 	)
+	sns.despine()
 	handles, labels = ax.get_legend_handles_labels()
 	legend_labels = ['Positive (y = +1)', 'Negative (y = -1)']
 	custom_legend = plt.legend(handles,
