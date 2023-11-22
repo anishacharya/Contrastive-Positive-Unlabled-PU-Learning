@@ -127,6 +127,7 @@ def train_and_evaluate(lin_mdl, criterion, optimizer, train_loader, test_loader,
 				inputs, labels = inputs.cuda(), labels.cuda()
 			optimizer.zero_grad()
 			if mixup:
+				print("mixup happening")
 				inputs, targets_a, targets_b, lam = mixup_data(
 					x=inputs,
 					y=labels,
