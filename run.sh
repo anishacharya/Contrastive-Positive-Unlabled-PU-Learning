@@ -9,7 +9,7 @@
 
 # ----- Embedding Visualization
 CKPT="logs/checkpoints/imagenet/single-dataset/gamma=0.5/puCL/0/epoch=99.ckpt"
-python3 run_tsne.py --checkpoint $CKPT --dataset imagenet --fig_name tsne_plots/imagenet-puCL-gamma=0.5
+python3 run_tsne.py --checkpoint $CKPT --dataset imagenet --fig_name tsne_plots/imagenet-puCL-gamma=5
 
 
 # train from scratch
