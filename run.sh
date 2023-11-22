@@ -9,7 +9,7 @@ export CUDA_LAUNCH_BLOCKING=1
 
 # ----- Embedding Visualization
 CKPT="logs/checkpoints/cifar10.dog_cat/nP=5k/puCL/0/epoch=299.ckpt"
-python3 run_tsne.py --checkpoint $CKPT --dataset cifar10.dog_cat
+python3 run_tsne.py --checkpoint $CKPT --dataset cifar10.dog_cat --fig_name tsne_plots/nP=5k-puCL-ckpt=299
 
 
 # train from scratch

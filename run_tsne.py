@@ -120,4 +120,4 @@ if __name__ == '__main__':
 	plt.xlabel('PC-1')
 	plt.ylabel('PC-2')
 	plt.grid()
-	ax.figure.savefig("test.png")
+	ax.figure.savefig(args.fig_name)
