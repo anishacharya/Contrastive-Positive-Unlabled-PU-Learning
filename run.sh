@@ -17,5 +17,5 @@
 
 # Train contrastive encoder from scratch
 
-python3 run_representation.py --exp_name unsup-ssCL --dataset cifar10.medium
+python3 run_representation.py --exp_name nP=1k-puCL --dataset cifar10.medium
 #python3 run_representation.py --exp_name single_dataset/nP=500/sCL --dataset cifar10.dog_cat
