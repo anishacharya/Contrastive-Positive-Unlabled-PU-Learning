@@ -13,7 +13,7 @@ import torch.nn.functional as F
 import yaml
 from torch.utils.data import DataLoader
 from tqdm import tqdm
-
+from scipy.stats import gaussian_kde
 from dataloader import DataManager
 from training_framework import SimCLR
 from sklearn.manifold import TSNE
@@ -37,6 +37,12 @@ def _parse_args(verbose=True):
 		type=str,
 		default='cifar10.dog_cat',
 		help='Pass Dataset'
+	)
+	parser.add_argument(
+		'--sphere',
+		type=bool,
+		default=False,
+		help='if passed embedding space is hypersphere'
 	)
 	parser.add_argument(
 		'--fig_name',
@@ -122,28 +128,48 @@ if __name__ == '__main__':
 	print("TSNE Visualization")
 	tsne = TSNE(n_components=2, verbose=1, random_state=123)
 	z = tsne.fit_transform(feat_te)
-	# Assuming 'z' is the output from t-SNE
-	z = z / np.sqrt((z ** 2).sum(axis=1))[:, np.newaxis]
-	plt.figure(figsize=(8, 6), dpi=300)
-	ax = sns.scatterplot(
-		x=z[:, 0],
-		y=z[:, 1],
-		hue=lbl_te,  # Class labels
-		palette=['cornflowerblue', 'rosybrown'],  # Adjust number of colors based on classes
-		s=100,  # Increase scatter point size
-		alpha=0.9  # Slight transparency
-	)
-	sns.despine()
-	handles, labels = ax.get_legend_handles_labels()
-	legend_labels = ['Positive (y = +1)', 'Negative (y = -1)']
-	custom_legend = plt.legend(handles,
-	                           legend_labels,
-	                           # title='',
-	                           # loc='upper left',
-	                           # ncol=2,
-	                           # bbox_to_anchor=(0, 1.2)
-	                           )
-	plt.xlabel('tsne PC-1')
-	plt.ylabel('tsne PC-2')
-	plt.grid()
-	ax.figure.savefig(args.fig_name)
+	if args.sphere:
+		z = z / np.sqrt((z ** 2).sum(axis=1))[:, np.newaxis]
+		radius = 1
+		x = z[:, 0] / np.linalg.norm(z, axis=1)
+		y = z[:, 1] / np.linalg.norm(z, axis=1)
+		z_spherical = np.sqrt(1 - x ** 2 - y ** 2)
+		
+		# Calculate the point density
+		xyz = np.vstack([x, y, z_spherical])
+		density = gaussian_kde(xyz)(xyz)
+		
+		# Plot
+		fig = plt.figure(figsize=(8, 6), dpi=300)
+		ax = fig.add_subplot(111, projection='3d')
+		p = ax.scatter(x, y, z_spherical, c=density, cmap='viridis')
+		
+		# Setting the aspect ratio to equal for a sphere
+		ax.set_box_aspect([1, 1, 1])
+		plt.colorbar(p, ax=ax, label='Density')
+		plt.show()
+		
+	else:
+		plt.figure(figsize=(8, 6), dpi=300)
+		ax = sns.scatterplot(
+			x=z[:, 0],
+			y=z[:, 1],
+			hue=lbl_te,  # Class labels
+			palette=['cornflowerblue', 'rosybrown'],  # Adjust number of colors based on classes
+			s=100,  # Increase scatter point size
+			alpha=0.9  # Slight transparency
+		)
+		sns.despine()
+		handles, labels = ax.get_legend_handles_labels()
+		legend_labels = ['Positive (y = +1)', 'Negative (y = -1)']
+		custom_legend = plt.legend(handles,
+		                           legend_labels,
+		                           # title='',
+		                           # loc='upper left',
+		                           # ncol=2,
+		                           # bbox_to_anchor=(0, 1.2)
+		                           )
+		plt.xlabel('tsne PC-1')
+		plt.ylabel('tsne PC-2')
+		plt.grid()
+		ax.figure.savefig(args.fig_name)

@@ -9,7 +9,7 @@
 
 # ----- Embedding Visualization
 CKPT="logs/checkpoints/imagenet/single-dataset/ssCL/0/epoch=99.ckpt"
-python3 run_tsne.py --checkpoint $CKPT --dataset imagenet --fig_name tsne_plots/rbf-imagenet-ssCL
+python3 run_tsne.py --checkpoint $CKPT --dataset imagenet --fig_name tsne_plots/rbf-imagenet-ssCL --sphere
 
 
 # train from scratch
