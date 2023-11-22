@@ -47,7 +47,7 @@ def _parse_args(verbose=True):
 	parser.add_argument(
 		'--labeling',
 		type=str,
-		default='pseudo',  # train_sup train_pu test pseudo
+		default='pseudo',  # train_sup | train_pu | test | pseudo
 		help='pseudo-labels are plotted'
 	)
 	parser.add_argument(
@@ -115,7 +115,7 @@ if __name__ == '__main__':
 		dataset=args.dataset,
 		data_config=data_config
 	)
-	_, dataloader_train_sv, _, dataloader_test = data_manager.get_data()
+	_, dataloader_train_sv, dataloader_val, dataloader_test = data_manager.get_data()
 	print('Loading PreTrained Model from Checkpoint {}'.format(args.checkpoint))
 	model = SimCLR.load_from_checkpoint(
 		args.checkpoint,
@@ -126,8 +126,6 @@ if __name__ == '__main__':
 		num_classes=data_manager.num_classes
 	)
 	
-	print("Extracting Embeddings")
-	feat_tr, lbl_tr = extract_embeddings(dataloader=dataloader_train_sv, encoder=model.backbone)
 	feat_te, lbl_te = extract_embeddings(dataloader=dataloader_test, encoder=model.backbone)
 	
 	# # Step 1: Kernel PCA with RBF kernel
@@ -142,18 +140,34 @@ if __name__ == '__main__':
 	# 	print("Performing pseudo-labeling")
 	
 	if args.labeling == 'train_pu':
-		feat = feat_tr
+		print("Extracting Train (PU) Embeddings")
+		feat, lbl = extract_embeddings(dataloader=dataloader_train_sv, encoder=model.backbone)
+	
+	elif args.labeling == 'train_sup':
+		print("Extracting Train (sup) Embeddings")
+		feat, lbl = extract_embeddings(dataloader=dataloader_val, encoder=model.backbone)
+	
+	elif args.labeling == 'test_sup':
+		print("Extracting Test (sup) Embeddings")
+		feat, lbl = extract_embeddings(dataloader=dataloader_val, encoder=model.backbone)
+	
+	elif args.labeling == 'pseudo':
+		print("Extracting Train (puPL) Embeddings")
+		feat, lbl = extract_embeddings(dataloader=dataloader_train_sv, encoder=model.backbone)
+	
+	else:
+		raise NotImplementedError
 	
 	print("TSNE Visualization")
 	tsne = TSNE(n_components=2, verbose=1, random_state=123)
-	z = tsne.fit_transform(feat_tr)
+	z = tsne.fit_transform(feat)
 	# if args.sphere:
 	# 	z = z / np.sqrt((z ** 2).sum(axis=1))[:, np.newaxis]
 	plt.figure(figsize=(8, 6), dpi=300)
 	ax = sns.scatterplot(
 		x=z[:, 0],
 		y=z[:, 1],
-		hue=lbl_tr,  # Class labels
+		hue=lbl,  # Class labels
 		palette=['cornflowerblue', 'rosybrown'],  # Adjust number of colors based on classes
 		s=100,  # Increase scatter point size
 		alpha=0.9  # Slight transparency
