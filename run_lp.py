@@ -174,6 +174,7 @@ if __name__ == '__main__':
 	num_features = feat_tr.shape[1]  # Assuming feat_tr is a 2D array of shape (num_samples, num_features)
 	num_classes = np.unique(lbl_tr).size
 	lin_model = nn.Linear(num_features, num_classes)
+	
 	# Now, use the train_and_evaluate function with the dataloaders
 	train_and_evaluate(
 		lin_model,
