@@ -8,8 +8,8 @@
 #python3 run_linear_eval.py --mode lp --checkpoint $CKPT --exp_name nP=5k/lp-puCL-pupL --dataset cifar10.dog_cat --puPL True
 
 # ----- Embedding Visualization
-CKPT="logs/checkpoints/cifar10.hard/sup-sCL/0/epoch=299.ckpt"
-python3 run_tsne.py --checkpoint $CKPT --dataset cifar10.hard --fig_name tsne_plots/cifar10-hard-sup
+CKPT="logs/checkpoints/cifar10.easy/sup-sCL/0/epoch=299.ckpt"
+python3 run_tsne.py --checkpoint $CKPT --dataset cifar10.hard --fig_name tsne_plots/cifar10-easy-sup
 
 
 # train from scratch
