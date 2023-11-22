@@ -115,7 +115,7 @@ if __name__ == '__main__':
 		dataset=args.dataset,
 		data_config=data_config
 	)
-	_, _, _, dataloader_test = data_manager.get_data()
+	_, dataloader_train_sv, _, dataloader_test = data_manager.get_data()
 	print('Loading PreTrained Model from Checkpoint {}'.format(args.checkpoint))
 	model = SimCLR.load_from_checkpoint(
 		args.checkpoint,
@@ -127,6 +127,7 @@ if __name__ == '__main__':
 	)
 	
 	print("Extracting Embeddings")
+	feat_tr, lbl_tr = extract_embeddings(dataloader=dataloader_train_sv, encoder=model.backbone)
 	feat_te, lbl_te = extract_embeddings(dataloader=dataloader_test, encoder=model.backbone)
 	
 	# # Step 1: Kernel PCA with RBF kernel
@@ -139,7 +140,6 @@ if __name__ == '__main__':
 	
 	# if args.puPL:
 	# 	print("Performing pseudo-labeling")
-	
 	
 	print("TSNE Visualization")
 	tsne = TSNE(n_components=2, verbose=1, random_state=123)
