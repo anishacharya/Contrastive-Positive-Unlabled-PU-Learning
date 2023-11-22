@@ -26,6 +26,7 @@ from losses import get_loss
 from utils import get_optimizer, get_scheduler
 from torch.utils.data import default_collate
 from torchvision.transforms import v2
+from torch.autograd import Variable
 
 
 def _parse_args(verbose=True):
@@ -82,25 +83,62 @@ def extract_embeddings(encoder, dataloader: DataLoader) -> [torch.Tensor, torch.
 	return extracted_features, extracted_labels
 
 
+def mixup_data(x, y, alpha=1.0, use_cuda=True):
+	"""
+	Returns mixed inputs, pairs of targets, and lambda
+	"""
+	if alpha > 0:
+		lam = np.random.beta(alpha, alpha)
+	else:
+		lam = 1
+	
+	batch_size = x.size()[0]
+	if use_cuda:
+		index = torch.randperm(batch_size).cuda()
+	else:
+		index = torch.randperm(batch_size)
+	
+	mixed_x = lam * x + (1 - lam) * x[index, :]
+	y_a, y_b = y, y[index]
+	return mixed_x, y_a, y_b, lam
+
+
+def mixup_criterion(criterion, pred, y_a, y_b, lam):
+	"""
+	mixed loss
+	"""
+	return lam * criterion(pred, y_a) + (1 - lam) * criterion(pred, y_b)
+
+
 # Training and Evaluation Function
-def train_and_evaluate(model, criterion, optimizer, train_loader, test_loader, epochs=10, mixUp=False):
+def train_and_evaluate(lin_mdl, criterion, optimizer, train_loader, test_loader, epochs=10, mixup=False):
 	"""
 	Train and Eval script
 	"""
 	if torch.cuda.is_available():
-		model.cuda()
+		lin_mdl.cuda()
 	best_acc = 0
 	for epoch in range(epochs):
 		# Training
-		model.train()
+		lin_mdl.train()
 		total_loss = 0
 		for inputs, labels in train_loader:
 			if torch.cuda.is_available():
 				inputs, labels = inputs.cuda(), labels.cuda()
-			
 			optimizer.zero_grad()
-			outputs = model(inputs)
-			loss = criterion(outputs, labels)
+			if mixup:
+				inputs, targets_a, targets_b, lam = mixup_data(
+					x=inputs,
+					y=labels,
+					alpha=1,
+					use_cuda=True if torch.cuda.is_available() else False
+				)
+				inputs, targets_a, targets_b = map(Variable, (inputs, targets_a, targets_b))
+				outputs = lin_mdl(inputs)
+				loss = mixup_criterion(criterion, outputs, targets_a, targets_b, lam)
+			else:
+				outputs = lin_mdl(inputs)
+				loss = criterion(outputs, labels)
 			loss.backward()
 			optimizer.step()
 			total_loss += loss.item()
@@ -109,7 +147,7 @@ def train_and_evaluate(model, criterion, optimizer, train_loader, test_loader, e
 		print(f"Epoch {epoch + 1}/{epochs}, Training Loss: {avg_loss}")
 		
 		# Evaluation
-		model.eval()
+		lin_mdl.eval()
 		correct = 0
 		total = 0
 		with torch.no_grad():
@@ -117,7 +155,7 @@ def train_and_evaluate(model, criterion, optimizer, train_loader, test_loader, e
 				if torch.cuda.is_available():
 					inputs, labels = inputs.cuda(), labels.cuda()
 				
-				outputs = model(inputs)
+				outputs = lin_mdl(inputs)
 				_, predicted = torch.max(outputs.data, 1)
 				total += labels.size(0)
 				correct += (predicted == labels).sum().item()
@@ -208,11 +246,11 @@ if __name__ == '__main__':
 	
 	# Now, use the train_and_evaluate function with the dataloaders
 	lp_acc = train_and_evaluate(
-		model=lin_model,
+		lin_mdl=lin_model,
 		criterion=criterion,
 		optimizer=opt,
 		train_loader=tr_dataloader,
 		test_loader=te_dataloader,
 		epochs=training_config.get("epochs", 10),
-		mixUp=True if args.mixUp else False
+		mixup=True if args.mixUp else False
 	)
