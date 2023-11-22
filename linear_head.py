@@ -182,13 +182,13 @@ class LinearClassificationHead(LightningModule):
 		return loss
 	
 	def validation_step(self, batch, batch_idx) -> Tensor:
-		loss, acc = self.shared_step(batch=batch, batch_idx=batch_idx)
+		loss, val_acc = self.shared_step(batch=batch, batch_idx=batch_idx)
 		batch_size = len(batch[1])
-		if acc > self.max_acc:
-			self.max_acc = acc
+		if val_acc > self.max_acc:
+			self.max_acc = val_acc
 		self.log(
 			"val_accuracy",
-			acc * 100,
+			val_acc * 100,
 			prog_bar=True,
 			sync_dist=True,
 			batch_size=batch_size

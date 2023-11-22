@@ -39,29 +39,6 @@ def _parse_args(verbose=True):
 		help='Pass Dataset'
 	)
 	parser.add_argument(
-		"--mode",
-		type=str,
-		default="lp",
-		help="lp / ft"
-	)
-	parser.add_argument(
-		"--checkpoint",
-		type=Path,
-		default=None,
-	)
-	parser.add_argument(
-		"--puPL",
-		type=bool,
-		default=False,
-		help="if enabled, pseudo-labeling will happen before training"
-	)
-	parser.add_argument(
-		"--algo",
-		type=str,
-		default='kMeans',
-		help=" kMeans | kMeans++ | PUkMeans++ | DBSCAN "
-	)
-	parser.add_argument(
 		'--n_repeat',
 		type=int,
 		default=1,
