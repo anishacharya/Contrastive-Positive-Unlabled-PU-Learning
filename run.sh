@@ -13,9 +13,9 @@
 
 
 # train from scratch
-#python3 run_linear_eval.py --mode ft --exp_name sup-ce  --dataset cifar10.hard
+python3 run_linear_eval.py --mode ft --exp_name sup-ce  --dataset cifar10.hard
 
 # Train contrastive encoder from scratch
 
-python3 run_representation.py --exp_name nP=10k-puCL --dataset cifar10.medium
+#python3 run_representation.py --exp_name nP=10k-puCL --dataset cifar10.medium
 #python3 run_representation.py --exp_name single_dataset/nP=500/sCL --dataset cifar10.dog_cat
