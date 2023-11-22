@@ -24,6 +24,8 @@ from sklearn.decomposition import KernelPCA
 import numpy as np
 from losses import get_loss
 from utils import get_optimizer, get_scheduler
+from torch.utils.data import default_collate
+from torchvision.transforms import v2
 
 
 def _parse_args(verbose=True):
@@ -40,6 +42,12 @@ def _parse_args(verbose=True):
 		type=str,
 		default='cifar10.dog_cat',
 		help='Pass Dataset'
+	)
+	parser.add_argument(
+		'--mixUP',
+		type=bool,
+		default=False,
+		help='MixUp Data Aug'
 	)
 	args = parser.parse_args()
 	verbose and print(args)
@@ -123,6 +131,14 @@ def train_and_evaluate(model, criterion, optimizer, train_loader, test_loader, e
 	return best_acc
 
 
+def collate_fn(batch):
+	"""
+	MixUp / CutMix enable
+	"""
+	mixup = v2.MixUp(num_classes=2)
+	return mixup(*default_collate(batch))
+
+
 if __name__ == '__main__':
 	args = _parse_args()
 	config = yaml.load(
@@ -166,10 +182,14 @@ if __name__ == '__main__':
 	num_worker = data_config.get('num_worker', 1)
 	
 	tr_dataset = TensorDataset(torch.tensor(feat_tr, dtype=torch.float32), torch.tensor(lbl_tr, dtype=torch.long))
-	tr_dataloader = DataLoader(tr_dataset, batch_size=tr_bs, shuffle=True, num_workers=num_worker)
-	
 	te_dataset = TensorDataset(torch.tensor(feat_te, dtype=torch.float32), torch.tensor(lbl_te, dtype=torch.long))
-	te_dataloader = DataLoader(te_dataset, batch_size=te_bs, shuffle=False, num_workers=num_worker)
+	
+	if args.mixUP:
+		tr_dataloader = DataLoader(tr_dataset, batch_size=tr_bs, shuffle=True, num_workers=num_worker, collate_fn=collate_fn)
+		te_dataloader = DataLoader(te_dataset, batch_size=te_bs, shuffle=False, num_workers=num_worker, collate_fn=collate_fn)
+	else:
+		tr_dataloader = DataLoader(tr_dataset, batch_size=tr_bs, shuffle=True, num_workers=num_worker)
+		te_dataloader = DataLoader(te_dataset, batch_size=te_bs, shuffle=False, num_workers=num_worker)
 	
 	num_features = feat_tr.shape[1]  # Assuming feat_tr is a 2D array of shape (num_samples, num_features)
 	num_classes = np.unique(lbl_tr).size
@@ -199,4 +219,3 @@ if __name__ == '__main__':
 		test_loader=te_dataloader,
 		epochs=training_config.get("epochs", 10)
 	)
-	
