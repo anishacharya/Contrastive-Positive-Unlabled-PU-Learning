@@ -148,7 +148,7 @@ if __name__ == '__main__':
 		ax.set_box_aspect([1, 1, 1])
 		plt.colorbar(p, ax=ax, label='Density')
 		plt.show()
-		
+	
 	else:
 		plt.figure(figsize=(8, 6), dpi=300)
 		ax = sns.scatterplot(
