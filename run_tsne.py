@@ -113,13 +113,13 @@ if __name__ == '__main__':
 	tsne = TSNE(n_components=2, verbose=1, random_state=123)
 	z = tsne.fit_transform(feat_te)
 	
-	sns.scatterplot(x=z[:, 0],
-	                y=z[:, 1],
-	                hue=lbl_te,  # .tolist(),
-	                palette=sns.color_palette("hls", 2))
+	sns_plot = sns.scatterplot(x=z[:, 0],
+	                           y=z[:, 1],
+	                           hue=lbl_te,  # .tolist(),
+	                           palette=sns.color_palette("hls", 2))
 	plt.xlabel('PC-1')
 	plt.ylabel('PC-2')
 	plt.grid()
 	plt.figure(figsize=(8, 6), dpi=300)
 	
-	plt.savefig(args.fig_name)
+	plt.savefig("test.png")
