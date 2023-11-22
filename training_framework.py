@@ -214,19 +214,22 @@ class BaseFramework(LightningModule):
 			targets = torch.cat(self._val_targets, dim=0)
 			top1 = (predicted_labels[:, 0] == targets).float().sum()
 			acc = top1 / len(targets)
+			
 			if acc > self.max_accuracy:
 				self.max_accuracy = acc.item()
 			self.log(
 				"val_accuracy",
 				acc * 100.0,
 				prog_bar=True,
-				sync_dist=True
+				sync_dist=True,
+				batch_size=len(targets)
 			)
 			self.log(
 				"max_accuracy",
 				self.max_accuracy * 100.0,
 				prog_bar=True,
-				sync_dist=True
+				sync_dist=True,
+				batch_size=len(targets)
 			)
 		self._val_predicted_labels.clear()
 		self._val_targets.clear()
@@ -279,6 +282,7 @@ class SimCLR(BaseFramework):
 			loss,
 			on_step=True,
 			on_epoch=True,
-			prog_bar=True
+			prog_bar=True,
+			batch_size=len(labels)
 		)
 		return loss
