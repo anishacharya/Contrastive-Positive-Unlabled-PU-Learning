@@ -44,7 +44,7 @@ def _parse_args(verbose=True):
 		help='Pass Dataset'
 	)
 	parser.add_argument(
-		'--mixUP',
+		'--mixUp',
 		type=bool,
 		default=False,
 		help='MixUp Data Aug'
@@ -83,7 +83,7 @@ def extract_embeddings(encoder, dataloader: DataLoader) -> [torch.Tensor, torch.
 
 
 # Training and Evaluation Function
-def train_and_evaluate(model, criterion, optimizer, train_loader, test_loader, epochs=10):
+def train_and_evaluate(model, criterion, optimizer, train_loader, test_loader, epochs=10, mixUp=False):
 	"""
 	Train and Eval script
 	"""
@@ -127,7 +127,7 @@ def train_and_evaluate(model, criterion, optimizer, train_loader, test_loader, e
 			best_acc = accuracy
 		print(f'Epoch {epoch + 1}/{epochs}, Test Accuracy: {accuracy}%')
 	
-	print("Best Linear Probe Accuracy: {}".format(best_acc))
+	print("\n Best Linear Probe Accuracy: {}\n".format(best_acc))
 	return best_acc
 
 
@@ -184,13 +184,8 @@ if __name__ == '__main__':
 	tr_dataset = TensorDataset(torch.tensor(feat_tr, dtype=torch.float32), torch.tensor(lbl_tr, dtype=torch.long))
 	te_dataset = TensorDataset(torch.tensor(feat_te, dtype=torch.float32), torch.tensor(lbl_te, dtype=torch.long))
 	
-	if args.mixUP:
-		print("Performing MixUP")
-		tr_dataloader = DataLoader(tr_dataset, batch_size=tr_bs, shuffle=True, num_workers=num_worker, collate_fn=collate_fn)
-		te_dataloader = DataLoader(te_dataset, batch_size=te_bs, shuffle=False, num_workers=num_worker, collate_fn=collate_fn)
-	else:
-		tr_dataloader = DataLoader(tr_dataset, batch_size=tr_bs, shuffle=True, num_workers=num_worker)
-		te_dataloader = DataLoader(te_dataset, batch_size=te_bs, shuffle=False, num_workers=num_worker)
+	tr_dataloader = DataLoader(tr_dataset, batch_size=tr_bs, shuffle=True, num_workers=num_worker)
+	te_dataloader = DataLoader(te_dataset, batch_size=te_bs, shuffle=False, num_workers=num_worker)
 	
 	num_features = feat_tr.shape[1]  # Assuming feat_tr is a 2D array of shape (num_samples, num_features)
 	num_classes = np.unique(lbl_tr).size
@@ -218,5 +213,6 @@ if __name__ == '__main__':
 		optimizer=opt,
 		train_loader=tr_dataloader,
 		test_loader=te_dataloader,
-		epochs=training_config.get("epochs", 10)
+		epochs=training_config.get("epochs", 10),
+		mixUp=True if args.mixUp else False
 	)
