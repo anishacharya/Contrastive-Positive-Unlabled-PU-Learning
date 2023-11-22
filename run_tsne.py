@@ -113,11 +113,24 @@ if __name__ == '__main__':
 	tsne = TSNE(n_components=2, verbose=1, random_state=123)
 	z = tsne.fit_transform(feat_te)
 	plt.figure(figsize=(8, 6), dpi=300)
-	ax = sns.scatterplot(x=z[:, 0],
-	                     y=z[:, 1],
-	                     hue=lbl_te,  # .tolist(),
-	                     palette=sns.color_palette("hls", 2))
-	plt.xlabel('PC-1')
-	plt.ylabel('PC-2')
+	ax = sns.scatterplot(
+		x=z[:, 0],
+		y=z[:, 1],
+		hue=lbl_te,  # Class labels
+		palette=sns.color_palette("hls", data_manager.num_classes),  # Adjust number of colors based on classes
+		s=50,  # Increase scatter point size
+		alpha=0.7  # Slight transparency
+	)
+	handles, labels = ax.get_legend_handles_labels()
+	legend_labels = ['y = +1', 'y=-1']
+	custom_legend = plt.legend(handles,
+	                           legend_labels,
+	                           title='',
+	                           # loc='upper left',
+	                           # ncol=4,
+	                           # bbox_to_anchor=(0, 1.2)
+	                           )
+	plt.xlabel('tsne PC-1')
+	plt.ylabel('tsne PC-2')
 	plt.grid()
 	ax.figure.savefig(args.fig_name)
