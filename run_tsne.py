@@ -38,11 +38,23 @@ def _parse_args(verbose=True):
 		default='cifar10.dog_cat',
 		help='Pass Dataset'
 	)
+	# parser.add_argument(
+	# 	'--sphere',
+	# 	type=bool,
+	# 	default=False,
+	# 	help='if passed embedding space is hypersphere'
+	# )
 	parser.add_argument(
-		'--sphere',
+		'--puPL',
 		type=bool,
 		default=False,
-		help='if passed embedding space is hypersphere'
+		help='pseudo-labels are plotted'
+	)
+	parser.add_argument(
+		"--algo",
+		type=str,
+		default='kMeans',
+		help=" kMeans | kMeans++ | PUkMeans++ | DBSCAN "
 	)
 	parser.add_argument(
 		'--fig_name',
@@ -125,9 +137,13 @@ if __name__ == '__main__':
 	# tsne = TSNE(n_components=2, verbose=1, random_state=123)
 	# z = tsne.fit_transform(X_kernel_pca)
 	
+	# if args.puPL:
+	# 	print("Performing pseudo-labeling")
+	
+	
 	print("TSNE Visualization")
 	tsne = TSNE(n_components=2, verbose=1, random_state=123)
-	z = tsne.fit_transform(feat_te)
+	z = tsne.fit_transform(feat_tr)
 	if args.sphere:
 		z = z / np.sqrt((z ** 2).sum(axis=1))[:, np.newaxis]
 	plt.figure(figsize=(8, 6), dpi=300)
