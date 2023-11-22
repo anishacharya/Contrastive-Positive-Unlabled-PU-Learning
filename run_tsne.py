@@ -122,4 +122,4 @@ if __name__ == '__main__':
 	plt.grid()
 	plt.figure(figsize=(8, 6), dpi=300)
 	
-	plt.savefig()
+	plt.savefig(args.fig_name)
