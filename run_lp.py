@@ -22,6 +22,8 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from sklearn.decomposition import KernelPCA
 import numpy as np
+from losses import get_loss
+from utils import get_optimizer, get_scheduler
 
 
 def _parse_args(verbose=True):
@@ -172,14 +174,23 @@ if __name__ == '__main__':
 		lin_model.cuda()
 	
 	# Loss and Optimizer
-	criterion = nn.CrossEntropyLoss()
-	optimizer = optim.Adam(lin_model.parameters(), lr=0.001)
+	opt = get_optimizer(
+		params=lin_model.parameters(),
+		optimizer_config=training_config
+	)
+	scheduler = get_scheduler(
+		optimizer=opt,
+		lrs_config=training_config,
+		verbose=False
+	)
+	criterion = get_loss(framework_config=framework_config)
 	
 	# Now, use the train_and_evaluate function with the dataloaders
 	train_and_evaluate(
-		lin_model,
-		criterion,
-		optimizer,
-		tr_dataloader,
-		te_dataloader
+		model=lin_model,
+		criterion=criterion,
+		optimizer=opt,
+		train_loader=tr_dataloader,
+		test_loader=te_dataloader,
+		epochs=training_config.get("epochs", 10)
 	)
