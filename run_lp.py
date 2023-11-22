@@ -164,17 +164,16 @@ if __name__ == '__main__':
 	te_dataset = TensorDataset(torch.tensor(feat_te, dtype=torch.float32), torch.tensor(lbl_te, dtype=torch.long))
 	te_dataloader = DataLoader(te_dataset, batch_size=te_bs, shuffle=False, num_workers=num_worker)
 	
-	# Move to GPU if available
-	if torch.cuda.is_available():
-		model.cuda()
-	
-	# Loss and Optimizer
-	criterion = nn.CrossEntropyLoss()
-	optimizer = optim.Adam(model.parameters(), lr=0.1)
-	
 	num_features = feat_tr.shape[1]  # Assuming feat_tr is a 2D array of shape (num_samples, num_features)
 	num_classes = np.unique(lbl_tr).size
 	lin_model = nn.Linear(num_features, num_classes)
+	# Move to GPU if available
+	if torch.cuda.is_available():
+		lin_model.cuda()
+	
+	# Loss and Optimizer
+	criterion = nn.CrossEntropyLoss()
+	optimizer = optim.Adam(lin_model.parameters(), lr=0.001)
 	
 	# Now, use the train_and_evaluate function with the dataloaders
 	train_and_evaluate(
