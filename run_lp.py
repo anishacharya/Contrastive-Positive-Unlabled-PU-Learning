@@ -185,6 +185,7 @@ if __name__ == '__main__':
 	te_dataset = TensorDataset(torch.tensor(feat_te, dtype=torch.float32), torch.tensor(lbl_te, dtype=torch.long))
 	
 	if args.mixUP:
+		print("Performing MixUP")
 		tr_dataloader = DataLoader(tr_dataset, batch_size=tr_bs, shuffle=True, num_workers=num_worker, collate_fn=collate_fn)
 		te_dataloader = DataLoader(te_dataset, batch_size=te_bs, shuffle=False, num_workers=num_worker, collate_fn=collate_fn)
 	else:
