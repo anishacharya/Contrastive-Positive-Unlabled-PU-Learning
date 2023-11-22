@@ -8,8 +8,8 @@
 #python3 run_linear_eval.py --mode lp --checkpoint $CKPT --exp_name nP=5k/lp-puCL-pupL --dataset cifar10.dog_cat --puPL True
 
 # ----- Embedding Visualization
-#CKPT="logs/checkpoints/cifar10.dog_cat/nP=5k/puCL/0/epoch=299.ckpt"
-#python3 run_tsne.py --checkpoint $CKPT --dataset cifar10.dog_cat --fig_name tsne_plots/nP=5k-puCL-ckpt=299
+CKPT="logs/checkpoints/imagenet/single-dataset/gamma=0.5/puCL/0/epoch=99.ckpt"
+python3 run_tsne.py --checkpoint $CKPT --dataset cifar10.dog_cat --fig_name tsne_plots/imagenet-nP=5k-puCL
 
 
 # train from scratch
@@ -17,5 +17,5 @@
 
 # Train contrastive encoder from scratch
 
-python3 run_representation.py --exp_name sup-sCL --dataset imagenet
+#python3 run_representation.py --exp_name sup-sCL --dataset imagenet
 #python3 run_representation.py --exp_name single_dataset/nP=500/sCL --dataset cifar10.dog_cat
