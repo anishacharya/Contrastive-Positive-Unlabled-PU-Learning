@@ -8,6 +8,7 @@ from torch import Tensor
 from torch.nn import CrossEntropyLoss, Linear, Module
 from utils import get_optimizer, get_scheduler
 import torch.nn.functional as F
+from losses import get_loss
 
 
 # class LinearClassificationHead(LightningModule):
@@ -98,6 +99,7 @@ class LinearClassificationHead(LightningModule):
 			self,
 			model: Module,
 			training_config: Dict,
+			framework_config: Dict,
 			feature_dim: int,
 			num_classes: int,
 			# topk: Tuple[int, ...] = (1, 2),
@@ -133,11 +135,8 @@ class LinearClassificationHead(LightningModule):
 			feature_dim,
 			num_classes
 		)
-		self.criterion = CrossEntropyLoss()
+		self.criterion = get_loss(framework_config=framework_config)
 		self.max_acc = 0.0
-	
-	def on_validation_epoch_start(self) -> None:
-		self._train_features, self._train_targets = self.extract_features(dataloader=self.val_dataloader)
 	
 	def forward(self, images: Tensor) -> Tensor:
 		features = self.model.backbone(images).flatten(start_dim=1)

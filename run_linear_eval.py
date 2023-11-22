@@ -140,6 +140,7 @@ def run_linear_eval(args: Namespace, config: Dict, freeze_encoder: bool = True, 
 		lin_classifier = LinearClassificationHead(
 			model=model,
 			training_config=training_config,
+			framework_config=framework_config,
 			feature_dim=model.feat_dim,
 			num_classes=data_manager.num_classes,
 			freeze_model=freeze_encoder,
