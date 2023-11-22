@@ -120,6 +120,6 @@ if __name__ == '__main__':
 	plt.xlabel('PC-1')
 	plt.ylabel('PC-2')
 	plt.grid()
-	plt.figure(figsize=(8, 6), dpi=300)
+	fig = plt.figure(figsize=(8, 6), dpi=300)
 	
-	plt.savefig("test.png")
+	fig.savefig("test.png")
