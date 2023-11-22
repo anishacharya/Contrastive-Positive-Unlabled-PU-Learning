@@ -8,8 +8,8 @@
 #python3 run_linear_eval.py --mode lp --checkpoint $CKPT --exp_name nP=5k/lp-puCL-pupL --dataset cifar10.dog_cat --puPL True
 
 # ----- Embedding Visualization
-CKPT="logs/checkpoints/imagenet/single-dataset/gamma=0.5/puCL/0/epoch=99.ckpt"
-python3 run_tsne.py --checkpoint $CKPT --dataset imagenet --fig_name tsne_plots/imagenet-puCL-gamma=5
+CKPT="logs/checkpoints/imagenet/single-dataset/gamma=0.5/sCL/0/epoch=99.ckpt"
+python3 run_tsne.py --checkpoint $CKPT --dataset imagenet --fig_name tsne_plots/imagenet-sCL-gamma=5
 
 
 # train from scratch

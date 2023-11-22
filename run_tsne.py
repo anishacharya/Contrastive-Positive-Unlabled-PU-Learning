@@ -45,9 +45,9 @@ def _parse_args(verbose=True):
 	# 	help='if passed embedding space is hypersphere'
 	# )
 	parser.add_argument(
-		'--puPL',
-		type=bool,
-		default=False,
+		'--labeling',
+		type=str,
+		default='pseudo',  # train_sup train_pu test pseudo
 		help='pseudo-labels are plotted'
 	)
 	parser.add_argument(
@@ -141,6 +141,9 @@ if __name__ == '__main__':
 	# if args.puPL:
 	# 	print("Performing pseudo-labeling")
 	
+	if args.labeling == 'train_pu':
+		feat = feat_tr
+	
 	print("TSNE Visualization")
 	tsne = TSNE(n_components=2, verbose=1, random_state=123)
 	z = tsne.fit_transform(feat_tr)
@@ -159,12 +162,7 @@ if __name__ == '__main__':
 	handles, labels = ax.get_legend_handles_labels()
 	legend_labels = ['Positive (y = +1)', 'Negative (y = -1)']
 	custom_legend = plt.legend(handles,
-	                           legend_labels,
-	                           # title='',
-	                           # loc='upper left',
-	                           # ncol=2,
-	                           # bbox_to_anchor=(0, 1.2)
-	                           )
+	                           legend_labels,)
 	plt.xlabel('tsne PC-1')
 	plt.ylabel('tsne PC-2')
 	plt.grid()
