@@ -139,7 +139,7 @@
           # ---- Losses
           # contrastive: ssCL, sCL, puCL, mCL, dCL, puNCE, ENpuNCE, piNCE
           # non-contrastive: ce, uPU, nnPU
-          "loss": 'sCL',
+          "loss": 'ssCL',
           "temp": 0.5,
           "prior": 0.1,  # nnPU, uPU, puNCE uses \pi = p(y=1)
 
@@ -151,7 +151,7 @@
         {
           # ---- settings: pu_single_data, pu_case_control, supervised, unsupervised
           # nP =  num_labeled, nU =  num_unlabeled
-          "setting": "supervised",
+          "setting": "unsupervised",
           "num_labeled": ,
 
           "num_unlabeled": ,   # only for controlled experiments - leave blank for benchmarks
