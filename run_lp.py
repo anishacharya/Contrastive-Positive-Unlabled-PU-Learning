@@ -81,7 +81,7 @@ def train_and_evaluate(model, criterion, optimizer, train_loader, test_loader, e
 	"""
 	if torch.cuda.is_available():
 		model.cuda()
-	
+	best_acc = 0
 	for epoch in range(epochs):
 		# Training
 		model.train()
@@ -115,7 +115,12 @@ def train_and_evaluate(model, criterion, optimizer, train_loader, test_loader, e
 				correct += (predicted == labels).sum().item()
 		
 		accuracy = 100 * correct / total
+		if accuracy > best_acc:
+			best_acc = accuracy
 		print(f'Epoch {epoch + 1}/{epochs}, Test Accuracy: {accuracy}%')
+	
+	print("Best Linear Probe Accuracy: {}".format(best_acc))
+	return best_acc
 
 
 if __name__ == '__main__':
@@ -186,7 +191,7 @@ if __name__ == '__main__':
 	criterion = get_loss(framework_config=framework_config)
 	
 	# Now, use the train_and_evaluate function with the dataloaders
-	train_and_evaluate(
+	lp_acc = train_and_evaluate(
 		model=lin_model,
 		criterion=criterion,
 		optimizer=opt,
@@ -194,3 +199,4 @@ if __name__ == '__main__':
 		test_loader=te_dataloader,
 		epochs=training_config.get("epochs", 10)
 	)
+	
