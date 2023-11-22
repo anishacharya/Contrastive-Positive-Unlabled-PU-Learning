@@ -178,7 +178,7 @@ class DataManager:
 		"""
 		:return:
 		"""
-		if self.data_set in ['cifar10.dog_cat', 'cifar10.1', 'cifar10.2']:
+		if self.data_set in supported_binary_cifar_datasets:
 			# update dataset attributes
 			mean, std = [0.4914, 0.4822, 0.4465], [0.2470, 0.2435, 0.2616]
 			model_ip_shape = 32
@@ -264,7 +264,8 @@ class DataManager:
 		def __call__(self, x):
 			return self.transform(x)
 	
-	def get_data(self, return_dataloader: bool = True) -> [DataLoader, DataLoader, DataLoader]:
+	def get_data(self, return_dataloader: bool = False, augmentation: bool = False) -> \
+			[DataLoader, DataLoader, DataLoader]:
 		"""
         Returns:
         train and test dataset
@@ -324,7 +325,7 @@ class DataManager:
 		self.mv_transform, self.sv_transform, self.basic_transform = self.get_transforms()
 		
 		dataset_train_ssl.transform = self.mv_transform
-		dataset_train_sv.transform = self.basic_transform  # for Linear Probing / FineTuning
+		dataset_train_sv.transform = self.basic_transform if augmentation else self.sv_transform
 		dataset_train_val.transform = self.basic_transform  # for kNN
 		dataset_test.transform = self.basic_transform
 		

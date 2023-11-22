@@ -109,9 +109,10 @@ def run_linear_eval(args: Namespace, config: Dict, freeze_encoder: bool = True, 
 			data_config=data_config,
 			gpu_strategy="ddp" if n_gpus >= 2 else "auto"
 		)
-		_, dataloader_train_sv, _, dataloader_test = data_manager.get_data()
+		
 		# --- Model -------
 		if args.checkpoint is not None:
+			_, dataloader_train_sv, _, dataloader_test = data_manager.get_data(augmentation=False)
 			print('Loading PreTrained Model from Checkpoint {}'.format(args.checkpoint))
 			model = SimCLR.load_from_checkpoint(
 				args.checkpoint,
@@ -123,7 +124,9 @@ def run_linear_eval(args: Namespace, config: Dict, freeze_encoder: bool = True, 
 				gather_distributed=True if n_gpus >= 2 else False
 			)
 			model.refresh_attributes()
+		
 		else:
+			_, dataloader_train_sv, _, dataloader_test = data_manager.get_data(augmentation=True)
 			print("You need to pass model chkpt to perform evaluation -- "
 			      "since None provided training a model from scratch")
 			model = SimCLR(
