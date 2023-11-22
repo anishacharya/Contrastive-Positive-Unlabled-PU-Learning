@@ -122,13 +122,13 @@ if __name__ == '__main__':
 		alpha=0.7  # Slight transparency
 	)
 	handles, labels = ax.get_legend_handles_labels()
-	legend_labels = ['y = +1', 'y=-1']
+	legend_labels = ['Positive (y = +1)', 'Negative (y = -1)']
 	custom_legend = plt.legend(handles,
 	                           legend_labels,
 	                           title='',
-	                           # loc='upper left',
-	                           # ncol=4,
-	                           # bbox_to_anchor=(0, 1.2)
+	                           loc='upper left',
+	                           ncol=2,
+	                           bbox_to_anchor=(0, 1.2)
 	                           )
 	plt.xlabel('tsne PC-1')
 	plt.ylabel('tsne PC-2')
