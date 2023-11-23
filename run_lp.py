@@ -255,5 +255,5 @@ if __name__ == '__main__':
 		train_loader=tr_dataloader,
 		test_loader=te_dataloader,
 		epochs=training_config.get("epochs", 10),
-		mixup=True if args.mixUp else False
+		mixup=True if args.mixUp is True else False
 	)
