@@ -22,5 +22,5 @@
 
 
 ##### Linear Probing
-CKPT="logs/checkpoints/imagenet/gamma=0.2/puCL/0/epoch=99.ckpt"
+CKPT="logs/checkpoints/imagenet/gamma=0.5/puCL/0/epoch=99.ckpt"
 python3 run_lp.py --checkpoint $CKPT --dataset 'imagenet' --mixup True
