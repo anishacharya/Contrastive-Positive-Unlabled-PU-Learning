@@ -256,7 +256,7 @@ if __name__ == '__main__':
 	if args.puPL is True:
 		# Clustering initialization
 		if args.algo == 'PUkMeans':
-			feat_tr, lbl_tr = puPL(x_PU=feat_tr, y_PU=lbl_tr)
+			lbl_tr, feat_tr = puPL(x_PU=feat_tr, y_PU=lbl_tr)
 		else:
 			if args.algo == 'kMeans':
 				clustering = KMeans(n_clusters=2, init='random', random_state=0, n_init='auto')
