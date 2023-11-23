@@ -31,7 +31,7 @@
           "num_unlabeled": ,   # only for controlled experiments - leave blank for benchmarks
           "dataset_prior": ,   # leave blank for benchmarks
 
-          "train_batch_size": 1024,
+          "train_batch_size": 64,
           "test_batch_size": 512,
           "num_worker": 8
         },
