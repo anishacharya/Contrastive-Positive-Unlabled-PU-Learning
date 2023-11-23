@@ -115,6 +115,8 @@ def train_and_evaluate(lin_mdl, criterion, optimizer, train_loader, test_loader,
 	"""
 	Train and Eval script
 	"""
+	if mixup:
+		print("mixup")
 	if torch.cuda.is_available():
 		lin_mdl.cuda()
 	best_acc = 0
