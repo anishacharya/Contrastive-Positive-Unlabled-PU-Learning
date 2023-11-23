@@ -265,7 +265,7 @@
           # ---- Losses
           # contrastive: ssCL, sCL, puCL, mCL, dCL, puNCE, ENpuNCE, piNCE
           # non-contrastive: ce, uPU, nnPU
-          "loss": 'puCL',
+          "loss": 'ce',
           "temp": 0.5,
           "prior": 0.1,  # nnPU, uPU, puNCE uses \pi = p(y=1)
 
@@ -277,29 +277,29 @@
         {
           # ---- settings: pu_single_data, pu_case_control, supervised, unsupervised
           # nP =  num_labeled, nU =  num_unlabeled
-          "setting": "pu_single_data",
-          "num_labeled": 10000,
+          "setting": "pu_case_control",
+          "num_labeled": 1000,
 
           "num_unlabeled": ,   # only for controlled experiments - leave blank for benchmarks
           "dataset_prior": ,   # leave blank for benchmarks
 
-          "train_batch_size": 1024,
+          "train_batch_size": 512,
           "test_batch_size": 1000,
           "num_worker": 8
         },
       "training_config":
         {
-          "epochs": 300,
+          "epochs": 50,
           "eval_freq": 1,
-          "save_model_freq": 100,
+          "save_model_freq": 1000,
 
           # ----- optimization ----
-          "optimizer": "LARS",                      # SGD/ Adam, AdamW, LARS
+          "optimizer": "Adam",                      # SGD/ Adam, AdamW, LARS
           "betas": [ 0.5, 0.99 ],
           "momentum": 0.9,
           "nesterov": true,
           "amsgrad": false,
-          "lr0": 1,                                 # lars: imagenet: 0.075 * \sqrt(batch_size), cifar: 1, for bs:512
+          "lr0": 0.1,                                 # lars: imagenet: 0.075 * \sqrt(batch_size), cifar: 1, for bs:512
           "reg": 0.0001,                            # L2 Regularizer
 
           # ----- LRS ------
@@ -309,7 +309,7 @@
           "milestones": [ 20, 60, 120 ],            # for multistep lrs
           "gamma": 0.9,                             # for step and multistep lrs
 
-          "T_max": 300,                             # for cosine lrs
+          "T_max": 50,                             # for cosine lrs
           "eta_min": 0.00001,                       # for cosine lrs
         }
     },
