@@ -23,5 +23,5 @@
 
 ##### Linear Probing
 #CKPT="logs/checkpoints/imagenet/gamma=0.05/puCL/0/epoch=99.ckpt"
-CKPT="logs/checkpoints/cifar10.hard/nP=3k-puCL/0/epoch=299.ckpt"
+CKPT="logs/checkpoints/cifar10.hard/nP=5k-puCL/0/epoch=299.ckpt"
 python3 run_lp.py --checkpoint $CKPT --dataset 'cifar10.hard' # --mixup True #--puPL True --algo 'PUkMeans'
