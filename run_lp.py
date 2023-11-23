@@ -122,6 +122,31 @@ def mixup_criterion(criterion, pred, y_a, y_b, lam):
 	return lam * criterion(pred, y_a) + (1 - lam) * criterion(pred, y_b)
 
 
+def puPL(x_PU, y_PU, num_clusters=2):
+	p_ix = y_PU == 1
+	u_ix = y_PU == 0
+	x_P = x_PU[p_ix]
+	x_U = x_PU[u_ix]
+	
+	# # Initialize Cluster Centers ##
+	# Compute the mean of x_P as the first centroid: Note centroid_2 since we use P:1 N/U:0
+	centroid_2 = np.mean(x_P, axis=0)
+	# Use K-means++ to choose the second center from x_U given the first center
+	kmeans_pp = KMeans(n_clusters=1, init=np.array([centroid_2]))
+	kmeans_pp.fit(x_U)
+	centroid_1 = kmeans_pp.cluster_centers_[0]
+	centroids = np.array([centroid_1, centroid_2])  # Initialize the centroids with the computed values
+	
+	# # Perform K-means clustering with the initialized centroids
+	kmeans = KMeans(n_clusters=num_clusters, init=centroids)
+	kmeans.fit(np.concatenate((x_U, x_P), axis=0))
+	
+	labels = kmeans.labels_
+	data = np.concatenate((x_U, x_P), axis=0)
+	
+	return labels, data
+
+
 # Training and Evaluation Function
 def train_and_evaluate(lin_mdl, criterion, optimizer, train_loader, test_loader, epochs=10, mixup=False):
 	"""
@@ -230,35 +255,38 @@ if __name__ == '__main__':
 	
 	if args.puPL is True:
 		# Clustering initialization
-		if args.algo == 'kMeans':
-			clustering = KMeans(n_clusters=2, init='random', random_state=0, n_init='auto')
-		elif args.algo == 'kMeans++':
-			clustering = KMeans(n_clusters=2, init='k-means++', random_state=0, n_init='auto')
+		if args.algo == 'PUkMeans':
+			feat_tr, lbl_tr = puPL(x_PU=feat_tr, y_PU=lbl_tr)
 		else:
-			raise NotImplementedError
-		
-		print("Performing Pseudo Labeling using {} Clustering".format(args.algo))
-		# Fit the model and get cluster assignments
-		cluster_assignments = clustering.fit_predict(feat_tr)
-		
-		# Declare the cluster center closest to P mean as y=1
-		# -------------
-		# get the indices of P samples in the multi-viewed batch
-		p_ix = np.where(lbl_tr == 1)[0]
-		
-		# Calculate the centroid of P samples
-		p_samples = feat_tr[p_ix]
-		centroid_of_p = np.mean(p_samples, axis=0)
-		
-		# Find the nearest cluster to the centroid of P
-		cluster_centers = clustering.cluster_centers_
-		distances = np.linalg.norm(cluster_centers - centroid_of_p, axis=1)
-		pos_cluster_index = np.argmin(distances)
-		
-		# Assign pseudo labels
-		pseudo_labels = np.zeros_like(cluster_assignments)
-		pseudo_labels[cluster_assignments == pos_cluster_index] = 1
-		lbl_tr = pseudo_labels
+			if args.algo == 'kMeans':
+				clustering = KMeans(n_clusters=2, init='random', random_state=0, n_init='auto')
+			elif args.algo == 'kMeans++':
+				clustering = KMeans(n_clusters=2, init='k-means++', random_state=0, n_init='auto')
+			else:
+				raise NotImplementedError
+			
+			print("Performing Pseudo Labeling using {} Clustering".format(args.algo))
+			# Fit the model and get cluster assignments
+			cluster_assignments = clustering.fit_predict(feat_tr)
+			
+			# Declare the cluster center closest to P mean as y=1
+			# -------------
+			# get the indices of P samples in the multi-viewed batch
+			p_ix = np.where(lbl_tr == 1)[0]
+			
+			# Calculate the centroid of P samples
+			p_samples = feat_tr[p_ix]
+			centroid_of_p = np.mean(p_samples, axis=0)
+			
+			# Find the nearest cluster to the centroid of P
+			cluster_centers = clustering.cluster_centers_
+			distances = np.linalg.norm(cluster_centers - centroid_of_p, axis=1)
+			pos_cluster_index = np.argmin(distances)
+			
+			# Assign pseudo labels
+			pseudo_labels = np.zeros_like(cluster_assignments)
+			pseudo_labels[cluster_assignments == pos_cluster_index] = 1
+			lbl_tr = pseudo_labels
 	
 	tr_bs = data_config.get('train_batch_size', 256)
 	te_bs = data_config.get('test_batch_size', 1000)
