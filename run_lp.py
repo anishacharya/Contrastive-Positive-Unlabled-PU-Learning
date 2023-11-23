@@ -14,7 +14,7 @@ import torch.nn.functional as F
 import yaml
 from torch.utils.data import DataLoader, TensorDataset
 from tqdm import tqdm
-
+from sklearn.cluster import KMeans
 from dataloader import DataManager
 from training_framework import SimCLR
 from sklearn.manifold import TSNE
@@ -49,6 +49,18 @@ def _parse_args(verbose=True):
 		type=bool,
 		default=False,
 		help='Mixup Data Aug'
+	)
+	parser.add_argument(
+		'--puPL',
+		type=bool,
+		default=False,
+		help='Pseudo Label'
+	)
+	parser.add_argument(
+		"--algo",
+		type=str,
+		default='kMeans',
+		help=" kMeans | kMeans++ | PUkMeans++ | DBSCAN "
 	)
 	args = parser.parse_args()
 	verbose and print(args)
@@ -215,6 +227,38 @@ if __name__ == '__main__':
 	feat_tr, lbl_tr = extract_embeddings(dataloader=dataloader_train_sv, encoder=model.backbone)
 	print("Extracting Test Embeddings")
 	feat_te, lbl_te = extract_embeddings(dataloader=dataloader_test, encoder=model.backbone)
+	
+	if args.puPL is True:
+		# Clustering initialization
+		if args.algo == 'kMeans':
+			clustering = KMeans(n_clusters=2, init='random', random_state=0, n_init='auto')
+		elif args.algo == 'kMeans++':
+			clustering = KMeans(n_clusters=2, init='k-means++', random_state=0, n_init='auto')
+		else:
+			raise NotImplementedError
+		
+		print("Performing Pseudo Labeling using {} Clustering".format(args.algo))
+		# Fit the model and get cluster assignments
+		cluster_assignments = clustering.fit_predict(feat_tr)
+		
+		# Declare the cluster center closest to P mean as y=1
+		# -------------
+		# get the indices of P samples in the multi-viewed batch
+		p_ix = np.where(lbl_tr == 1)[0]
+		
+		# Calculate the centroid of P samples
+		p_samples = feat_tr[p_ix]
+		centroid_of_p = np.mean(p_samples, axis=0)
+		
+		# Find the nearest cluster to the centroid of P
+		cluster_centers = clustering.cluster_centers_
+		distances = np.linalg.norm(cluster_centers - centroid_of_p, axis=1)
+		pos_cluster_index = np.argmin(distances)
+		
+		# Assign pseudo labels
+		pseudo_labels = np.zeros_like(cluster_assignments)
+		pseudo_labels[cluster_assignments == pos_cluster_index] = 1
+		lbl_tr = pseudo_labels
 	
 	tr_bs = data_config.get('train_batch_size', 256)
 	te_bs = data_config.get('test_batch_size', 1000)
