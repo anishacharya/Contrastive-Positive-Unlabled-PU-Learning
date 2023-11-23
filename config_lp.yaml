@@ -26,12 +26,12 @@
           # ---- settings: pu_single_data, pu_case_control, supervised, unsupervised
           # nP =  num_labeled, nU =  num_unlabeled
           "setting": "pu_case_control",
-          "num_labeled": 200, # gamma = 0.5: 9000, 0.2: 4000, 0.1 = 2000, 0.05 = 1000
+          "num_labeled": 1000, # gamma = 0.5: 9000, 0.2: 4000, 0.1 = 2000, 0.05 = 1000
 
           "num_unlabeled": ,   # only for controlled experiments - leave blank for benchmarks
           "dataset_prior": ,   # leave blank for benchmarks
 
-          "train_batch_size": 64,
+          "train_batch_size": 1024,
           "test_batch_size": 512,
           "num_worker": 8
         },
@@ -47,7 +47,7 @@
           "momentum": 0.9,
           "nesterov": true,
           "amsgrad": false,
-          "lr0": 0.01,                               # lars: imagenet: 0.075 * \sqrt(batch_size), cifar: 1, for bs:512
+          "lr0": 0.1,                               # lars: imagenet: 0.075 * \sqrt(batch_size), cifar: 1, for bs:512
           "reg": 0.0001,                            # L2 Regularizer
 
           # ----- LRS ------
