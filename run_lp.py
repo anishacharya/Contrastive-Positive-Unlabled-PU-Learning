@@ -45,10 +45,10 @@ def _parse_args(verbose=True):
 		help='Pass Dataset'
 	)
 	parser.add_argument(
-		'--mixUp',
+		'--mixup',
 		type=bool,
 		default=False,
-		help='MixUp Data Aug'
+		help='Mixup Data Aug'
 	)
 	args = parser.parse_args()
 	verbose and print(args)
@@ -253,5 +253,5 @@ if __name__ == '__main__':
 		train_loader=tr_dataloader,
 		test_loader=te_dataloader,
 		epochs=training_config.get("epochs", 10),
-		mixup=True if args.mixUp is True else False
+		mixup=True if args.mixup is True else False
 	)
