@@ -21,7 +21,7 @@ def get_loss(framework_config: Dict) -> nn.Module:
 	elif loss_fn == 'ssCL':
 		return SelfSupConLoss(temperature=temp, reduction='mean')
 	elif loss_fn == 'dCL':
-		return DCL(temperature=temp, prior=prior, reduction='mean')
+		return DCL(temperature=temp, tau_p=prior, reduction='mean')
 	elif loss_fn == 'mCL':
 		return MixedContrastiveLoss(mixing_wt=prior, temperature=temp, reduction='mean')
 	elif loss_fn == 'sCL':
@@ -273,16 +273,13 @@ class DCL(nn.Module):
 	https://arxiv.org/abs/2007.00224
 	"""
 	
-	def __init__(self, temperature: float = 0.5, prior: float = 0.5, reduction: str = 'mean'):
+	def __init__(self, temperature: float = 0.5, tau_p: float = 0.5, reduction: str = 'mean'):
 		super(DCL, self).__init__()
 		self.temp = temperature
 		self.reduction = reduction
 		
-		self.pi_p = prior
-		self.pi_n = 1 - self.pi_p
-		
-		self.tau_p = self.pi_p  # 1 - 2 * self.pi_p * self.pi_n  # prob of two U samples having same label
-		self.tau_n = self.pi_n  # 1 - self.tau_p
+		self.tau_p = tau_p  # 1 - 2 * self.pi_p * self.pi_n  # prob of two U samples having same label
+		self.tau_n = 1 - self.tau_p
 		
 		self.neg_mask = None
 		self.self_aug_mask = None
@@ -338,7 +335,7 @@ class PuDCL(nn.Module):
 		self.temp = temperature
 		self.reduction = reduction
 		
-		self.dcl = DCL(temperature=temperature, prior=self.pi_p, reduction='none')
+		self.dcl = DCL(temperature=temperature, tau_p=self.pi_p, reduction='none')
 		self.scl = SupConLoss(temperature=temperature, reduction='none')
 		
 		self.similarity_mtx = None
