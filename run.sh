@@ -16,12 +16,12 @@
 #python3 run_linear_eval.py --mode ft --exp_name sup-ce  --dataset cifar10.hard
 
 # Train contrastive encoder from scratch
-#python3 run_representation.py --exp_name sup-sCL --dataset imagenet
+python3 run_representation.py --exp_name puNCE --dataset imagenet
 #python3 run_representation.py --exp_name single_dataset/nP=500/sCL --dataset cifar10.dog_cat
 
 
 
 ##### Linear Probing
 #CKPT="logs/checkpoints/imagenet/gamma=0.05/puCL/0/epoch=99.ckpt"
-CKPT="logs/checkpoints/cifar10.hard/nP=10k-puCL/0/epoch=299.ckpt"
-python3 run_lp.py --checkpoint $CKPT --dataset 'cifar10.hard' --mixup True #--puPL True --algo 'PUkMeans'
+#CKPT="logs/checkpoints/cifar10.hard/nP=10k-puCL/0/epoch=299.ckpt"
+#python3 run_lp.py --checkpoint $CKPT --dataset 'cifar10.hard' --mixup True #--puPL True --algo 'PUkMeans'

@@ -13,9 +13,9 @@
           # ---- Losses
           # contrastive: ssCL, sCL, puCL, puNCE, ENpuNCE, piNCE
           # non-contrastive: ce, uPU, nnPU
-          "loss": 'sCL',
+          "loss": 'puNCE',
           "temp": 0.1,
-          "prior": 0.5,  # nnPU, uPU, puNCE uses \pi = p(y=1)
+          "prior": 0.49,  # nnPU, uPU, puNCE uses \pi = p(y=1)
 
           # ---- validation
           "knn_k": 200,  # knn k for validation steps in contrastive training
@@ -25,13 +25,13 @@
         {
           # ---- settings: pu_single_data, pu_case_control, supervised, unsupervised
           # nP =  num_labeled, nU =  num_unlabeled
-          "setting": "supervised",
+          "setting": "pu_single_data",
           "num_labeled": , # gamma = 0.5: 9000, 0.2: 4000, 0.1 = 2000, 0.05 = 1000
 
           "num_unlabeled": ,   # only for controlled experiments - leave blank for benchmarks
           "dataset_prior": ,   # leave blank for benchmarks
 
-          "train_batch_size": 512,
+          "train_batch_size": 1024,
           "test_batch_size": 512,
           "num_worker": 8
         },
