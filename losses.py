@@ -227,10 +227,6 @@ class PUinfoNCELoss(nn.Module):
 		self.self_aug_mask = None
 		self.class_prior = class_prior
 		self.temperature = temperature
-		
-		# per sample unsup and sup loss : since reduction is None
-		self.sscl = SelfSupConLoss(temperature=temperature, reduction='none')
-		self.scl = SupConLoss(temperature=temperature, reduction='none')
 	
 	def forward(self, z: torch.Tensor, z_aug: torch.Tensor, labels: torch.Tensor, *kwargs) -> torch.Tensor:
 		"""
