@@ -4,31 +4,40 @@ import torch.nn as nn
 import torch
 from typing import Dict
 from lightly.loss import NTXentLoss
+from lightly.utils import dist
 
 
-def get_loss(framework_config: Dict) -> nn.Module:
+def get_loss(framework_config: Dict, gather_distributed: bool = False) -> nn.Module:
 	"""
-	:param framework_config:
+	:param framework_config: configuration of the framework
+	:param gather_distributed: if True then negatives from all gpus are gathered before the loss calculation.
 	"""
 	loss_fn = framework_config.get('loss')
 	temp = framework_config.get('temp', 0.5)
 	prior = framework_config.get('prior', 0)
+	gather_distributed = gather_distributed
+	
 	# ICLR 2024 Submission
+	# --- Non Contrastive -----
 	if loss_fn == 'ce':
 		return nn.CrossEntropyLoss()
 	elif loss_fn in ['uPU', 'nnPU']:
 		return PULoss(loss_fn=loss_fn, prior=prior)
+	
+	# --- Contrastive -----
 	elif loss_fn == 'ssCL':
 		return SelfSupConLoss(temperature=temp, reduction='mean')
 	elif loss_fn == 'dCL':
 		return DCL(temperature=temp, tau_p=prior, reduction='mean')
+	
 	elif loss_fn == 'mCL':
 		return MixedContrastiveLoss(mixing_wt=prior, temperature=temp, reduction='mean')
 	elif loss_fn == 'sCL':
 		return SupConLoss(temperature=temp, reduction='mean')
+	
+	# ----- PU specialized losses
 	elif loss_fn == 'puCL':
 		return PUConLoss(temperature=temp, reduction='mean')
-	
 	# puNCE - Next Submission
 	elif loss_fn == 'puNCE':
 		return PUinfoNCELoss(temperature=temp, class_prior=prior)
@@ -428,7 +437,12 @@ class PULoss(nn.Module):
 			ValueError('Unsupported Loss')
 
 
-def compute_inner_pdt_mtx(z: torch.Tensor, z_aug: torch.Tensor, temp: float) -> torch.Tensor:
+def compute_inner_pdt_mtx(
+		z: torch.Tensor,
+		z_aug: torch.Tensor,
+		temp: float,
+		gather_distributed: bool = False
+) -> torch.Tensor:
 	"""
 	returns a Temp normalized - cross similarity (inner product) scores.
 	diagonals are set to 0.
