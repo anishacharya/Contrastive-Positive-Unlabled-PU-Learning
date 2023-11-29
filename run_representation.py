@@ -61,8 +61,8 @@ def run_contrastive_training(args, config):
 	"""
 	n_gpus = torch.cuda.device_count() if torch.cuda.is_available() else 1
 	# # TODO: **** remove this condition when sCL with ddp support is implemented *****
-	# if n_gpus >= 2:
-	# 	raise NotImplementedError('Not all methods support ddp - run using single gpu')
+	if n_gpus >= 2:
+		raise NotImplementedError('Not all methods support ddp - run using single gpu')
 	
 	# ---- parse config ----
 	config = config[args.dataset]
