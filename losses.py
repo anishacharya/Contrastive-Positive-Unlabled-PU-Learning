@@ -5,6 +5,7 @@ import torch
 from typing import Dict
 from lightly.loss import NTXentLoss
 from lightly.utils import dist
+from torch import distributed as torch_dist
 
 
 def get_loss(framework_config: Dict, gather_distributed: bool = False) -> nn.Module:
@@ -17,6 +18,13 @@ def get_loss(framework_config: Dict, gather_distributed: bool = False) -> nn.Mod
 	prior = framework_config.get('prior', 0)
 	gather_distributed = gather_distributed
 	
+	if gather_distributed and not torch_dist.is_available():
+		raise ValueError(
+			"gather_distributed is True but torch.distributed is not available. "
+			"Please set gather_distributed=False or install a torch version with "
+			"distributed support."
+		)
+	
 	# ICLR 2024 Submission
 	# --- Non Contrastive -----
 	if loss_fn == 'ce':
@@ -26,7 +34,7 @@ def get_loss(framework_config: Dict, gather_distributed: bool = False) -> nn.Mod
 	
 	# --- Contrastive -----
 	elif loss_fn == 'ssCL':
-		return SelfSupConLoss(temperature=temp, reduction='mean')
+		return SelfSupConLoss(temperature=temp, reduction='mean', gather_distributed=gather_distributed)
 	elif loss_fn == 'dCL':
 		return DCL(temperature=temp, tau_p=prior, reduction='mean')
 	
@@ -54,7 +62,7 @@ class SelfSupConLoss(nn.Module):
 	https://github.com/lightly-ai/lightly/blob/master/lightly/loss/ntx_ent_loss.py
 	"""
 	
-	def __init__(self, temperature: float = 0.5, reduction="mean"):
+	def __init__(self, temperature: float = 0.5, reduction="mean", gather_distributed: bool = False):
 		super(SelfSupConLoss, self).__init__()
 		self.temperature = temperature
 		self.reduction = reduction
@@ -450,20 +458,20 @@ def compute_inner_pdt_mtx(
 	z = torch.nn.functional.normalize(z, dim=1)
 	z_aug = torch.nn.functional.normalize(z_aug, dim=1)
 	
-	# calculate similarities block-wise - the resulting vectors have shape (batch_size, batch_size)
+	# --- calculate similarities block-wise - the resulting vectors have shape (batch_size, batch_size) ---
 	inner_pdt_00 = torch.einsum('nc,mc->nm', z, z) / temp
 	inner_pdt_01 = torch.einsum('nc,mc->nm', z, z_aug) / temp
 	inner_pdt_10 = torch.t(inner_pdt_01)
 	inner_pdt_11 = torch.einsum('nc,mc->nm', z_aug, z_aug) / temp
 	
-	# concatenate blocks : o/p shape (2*batch_size, 2*batch_size)
+	# ---- concatenate blocks : o/p shape (2*batch_size, 2*batch_size) ---
 	# [ Block 00 ] | [ Block 01 ]
 	# [ Block 10 ] | [ Block 11 ]
 	inner_pdt_0001 = torch.cat([inner_pdt_00, inner_pdt_01], dim=1)
 	inner_pdt_1011 = torch.cat([inner_pdt_10, inner_pdt_11], dim=1)
 	inner_pdt_mtx = torch.cat([inner_pdt_0001, inner_pdt_1011], dim=0)
 	
-	# max_inner_pdt, _ = torch.max(inner_pdt_mtx, dim=1, keepdim=True)
+	# --- max_inner_pdt, _ = torch.max(inner_pdt_mtx, dim=1, keepdim=True) ---
 	# inner_pdt_mtx = inner_pdt_mtx - max_inner_pdt.detach()  # for numerical stability
 	
 	return inner_pdt_mtx
