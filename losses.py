@@ -66,6 +66,7 @@ class SelfSupConLoss(nn.Module):
 		super(SelfSupConLoss, self).__init__()
 		self.temperature = temperature
 		self.reduction = reduction
+		self.gather_distributed = gather_distributed
 		
 		self.neg_mask = None
 		self.self_aug_mask = None
@@ -79,7 +80,12 @@ class SelfSupConLoss(nn.Module):
 		:return:
 		"""
 		# compute matrix with <z_i , z_j> / temp
-		inner_pdt_mtx = compute_inner_pdt_mtx(z=z, z_aug=z_aug, temp=self.temperature)
+		inner_pdt_mtx = compute_inner_pdt_mtx(
+			z=z,
+			z_aug=z_aug,
+			temp=self.temperature,
+			gather_distributed=self.gather_distributed
+		)
 		# softmax row wise -- w/o diagonal i.e. inner_pdt / Z
 		similarity_mtx = compute_sfx_mtx(inner_pdt_mtx=inner_pdt_mtx)
 		# compute negative log likelihood
