@@ -17,7 +17,7 @@ from lightly.transforms import SimCLRTransform, SimCLRViewTransform
 from lightly.transforms.multi_view_transform import MultiViewTransform
 from sklearn.cluster import KMeans
 from sklearn.utils import shuffle
-from torch.utils.data import DataLoader, Dataset
+from torch.utils.data import DataLoader, Dataset, Sampler
 from torchvision import datasets, transforms
 from torchvision.transforms import functional as TF
 # from spherecluster import SphericalKMeans
@@ -112,6 +112,7 @@ class DataManager:
 			self.train_batch_size //= n_gpus
 			self.test_batch_size //= n_gpus
 		self.num_worker = self.data_config.get('num_worker', 1)
+		
 		self.dataset_map = {
 			"binary_cifar": BinaryCIFAR10,
 			"binary_fmnist": BinaryFMNIST,
@@ -273,8 +274,7 @@ class DataManager:
 		def __call__(self, x):
 			return self.transform(x)
 	
-	def get_data(self, augmentation: bool = True) -> \
-			[DataLoader, DataLoader, DataLoader]:
+	def get_data(self, augmentation: bool = True) -> [DataLoader, DataLoader, DataLoader]:
 		"""
         Returns:
         train and test dataset
@@ -723,3 +723,41 @@ def binarize_dataset(
 	
 	features, targets = shuffle(features, targets, random_state=0)
 	return features, targets
+
+
+class BalancedBatchSampler(Sampler):
+	def __init__(self, dataset, num_pos_per_batch: int):
+		self.dataset = dataset
+		self.num_y1_per_batch = num_pos_per_batch
+		self.y1_indices = [i for i, (_, y) in enumerate(dataset) if y == 1]
+		self.y0_indices = [i for i, (_, y) in enumerate(dataset) if y == 0]
+	
+	def __iter__(self):
+		batch = []
+		while len(self.y0_indices) > 0:
+			# Choose y=1 samples
+			y1_batch = torch.randperm(len(self.y1_indices))[:self.num_y1_per_batch].tolist()
+			y1_batch_indices = [self.y1_indices[i] for i in y1_batch]
+			
+			# Fill the rest of the batch with y=0 samples
+			y0_batch_size = min(len(self.y0_indices), self.batch_size - self.num_y1_per_batch)
+			y0_batch = torch.randperm(len(self.y0_indices))[:y0_batch_size].tolist()
+			y0_batch_indices = [self.y0_indices[i] for i in y0_batch]
+			
+			batch.extend(y1_batch_indices)
+			batch.extend(y0_batch_indices)
+			
+			# Remove selected indices
+			for i in sorted(y1_batch + y0_batch, reverse=True):
+				del self.y0_indices[i]
+			
+			if len(batch) == self.batch_size:
+				yield batch
+				batch = []
+		
+		# Yield any remaining samples
+		if batch:
+			yield batch
+	
+	def __len__(self):
+		return (len(self.dataset) + self.batch_size - 1) // self.batch_size
