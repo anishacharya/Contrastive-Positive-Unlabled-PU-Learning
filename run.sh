@@ -16,7 +16,7 @@
 #python3 run_linear_eval.py --mode ft --exp_name sup-ce  --dataset cifar10.hard
 
 # Train contrastive encoder from scratch
-python3 run_representation.py --exp_name gamma=0.2/ssCL --dataset imagenet
+python3 run_representation.py --exp_name gamma=0.2/puCL --dataset imagenet
 #python3 run_representation.py --exp_name single_dataset/nP=500/sCL --dataset cifar10.dog_cat
 
 
