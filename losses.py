@@ -182,7 +182,7 @@ class PUConLoss(nn.Module):
 		
 		loss = torch.cat([risk_p, risk_u], dim=0)
 		
-		return torch.mean(loss)
+		return torch.mean(loss) if self.reduction == 'mean' else loss
 
 
 class MixedContrastiveLoss(nn.Module):
@@ -195,8 +195,8 @@ class MixedContrastiveLoss(nn.Module):
 		self.reduction = reduction
 		self.gamma = mixing_wt
 		
-		self.supervised_loss = SupConLoss(temperature=temperature, reduction=reduction)
-		self.unsupervised_loss = SelfSupConLoss(temperature=temperature, reduction=reduction)
+		self.supervised_loss = SupConLoss(temperature=temperature)
+		self.unsupervised_loss = SelfSupConLoss(temperature=temperature)
 	
 	def forward(self, z, z_aug, labels=None, *kwargs):
 		"""
@@ -228,6 +228,8 @@ class PUinfoNCELoss(nn.Module):
 		self.class_prior = class_prior
 		self.temperature = temperature
 		self.loss_fn = loss_fn
+		if self.loss_fn == 'puNCE_EN':
+			self.supervised_loss = SupConLoss(temperature=temperature)  # no reduction => per sample
 	
 	def forward(self, z: torch.Tensor, z_aug: torch.Tensor, labels: torch.Tensor, *kwargs) -> torch.Tensor:
 		"""
@@ -284,15 +286,23 @@ class PUinfoNCELoss(nn.Module):
 		# combine
 		# does not work really well ~ works well treating pi as hyper-param ~~ Not good story
 		if self.loss_fn == 'puNCE':
+			# U samples attract P samples with some small probability
 			risk_u_num = \
 				(risk_u_self + self.class_prior * risk_up)
 			risk_u_scaling = 1 + self.class_prior
 			risk_u = risk_u_num / risk_u_scaling
+		
 		elif self.loss_fn == 'puNCE_PP':
+			# U samples attract ( P samples + other U samples ) with appropriate probabilities
 			risk_u_num = \
-				(risk_u_self + self.class_prior * risk_up + (1 - 2 * self.class_prior * (1 - self.class_prior)) * risk_uu)
+				(risk_u_self + self.class_prior * risk_up +
+				 (1 - 2 * self.class_prior * (1 - self.class_prior)) * risk_uu)
 			risk_u_scaling = 1 + self.class_prior + (1 - 2 * self.class_prior * (1 - self.class_prior))
 			risk_u = risk_u_num / risk_u_scaling
+		
+		elif self.loss_fn == 'puNCE_EN':
+			pass
+		
 		else:
 			raise NotImplementedError
 		
