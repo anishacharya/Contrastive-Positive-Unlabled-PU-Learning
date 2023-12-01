@@ -254,6 +254,7 @@ class PUinfoNCELoss(nn.Module):
 		
 		# if no positive labeled it is simply SelfSupConLoss
 		num_labeled = len(p_ix)
+		num_unlabeled = len(u_ix)
 		if num_labeled == 0:
 			unsup_loss = self.sscl(z=z, z_aug=z_aug)
 			return torch.mean(unsup_loss)
@@ -272,8 +273,12 @@ class PUinfoNCELoss(nn.Module):
 		risk_u = similarity_mtx[u_ix, :]
 		risk_up = risk_u[:, p_ix]
 		risk_up = risk_up.sum(dim=1) / num_labeled
-		risk_uu = risk_u * self.self_aug_mask[u_ix, :]
-		risk_uu = risk_uu.sum(dim=1)
+		
+		risk_u_self = risk_u * self.self_aug_mask[u_ix, :]
+		risk_u_self = risk_u_self.sum(dim=1)
+		
+		risk_uu = risk_u[:, u_ix]
+		risk_uu = risk_uu.sum(dim=1) / (num_unlabeled - 1)
 		
 		# combine
 		# puNCE-III
@@ -281,7 +286,10 @@ class PUinfoNCELoss(nn.Module):
 		# puNCE-II
 		# risk_u = ((2 * self.class_prior - 1) * risk_up + risk_uu) / (2 * self.class_prior)
 		# puNCE-I
-		risk_u = (self.class_prior * risk_up + risk_uu) / (1 + self.class_prior)
+		risk_u_num = \
+			(risk_u_self + self.class_prior * risk_up + (1 - 2 * self.class_prior * (1 - self.class_prior)) * risk_uu)
+		risk_u_scaling = 1 + self.class_prior + (1 - 2 * self.class_prior * (1 - self.class_prior))
+		risk_u = risk_u_num / risk_u_scaling
 		
 		loss = torch.cat([risk_p, risk_u], dim=0)
 		return torch.mean(loss)
