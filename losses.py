@@ -47,8 +47,8 @@ def get_loss(framework_config: Dict, gather_distributed: bool = False) -> nn.Mod
 	elif loss_fn == 'puCL':
 		return PUConLoss(temperature=temp, reduction='mean')
 	# puNCE - Next Submission
-	elif loss_fn == 'puNCE':
-		return PUinfoNCELoss(temperature=temp, class_prior=prior)
+	elif loss_fn in ['puNCE', 'puNCE_PP']:
+		return PUinfoNCELoss(temperature=temp, class_prior=prior, loss_fn=loss_fn)
 	elif loss_fn == 'pu_dcl':
 		return PuDCL(temperature=temp, prior=prior)
 	else:
