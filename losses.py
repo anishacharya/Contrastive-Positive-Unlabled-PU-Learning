@@ -221,12 +221,13 @@ class PUinfoNCELoss(nn.Module):
 	Proposed puNCE loss ~ Treat U samples as pos and neg with prob pi and 1 - pi
 	"""
 	
-	def __init__(self, temperature: float = 0.5, class_prior: float = 0.5):
+	def __init__(self, temperature: float = 0.5, class_prior: float = 0.5, loss_fn: str = 'puNCE'):
 		super(PUinfoNCELoss, self).__init__()
 		self.bs = None
 		self.self_aug_mask = None
 		self.class_prior = class_prior
 		self.temperature = temperature
+		self.loss_fn = loss_fn
 	
 	def forward(self, z: torch.Tensor, z_aug: torch.Tensor, labels: torch.Tensor, *kwargs) -> torch.Tensor:
 		"""
@@ -281,15 +282,19 @@ class PUinfoNCELoss(nn.Module):
 		risk_uu = risk_uu.sum(dim=1) / (num_unlabeled - 1)
 		
 		# combine
-		# puNCE-III
-		# risk_u = (self.class_prior ** 2 * risk_up + risk_uu) / (1 + self.class_prior ** 2)
-		# puNCE-II
-		# risk_u = ((2 * self.class_prior - 1) * risk_up + risk_uu) / (2 * self.class_prior)
-		# puNCE-I
-		risk_u_num = \
-			(risk_u_self + self.class_prior * risk_up + (1 - 2 * self.class_prior * (1 - self.class_prior)) * risk_uu)
-		risk_u_scaling = 1 + self.class_prior + (1 - 2 * self.class_prior * (1 - self.class_prior))
-		risk_u = risk_u_num / risk_u_scaling
+		# does not work really well ~ works well treating pi as hyper-param ~~ Not good story
+		if self.loss_fn == 'puNCE':
+			risk_u_num = \
+				(risk_u_self + self.class_prior * risk_up)
+			risk_u_scaling = 1 + self.class_prior
+			risk_u = risk_u_num / risk_u_scaling
+		elif self.loss_fn == 'puNCE_PP':
+			risk_u_num = \
+				(risk_u_self + self.class_prior * risk_up + (1 - 2 * self.class_prior * (1 - self.class_prior)) * risk_uu)
+			risk_u_scaling = 1 + self.class_prior + (1 - 2 * self.class_prior * (1 - self.class_prior))
+			risk_u = risk_u_num / risk_u_scaling
+		else:
+			raise NotImplementedError
 		
 		loss = torch.cat([risk_p, risk_u], dim=0)
 		return torch.mean(loss)
