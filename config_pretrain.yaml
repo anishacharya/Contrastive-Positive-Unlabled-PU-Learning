@@ -13,9 +13,9 @@
           # ---- Losses
           # contrastive: ssCL, sCL, puCL, puNCE, dCL, PdCL
           # non-contrastive: ce, uPU, nnPU
-          "loss": 'puNCE',
+          "loss": 'puNCE_EN',
           "temp": 0.1,
-          "prior": 0.9,  # nnPU, uPU, puNCE uses \pi = p(y=1) # pi^* = 9025/(9025+9469) = 0.488
+          "prior": 0.488,  # nnPU, uPU, puNCE uses \pi = p(y=1) # pi^* = 9025/(9025+9469) = 0.488
 
           # ---- validation
           "knn_k": 200,  # knn k for validation steps in contrastive training
