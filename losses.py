@@ -125,25 +125,26 @@ class SupConLoss(nn.Module):
 		:param labels: ground truth labels of size => bs
 		:return: loss value => scalar
 		"""
-		if self.pu_weighted is True:
-			p_ix = torch.where(labels == 1)[0]
-			u_ix = torch.where(labels == 0)[0]
-			
-			# treat U samples as P samples with prob pi and N with 1-pi
-			z_pos = z[p_ix, :]
-			z_unlabeled = z[u_ix, :]
-			z_pseudo_pos = self.class_prior * z_unlabeled
-			z_pseudo_neg = (1 - self.class_prior) * z_unlabeled
-			
-			z_aug_pos = z_aug[p_ix, :]
-			z_aug_unlabeled = z_aug[u_ix, :]
-			z_aug_pseudo_pos = self.class_prior * z_aug_unlabeled
-			z_aug_pseudo_neg = (1 - self.class_prior) * z_aug_unlabeled
-			
-			z = torch.cat([z_pos, z_pseudo_pos, z_pseudo_neg], dim=0)
-			z_aug = torch.cat([z_aug_pos, z_aug_pseudo_pos, z_aug_pseudo_neg], dim=0)
-			
-			labels = torch.cat([labels[p_ix], torch.ones_like(u_ix), torch.zeros_like(u_ix)], dim=0)
+		# --- *** Does not work puNCE_EN *** ----
+		# if self.pu_weighted is True:
+		# 	p_ix = torch.where(labels == 1)[0]
+		# 	u_ix = torch.where(labels == 0)[0]
+		#
+		# 	# treat U samples as P samples with prob pi and N with 1-pi
+		# 	z_pos = z[p_ix, :]
+		# 	z_unlabeled = z[u_ix, :]
+		# 	z_pseudo_pos = self.class_prior * z_unlabeled
+		# 	z_pseudo_neg = (1 - self.class_prior) * z_unlabeled
+		#
+		# 	z_aug_pos = z_aug[p_ix, :]
+		# 	z_aug_unlabeled = z_aug[u_ix, :]
+		# 	z_aug_pseudo_pos = self.class_prior * z_aug_unlabeled
+		# 	z_aug_pseudo_neg = (1 - self.class_prior) * z_aug_unlabeled
+		#
+		# 	z = torch.cat([z_pos, z_pseudo_pos, z_pseudo_neg], dim=0)
+		# 	z_aug = torch.cat([z_aug_pos, z_aug_pseudo_pos, z_aug_pseudo_neg], dim=0)
+		#
+		# 	labels = torch.cat([labels[p_ix], torch.ones_like(u_ix), torch.zeros_like(u_ix)], dim=0)
 		
 		# compute matrix with <z_i , z_j> / temp
 		inner_pdt_mtx = compute_inner_pdt_mtx(z=z, z_aug=z_aug, temp=self.temperature)
@@ -312,13 +313,12 @@ class PUinfoNCELoss(nn.Module):
 			risk_u_num = \
 				(risk_u_self + self.class_prior * risk_up)
 			risk_u_scaling = 1 + self.class_prior
-			risk_u = risk_u_num / risk_u_scaling
 		
 		elif self.loss_fn == 'puNCE_soft':
-			p_likelihood = risk_up / risk_up.sum()  # normalize
+			p_likelihood = risk_up / torch.max(risk_up)  # normalize
 			risk_u_num = \
-				(risk_u_self + p_likelihood * risk_up)
-			risk_u = risk_u_num / (1 + p_likelihood)
+				(risk_u_self + self.class_prior * p_likelihood * risk_up)
+			risk_u_scaling = (1 + self.class_prior * p_likelihood)
 		
 		elif self.loss_fn == 'puNCE_PP':
 			# U samples attract ( P samples + other U samples ) with appropriate probabilities
@@ -326,11 +326,11 @@ class PUinfoNCELoss(nn.Module):
 				(risk_u_self + self.class_prior * risk_up +
 				 (1 - 2 * self.class_prior * (1 - self.class_prior)) * risk_uu)
 			risk_u_scaling = 1 + self.class_prior + (1 - 2 * self.class_prior * (1 - self.class_prior))
-			risk_u = risk_u_num / risk_u_scaling
 		
 		else:
 			raise NotImplementedError
 		
+		risk_u = risk_u_num / risk_u_scaling
 		loss = torch.cat([risk_p, risk_u], dim=0)
 		return torch.mean(loss)
 
