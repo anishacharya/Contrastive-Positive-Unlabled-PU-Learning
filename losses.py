@@ -47,7 +47,7 @@ def get_loss(framework_config: Dict, gather_distributed: bool = False) -> nn.Mod
 	elif loss_fn == 'puCL':
 		return PUConLoss(temperature=temp, reduction='mean')
 	# puNCE - Next Submission
-	elif loss_fn in ['puNCE', 'puNCE_PP']:
+	elif loss_fn in ['puNCE', 'puNCE_PP', 'puNCE_soft']:
 		return PUinfoNCELoss(temperature=temp, class_prior=prior, loss_fn=loss_fn)
 	elif loss_fn == 'puNCE_EN':
 		return SupConLoss(temperature=temp, pu_weighted=True, class_prior=prior, reduction='mean')
@@ -252,8 +252,6 @@ class PUinfoNCELoss(nn.Module):
 		self.class_prior = class_prior
 		self.temperature = temperature
 		self.loss_fn = loss_fn
-		if self.loss_fn == 'puNCE_EN':
-			self.supervised_loss = SupConLoss(temperature=temperature)  # no reduction => per sample
 	
 	def forward(self, z: torch.Tensor, z_aug: torch.Tensor, labels: torch.Tensor, *kwargs) -> torch.Tensor:
 		"""
@@ -316,6 +314,12 @@ class PUinfoNCELoss(nn.Module):
 			risk_u_scaling = 1 + self.class_prior
 			risk_u = risk_u_num / risk_u_scaling
 		
+		elif self.loss_fn == 'puNCE_soft':
+			p_likelihood = risk_up / risk_up.sum()  # normalize
+			risk_u_num = \
+				(risk_u_self + p_likelihood * risk_up)
+			risk_u = risk_u_num / (1 + p_likelihood)
+		
 		elif self.loss_fn == 'puNCE_PP':
 			# U samples attract ( P samples + other U samples ) with appropriate probabilities
 			risk_u_num = \
@@ -323,9 +327,6 @@ class PUinfoNCELoss(nn.Module):
 				 (1 - 2 * self.class_prior * (1 - self.class_prior)) * risk_uu)
 			risk_u_scaling = 1 + self.class_prior + (1 - 2 * self.class_prior * (1 - self.class_prior))
 			risk_u = risk_u_num / risk_u_scaling
-		
-		elif self.loss_fn == 'puNCE_EN':
-			pass
 		
 		else:
 			raise NotImplementedError
