@@ -317,8 +317,8 @@ class PUinfoNCELoss(nn.Module):
 		elif self.loss_fn == 'puNCE_soft':
 			p_likelihood = risk_up / torch.max(risk_up)  # normalize
 			risk_u_num = \
-				(risk_u_self + self.class_prior * p_likelihood * risk_up)
-			risk_u_scaling = (1 + self.class_prior * p_likelihood)
+				(risk_u_self + p_likelihood * risk_up)
+			risk_u_scaling = (1 + p_likelihood)
 		
 		elif self.loss_fn == 'puNCE_PP':
 			# U samples attract ( P samples + other U samples ) with appropriate probabilities
