@@ -270,7 +270,7 @@ class PUinfoNCELoss(nn.Module):
 		similarity_mtx = compute_sfx_mtx(inner_pdt_mtx=inner_pdt_mtx)
 		
 		# compute negative log likelihood
-		# similarity_mtx[similarity_mtx != 0] = torch.log(similarity_mtx[similarity_mtx != 0])
+		similarity_mtx[similarity_mtx != 0] = torch.log(similarity_mtx[similarity_mtx != 0])
 		
 		# get the indices of P and  U samples in the multi-viewed batch
 		# label for M-viewed batch with M=2
@@ -331,7 +331,7 @@ class PUinfoNCELoss(nn.Module):
 			raise NotImplementedError
 		
 		risk_u = risk_u_num / risk_u_scaling
-		loss = - torch.log(torch.cat([risk_p, risk_u], dim=0))
+		loss = torch.cat([risk_p, risk_u], dim=0)
 		return torch.mean(loss)
 
 
