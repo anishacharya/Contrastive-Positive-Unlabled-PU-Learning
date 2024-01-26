@@ -9,7 +9,7 @@ from torch import distributed as torch_dist
 from torch.utils.data import DataLoader
 import torch.nn.functional as F
 from torch.nn import Identity
-from torchvision.models import resnet18, resnet50
+from torchvision.models import resnet18, resnet34, resnet50
 import torch.distributed as dist
 
 from lightly.models.modules import heads
@@ -21,6 +21,7 @@ from utils import (
 	get_optimizer,
 	get_scheduler,
 	cifarresnet18,
+	cifarresnet34,
 	cifarresnet50,
 	CIFARCNN,
 	FMNISTLeNet
@@ -118,6 +119,13 @@ class BaseFramework(LightningModule):
 			self.proj_dim = 128
 			self.proj_num_layers = 2
 		
+		elif encoder_arch == 'cifar-resnet34':
+			self.backbone = cifarresnet34()
+			self.feat_dim = 512
+			self.proj_hidden_dim = 512
+			self.proj_dim = 128
+			self.proj_num_layers = 2
+		
 		elif encoder_arch == 'cifar-resnet50':
 			self.backbone = cifarresnet50()
 			self.feat_dim = 2048
@@ -141,6 +149,14 @@ class BaseFramework(LightningModule):
 		
 		elif encoder_arch == 'resnet18':
 			self.backbone = resnet18()
+			self.backbone.fc = Identity()
+			self.feat_dim = 512
+			self.proj_hidden_dim = 512
+			self.proj_dim = 128
+			self.proj_num_layers = 2
+		
+		elif encoder_arch == 'resnet34':
+			self.backbone = resnet34()
 			self.backbone.fc = Identity()
 			self.feat_dim = 512
 			self.proj_hidden_dim = 512
