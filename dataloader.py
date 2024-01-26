@@ -75,6 +75,7 @@ binary_class_mapping = {
 	'fmnist.2': {'pos_classes': [0, 2, 3, 5, 6, 8, 9], 'neg_classes': None},
 	
 	'imagenet': {'pos_classes': [1], 'neg_classes': [0]},
+	'imagewoof': {'pos_classes': [8], 'neg_classes': None},
 }
 
 
@@ -116,7 +117,8 @@ class DataManager:
 		self.dataset_map = {
 			"binary_cifar": BinaryCIFAR10,
 			"binary_fmnist": BinaryFMNIST,
-			"binary_imagenet": BinaryImageNet
+			"binary_imagenet": BinaryImageNet,
+			"binary_imagewoof": BinaryImageWoof,
 		}
 	
 	class GaussianBlur(object):
@@ -292,6 +294,10 @@ class DataManager:
 		elif self.data_set == 'imagenet':
 			self.num_channels, self.height, self.width = 3, 256, 256
 			root_dataset = 'binary_imagenet'
+			
+		elif self.data_set == 'imagewoof':
+			self.num_channels, self.height, self.width = 3, 256, 256
+			root_dataset = 'binary_imagewoof'
 		
 		else:
 			raise NotImplementedError
@@ -372,6 +378,64 @@ class DataManager:
 		return dataloader_train_mv, dataloader_train_sv, dataloader_train_val, dataloader_test
 
 
+class BinaryImageWoof(Dataset):
+	"""
+	Concatenates ImageNette and ImageWoof into a single dataset.
+	All the ImageWoof instances  are treated as positive class, ImageNette is Negative class.
+	"""
+	
+	def __init__(
+			self,
+			pos_class: List,
+			neg_class: List = None,
+			transform=None,
+			train: bool = True,
+			setting: str = None,
+			num_labeled: int = None,
+			num_unlabeled: int = None,
+			prior: float = None
+	):
+		# Download and extract the Imagenette and Imagewoof datasets
+		# path_imagenette = untar_data(URLs.IMAGENETTE)
+		path_imagewoof = untar_data(URLs.IMAGEWOOF)
+		# Choose the appropriate folder based on train or test
+		folder = 'train' if train else 'val'
+		
+		# Load both datasets
+		self.transform = transform
+		# self.dataset_imagenette = datasets.ImageFolder(root=os.path.join(path_imagenette, folder), transform=transform)
+		self.dataset_imagewoof = datasets.ImageFolder(root=os.path.join(path_imagewoof, folder), transform=transform)
+		
+		# Combine the datasets and assign binary labels
+		# 0: ImageNette , 1: Imagewoof
+		self.data = self.dataset_imagewoof.samples
+		self.targets = self.dataset_imagewoof.samples
+		
+		self.data, self.targets = np.array(self.data), np.array(self.targets)
+		self.multiclass_targets = self.targets
+		self.data, self.targets = binarize_dataset(
+			features=self.data,
+			targets=self.targets,
+			pos_class=pos_class,
+			neg_class=neg_class,
+			setting=setting,
+			num_labeled=num_labeled,
+			num_unlabeled=num_unlabeled,
+			prior=prior
+		)
+	
+	def __len__(self):
+		return len(self.data)
+	
+	def __getitem__(self, idx):
+		img_path, _ = self.data[idx]
+		label = self.targets[idx]
+		img = Image.open(img_path).convert('RGB')
+		if self.transform is not None:
+			img = self.transform(img)
+		return img, label
+	
+	
 class BinaryImageNet(Dataset):
 	"""
 	Concatenates ImageNette and ImageWoof into a single dataset.
