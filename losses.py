@@ -310,14 +310,12 @@ class PUinfoNCELoss(nn.Module):
 		# does not work really well ~ works well treating pi as hyper-param ~~ Not good story
 		if self.loss_fn == 'puNCE':
 			# U samples attract P samples with some small probability
-			risk_u_num = \
-				(risk_u_self + self.class_prior * risk_up)
+			risk_u_num = risk_u_self + self.class_prior * risk_up
 			risk_u_scaling = 1 + self.class_prior
 		
 		elif self.loss_fn == 'puNCE_soft':
 			p_likelihood = risk_up / torch.max(risk_up)  # normalize
-			risk_u_num = \
-				(risk_u_self + p_likelihood * risk_up)
+			risk_u_num = risk_u_self + p_likelihood * risk_up
 			risk_u_scaling = (1 + p_likelihood)
 		
 		elif self.loss_fn == 'puNCE_PP':
