@@ -15,7 +15,7 @@
           # non-contrastive: ce, uPU, nnPU
           "loss": 'puNCE',
           "temp": 0.5,
-          "prior": 0.9,  # nnPU, uPU, puNCE uses \pi = p(y=1)  # pi^* = 9025/(9025+9469) = 0.488
+          "prior": 0.1,  # nnPU, uPU, puNCE uses \pi = p(y=1)  # pi^* = 9025/(9025+9469) = 0.488
 
           # ---- validation
           "knn_k": 200,  # knn k for validation steps in contrastive training
@@ -26,7 +26,7 @@
           # ---- settings: pu_single_data, pu_case_control, supervised, unsupervised
           # nP =  num_labeled, nU =  num_unlabeled
           "setting": "pu_case_control",
-          "num_labeled": 500,   # gamma = 0.5: 9000, 0.2: 4000, 0.1 = 2000, 0.05 = 1000, 0.01 = 500
+          "num_labeled": 1000,   # gamma = 0.5: 9000, 0.2: 4000, 0.1 = 2000, 0.05 = 1000, 0.01 = 500
 
           "num_unlabeled": ,   # only for controlled experiments - leave blank for benchmarks
           "dataset_prior": ,   # leave blank for benchmarks
