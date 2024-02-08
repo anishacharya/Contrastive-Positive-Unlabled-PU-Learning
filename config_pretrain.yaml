@@ -27,7 +27,7 @@
           # nP =  num_labeled, nU =  num_unlabeled
           "setting": "pu_case_control",
           # gamma = 0.5: 9000, 0.2: 4000, 0.1 = 2000, 0.05 = 1000, 0.025 = 500, 0.01 = 200
-          "num_labeled": 9000,
+          "num_labeled": 4000,
 
           "num_unlabeled": ,   # only for controlled experiments - leave blank for benchmarks
           "dataset_prior": ,   # leave blank for benchmarks
