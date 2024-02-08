@@ -270,7 +270,7 @@ class PUinfoNCELoss(nn.Module):
 		similarity_mtx = compute_sfx_mtx(inner_pdt_mtx=inner_pdt_mtx)
 		
 		# compute negative log likelihood
-		similarity_mtx[similarity_mtx != 0] = torch.log(similarity_mtx[similarity_mtx != 0])
+		similarity_mtx[similarity_mtx != 0] = - torch.log(similarity_mtx[similarity_mtx != 0])
 		
 		# get the indices of P and  U samples in the multi-viewed batch
 		# label for M-viewed batch with M=2
@@ -315,8 +315,8 @@ class PUinfoNCELoss(nn.Module):
 		
 		elif self.loss_fn == 'puNCE_soft':
 			p_likelihood = risk_up / torch.max(risk_up)  # normalize
-			risk_u_num = risk_u_self + p_likelihood * risk_up
-			risk_u_scaling = (1 + p_likelihood)
+			risk_u_num = risk_u_self + self.class_prior * p_likelihood * risk_up
+			risk_u_scaling = (1 + self.class_prior * p_likelihood)
 		
 		elif self.loss_fn == 'puNCE_PP':
 			# U samples attract ( P samples + other U samples ) with appropriate probabilities
