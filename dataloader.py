@@ -74,7 +74,8 @@ binary_class_mapping = {
 	'fmnist.1': {'pos_classes': [1, 4, 7], 'neg_classes': None},
 	'fmnist.2': {'pos_classes': [0, 2, 3, 5, 6, 8, 9], 'neg_classes': None},
 	
-	'imagenet': {'pos_classes': [1], 'neg_classes': [0]},
+	'imagenet': {'pos_classes': [1], 'neg_classes': [0]},  # imageNette + ImageWoof
+	
 	'imagewoof': {'pos_classes': [8], 'neg_classes': None},
 }
 
@@ -434,8 +435,8 @@ class BinaryImageWoof(Dataset):
 		if self.transform is not None:
 			img = self.transform(img)
 		return img, label
-	
-	
+
+
 class BinaryImageNet(Dataset):
 	"""
 	Concatenates ImageNette and ImageWoof into a single dataset.
