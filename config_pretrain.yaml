@@ -27,7 +27,7 @@
           # nP =  num_labeled, nU =  num_unlabeled
           "setting": "pu_case_control",
           # gamma = 0.5: 9000, 0.2: 4000, 0.1 = 2000, 0.05 = 1000, 0.025 = 500, ## 0.01 = 200
-          "num_labeled": 1000,
+          "num_labeled": 500,
 
           "num_unlabeled": ,   # only for controlled experiments - leave blank for benchmarks
           "dataset_prior": ,   # leave blank for benchmarks
@@ -43,7 +43,7 @@
           "save_model_freq": 100,
 
           # ----- optimization ----
-          "optimizer": "LARS", # SGD/ Adam, AdamW, LARS
+          "optimizer": "LARS",
           "betas": [ 0.5, 0.99 ],
           "momentum": 0.9,
           "nesterov": true,
@@ -53,10 +53,10 @@
 
           # ----- LRS ------
           "lrs": 'cosine',
-          "warmup": 10,                             # for linear warmup
-          "step_size": 1,                           # for step lrs
-          "milestones": [ 20, 60, 120 ],            # for multistep lrs
-          "gamma": 0.9,                             # for step and multistep lrs
+#          "warmup": 10,                             # for linear warmup
+#          "step_size": 1,                           # for step lrs
+#          "milestones": [ 20, 60, 120 ],            # for multistep lrs
+#          "gamma": 0.9,                             # for step and multistep lrs
 
           "T_max": 100,                            # for cosine lrs
           "eta_min": 0.0001,                       # for cosine lrs
