@@ -295,7 +295,7 @@ class DataManager:
 		elif self.data_set == 'imagenet':
 			self.num_channels, self.height, self.width = 3, 256, 256
 			root_dataset = 'binary_imagenet'
-			
+		
 		elif self.data_set == 'imagewoof':
 			self.num_channels, self.height, self.width = 3, 256, 256
 			root_dataset = 'binary_imagewoof'
