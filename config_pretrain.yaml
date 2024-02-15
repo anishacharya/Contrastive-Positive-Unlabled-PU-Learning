@@ -13,7 +13,7 @@
           # ---- Losses
           # contrastive: ssCL, sCL, puCL, puNCE, puNCE_soft, dCL, PdCL
           # non-contrastive: ce, uPU, nnPU
-          "loss": 'puCL',
+          "loss": 'ssCL',
           "temp": 0.5,
           "prior": 0.9,  # nnPU, uPU, puNCE uses \pi = p(y=1)  # pi^* = 9025/(9025+9469) = 0.488
 
