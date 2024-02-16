@@ -542,7 +542,7 @@ class BinaryFMNIST(datasets.FashionMNIST):
 			num_unlabeled: int = None,
 			prior: float = None
 	):
-		super().__init__(root=root, train=train)
+		super().__init__(root=root, train=train, download=True)
 		self.data, self.targets = np.array(self.data), np.array(self.targets)
 		self.multiclass_targets = self.targets
 		self.data, self.targets = binarize_dataset(
