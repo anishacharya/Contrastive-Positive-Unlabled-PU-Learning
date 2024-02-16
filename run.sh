@@ -17,7 +17,7 @@
 
 # Train contrastive encoder from scratch
 # python3 run_representation.py --exp_name case-control/nP=9k/puNCE-pi=0.9 --dataset imagenet
-python3 run_representation.py --exp_name case-control/nP=3k/puNCE-pi=0.1 --dataset fmnist.2
+python3 run_representation.py --exp_name case-control/nP=3k/puNCE-pi=0.3 --dataset fmnist.2
 
 
 
