@@ -115,12 +115,14 @@ class DataManager:
 			self.test_batch_size //= n_gpus
 		self.num_worker = self.data_config.get('num_worker', 1)
 		
-		self.dataset_map = {
-			"binary_cifar": BinaryCIFAR10,
-			"binary_fmnist": BinaryFMNIST,
-			"binary_imagenet": BinaryImageNet,
-			"binary_imagewoof": BinaryImageWoof,
-		}
+		self.dataset_map = \
+			{
+				"binary_cifar": BinaryCIFAR10,
+				"binary_stl10": BinarySTL10,
+				"binary_fmnist": BinaryFMNIST,
+				"binary_imagenet": BinaryImageNet,
+				"binary_imagewoof": BinaryImageWoof,
+			}
 	
 	class GaussianBlur(object):
 		"""Gaussian blur augmentation: https://github.com/facebookresearch/moco/"""
