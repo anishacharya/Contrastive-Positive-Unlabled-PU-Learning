@@ -199,7 +199,7 @@ class DataManager:
 			basic_transform = self.BasicTransform(mean=mean, std=std, input_shape=model_ip_shape)
 		
 		elif self.data_set in ['stl10.1', 'stl10.2']:
-			raise NotImplementedError
+			mean, std = [0.4914, 0.4822, 0.4465], [0.2023, 0.1994, 0.2010]
 		
 		elif self.data_set in ['fmnist.1', 'fmnist.2']:
 			mean, std = (0.5,), (0.5,)
@@ -231,8 +231,7 @@ class DataManager:
 				transforms.RandomApply([self.GaussianBlur([0.1, 2.0])], p=0.5),
 				self.Solarization(p=0.0),
 				transforms.ToTensor(),
-				transforms.Normalize(mean=[0.485, 0.456, 0.406],
-				                     std=[0.229, 0.224, 0.225])
+				transforms.Normalize(mean=mean, std=std)
 			])
 			mv_transform = MultiViewTransform(transforms=[imagenet_transform, imagenet_transform])
 			# mv_transform = SimCLRTransform()
