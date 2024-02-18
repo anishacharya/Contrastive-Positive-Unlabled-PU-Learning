@@ -495,6 +495,44 @@ class BinaryImageNet(Dataset):
 		return img, label
 
 
+class BinarySTL10(datasets.STL10):
+	"""
+		Binarize STL10
+	"""
+	
+	def __init__(self,
+	             pos_class: List,
+	             neg_class: List = None,
+	             split: str = 'train',
+	             root=root_dir,
+	             setting: str = None,
+	             num_labeled: int = None,
+	             num_unlabeled: int = None,
+	             prior: float = None):
+		super().__init__(root=root, split=split, download=True)
+		
+		self.data, self.targets = np.array(self.data), np.array(self.labels)
+		self.multiclass_targets = self.targets
+		
+		self.data, self.targets = binarize_dataset(
+			features=self.data,
+			targets=self.targets,
+			pos_class=pos_class,
+			neg_class=neg_class,
+			setting=setting,
+			num_labeled=num_labeled,
+			num_unlabeled=num_unlabeled,
+			prior=prior
+		)
+	
+	def __getitem__(self, index):
+		img, target = self.data[index], self.labels[index]
+		img = Image.fromarray(np.transpose(img, (1, 2, 0)))
+		if self.transform is not None:
+			img = self.transform(img)
+		return img, target
+
+
 class BinaryCIFAR10(datasets.CIFAR10):
 	"""
 		Binarize CIFAR10
