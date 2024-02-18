@@ -161,8 +161,8 @@ def run_contrastive_training(args, config):
 		}
 		if rank() == 0:
 			runs.append(run)
-			logger.log_metrics(metrics=run)
-			logger.log_hyperparams(config)
+			# logger.log_metrics(metrics=run)
+			# logger.log_hyperparams(config)
 			print(run)
 		# ----- delete model and trainer + free up cuda memory ---
 		del model
