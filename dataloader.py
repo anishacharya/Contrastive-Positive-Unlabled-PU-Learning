@@ -25,38 +25,19 @@ from tqdm import tqdm
 
 root_dir = os.path.join(os.path.dirname(__file__), './data/')
 
-supported_binary_cifar_datasets = [
-	'cifar10.easy',
-	'cifar10.medium',
-	'cifar10.hard',
-	'cifar10.dog_cat',
-	'cifar10.1',  # vehicle - animal
-	'cifar10.2',  # animal - vehicle
-	# CIFAR 10 - one vs all
-	'cifar10.airplane',
-	'cifar10.automobile',
-	'cifar10.bird',
-	'cifar10.cat',
-	'cifar10.deer',
-	'cifar10.dog',
-	'cifar10.frog',
-	'cifar10.horse',
-	'cifar10.ship',
-	'cifar10.truck'
-]
 binary_class_mapping = {
 	# Cifar10 Class Mapping
 	# 0:'airplane', 1:'automobile', 2:'bird', 3:'cat', 4:'deer',
 	# 5:'dog', 6:'frog', 7:'horse', 8:'ship', 9:'truck'
 	
-	# airplane-bird, dog-cat
+	# cifar: airplane-bird, dog-cat
 	'cifar10.easy': {'pos_classes': [3, 5], 'neg_classes': [0, 2]},
 	'cifar10.hard': {'pos_classes': [0, 3], 'neg_classes': [2, 5]},
 	'cifar10.medium': {'pos_classes': [0, 3, 5], 'neg_classes': [2]},
 	
-	# dog-cat
+	# cifar: dog-cat
 	'cifar10.dog_cat': {'pos_classes': [5], 'neg_classes': [3]},
-	# vehicle-animal
+	# cifar: vehicle-animal
 	'cifar10.1': {'pos_classes': [0, 1, 8, 9], 'neg_classes': [2, 3, 4, 5, 6, 7]},
 	'cifar10.2': {'pos_classes': [2, 3, 4, 5, 6, 7], 'neg_classes': [0, 1, 8, 9]},
 	# class X vs All
@@ -71,11 +52,12 @@ binary_class_mapping = {
 	'cifar10.ship': {'pos_classes': [8], 'neg_classes': None},
 	'cifar10.truck': {'pos_classes': [9], 'neg_classes': None},
 	
+	# fmnist
 	'fmnist.1': {'pos_classes': [1, 4, 7], 'neg_classes': None},
 	'fmnist.2': {'pos_classes': [0, 2, 3, 5, 6, 8, 9], 'neg_classes': None},
 	
+	# imageNette
 	'imagenet': {'pos_classes': [1], 'neg_classes': [0]},  # imageNette + ImageWoof
-	
 	'imagewoof': {'pos_classes': [8], 'neg_classes': None},
 }
 
