@@ -24,7 +24,6 @@ from torchvision.transforms import functional as TF
 from tqdm import tqdm
 
 root_dir = os.path.join(os.path.dirname(__file__), './data/')
-
 binary_class_mapping = {
 	# Cifar10 Class Mapping
 	# 0:'airplane', 1:'automobile', 2:'bird', 3:'cat', 4:'deer',
@@ -180,7 +179,10 @@ class DataManager:
 		"""
 		:return:
 		"""
-		if self.data_set in supported_binary_cifar_datasets:
+		if self.data_set in ['cifar10.easy', 'cifar10.hard', 'cifar10.medium',
+		                     'cifar10.dog_cat', 'cifar10.1', 'cifar10.2',
+		                     'cifar10.airplane', 'cifar10.automobile', 'cifar10.bird', 'cifar10.cat', 'cifar10.deer',
+		                     'cifar10.dog', 'cifar10.frog', 'cifar10.horse', 'cifar10.ship', 'cifar10.truck']:
 			# update dataset attributes
 			mean, std = [0.4914, 0.4822, 0.4465], [0.2470, 0.2435, 0.2616]
 			model_ip_shape = 32
@@ -195,6 +197,9 @@ class DataManager:
 				gaussian_blur=0.0
 			)
 			basic_transform = self.BasicTransform(mean=mean, std=std, input_shape=model_ip_shape)
+		
+		elif self.data_set in ['stl10.1', 'stl10.2']:
+			raise NotImplementedError
 		
 		elif self.data_set in ['fmnist.1', 'fmnist.2']:
 			mean, std = (0.5,), (0.5,)
