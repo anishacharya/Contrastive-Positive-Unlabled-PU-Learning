@@ -24,6 +24,7 @@ from utils import (
 	cifarresnet34,
 	cifarresnet50,
 	CIFARCNN,
+	STLCNN,
 	FMNISTLeNet
 )
 
@@ -136,6 +137,13 @@ class BaseFramework(LightningModule):
 		elif encoder_arch == 'cifar-cnn':
 			self.backbone = CIFARCNN()
 			self.feat_dim = 1000
+			self.proj_hidden_dim = 512
+			self.proj_dim = 128
+			self.proj_num_layers = 2
+		
+		elif encoder_arch == 'stl-cnn':
+			self.backbone = CIFARCNN()
+			self.feat_dim = 84
 			self.proj_hidden_dim = 512
 			self.proj_dim = 128
 			self.proj_num_layers = 2
