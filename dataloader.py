@@ -276,7 +276,10 @@ class DataManager:
         train and test dataset
         """
 		self.num_classes = 2
-		if self.data_set in supported_binary_cifar_datasets:
+		if self.data_set in ['cifar10.easy', 'cifar10.hard', 'cifar10.medium',
+		                     'cifar10.dog_cat', 'cifar10.1', 'cifar10.2',
+		                     'cifar10.airplane', 'cifar10.automobile', 'cifar10.bird', 'cifar10.cat', 'cifar10.deer',
+		                     'cifar10.dog', 'cifar10.frog', 'cifar10.horse', 'cifar10.ship', 'cifar10.truck']:
 			# get attributes
 			self.num_channels, self.height, self.width = 3, 32, 32
 			root_dataset = 'binary_cifar'
