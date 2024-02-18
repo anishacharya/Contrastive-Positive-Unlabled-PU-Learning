@@ -59,6 +59,11 @@ binary_class_mapping = {
 	# imageNette
 	'imagenet': {'pos_classes': [1], 'neg_classes': [0]},  # imageNette + ImageWoof
 	'imagewoof': {'pos_classes': [8], 'neg_classes': None},
+	
+	# stl10
+	# class: 'airplane', 'bird', 'car', 'cat', 'deer', 'dog', 'horse', 'monkey', 'ship', 'truck'
+	'stl10.1': {'pos_classes': [0, 2, 3, 8, 9], 'neg_classes': None},
+	'stl10.2': {'pos_classes': [1, 4, 5, 6, 7], 'neg_classes': None}
 }
 
 
