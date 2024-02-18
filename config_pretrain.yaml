@@ -639,7 +639,7 @@
       "framework_config":
         {
           # ---- model
-          "encoder_arch": "cifar-cnn",
+          "encoder_arch": "stl-cnn",
           "proj_num_layers": 2,
           "proj_hidden_dim": 256,
           "proj_dim": 128,
@@ -648,8 +648,8 @@
           # contrastive: ssCL, sCL, puCL, puNCE, ENpuNCE, piNCE
           # non-contrastive: ce, uPU, nnPU
           "loss": 'puNCE',
-          "temp": 0.5,
-          "prior": 0.9,  # nnPU, uPU, puNCE uses \pi = p(y=1)
+          "temp": 0.07,
+          "prior": 0.1,  # nnPU, uPU, puNCE uses \pi = p(y=1)
 
           # ---- validation
           "knn_k": 200,  # knn k for validation steps in contrastive training
@@ -660,20 +660,20 @@
           # ---- settings: pu_single_data, pu_case_control, supervised, unsupervised
           # nP =  num_labeled, nU =  num_unlabeled
           "setting": "pu_case_control",
-          "num_labeled": 3000,
+          "num_labeled": 1000,
 
           "num_unlabeled": ,   # only for controlled experiments - leave blank for benchmarks
           "dataset_prior": ,   # leave blank for benchmarks
 
-          "train_batch_size": 1024,
+          "train_batch_size": 2048,
           "test_batch_size": 1000,
           "num_worker": 8
         },
       "training_config":
         {
-          "epochs": 300,
+          "epochs": 400,
           "eval_freq": 1,
-          "save_model_freq": 100,
+          "save_model_freq": 400,
 
           # ----- optimization ----
           "optimizer": "LARS", # SGD/ Adam, AdamW, LARS
@@ -692,7 +692,7 @@
           "milestones": [ 20, 60, 120 ],            # for multistep lrs
           "gamma": 0.9,                             # for step and multistep lrs
 
-          "T_max": 300,                            # for cosine lrs
+          "T_max": 400,                            # for cosine lrs
           "eta_min": 0.00001,                       # for cosine lrs
         }
     },
