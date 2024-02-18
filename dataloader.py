@@ -505,12 +505,17 @@ class BinarySTL10(datasets.STL10):
 	def __init__(self,
 	             pos_class: List,
 	             neg_class: List = None,
-	             split: str = 'train',
+	             train: bool = True,
 	             root=root_dir,
 	             setting: str = None,
 	             num_labeled: int = None,
 	             num_unlabeled: int = None,
 	             prior: float = None):
+		
+		split = 'train' if train else 'test'
+		if setting != 'supervised':
+			split = 'train+unlabeled' if train else split
+		
 		super().__init__(root=root, split=split, download=True)
 		
 		self.data, self.targets = np.array(self.data), np.array(self.labels)
